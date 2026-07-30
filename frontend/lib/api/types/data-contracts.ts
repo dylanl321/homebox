@@ -559,6 +559,33 @@ export interface EntPasswordResetTokensEdges {
   user: EntUser;
 }
 
+export interface EntQRLoginTokens {
+  /** CreatedAt holds the value of the "created_at" field. */
+  created_at: string;
+  /**
+   * Edges holds the relations/edges for other nodes in the graph.
+   * The values are being populated by the QRLoginTokensQuery when eager-loading is set.
+   */
+  edges: EntQRLoginTokensEdges;
+  /** ExpiresAt holds the value of the "expires_at" field. */
+  expires_at: string;
+  /** ID of the ent. */
+  id: string;
+  /** Token holds the value of the "token" field. */
+  token: number[];
+  /** UpdatedAt holds the value of the "updated_at" field. */
+  updated_at: string;
+  /** UsedAt holds the value of the "used_at" field. */
+  used_at: string;
+  /** UserID holds the value of the "user_id" field. */
+  user_id: string;
+}
+
+export interface EntQRLoginTokensEdges {
+  /** User holds the value of the user edge. */
+  user: EntUser;
+}
+
 export interface EntTag {
   /** Color holds the value of the "color" field. */
   color: string;
@@ -668,6 +695,8 @@ export interface EntUserEdges {
   notifiers: EntNotifier[];
   /** PasswordResetTokens holds the value of the password_reset_tokens edge. */
   password_reset_tokens: EntPasswordResetTokens[];
+  /** QrLoginTokens holds the value of the qr_login_tokens edge. */
+  qr_login_tokens: EntQRLoginTokens[];
   /** UserGroups holds the value of the user_groups edge. */
   user_groups: EntUserGroup[];
 }
@@ -1413,6 +1442,17 @@ export interface OIDCStatus {
   autoRedirect: boolean;
   buttonText: string;
   enabled: boolean;
+}
+
+export interface QRLoginCreateResponse {
+  expiresAt: Date | string;
+  token: string;
+}
+
+export interface QRLoginExchangeRequest {
+  stayLoggedIn: boolean;
+  /** @example "ABCDEFGHIJKLMNOPQRSTUVWXYZ" */
+  token: string;
 }
 
 export interface ResetPasswordRequest {

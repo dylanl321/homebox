@@ -12,6 +12,7 @@ type AllRepos struct {
 	Users               *UserRepository
 	AuthTokens          *TokenRepository
 	PasswordResetTokens *PasswordResetTokenRepository
+	QRLoginTokens       *QRLoginTokenRepository // homebox-fork: qr-login
 	APIKeys             *APIKeyRepository
 	Groups              *GroupRepository
 	Entities            *EntityRepository
@@ -30,6 +31,7 @@ func New(db *ent.Client, bus *eventbus.EventBus, storage config.Storage, pubSubC
 		Users:               &UserRepository{db},
 		AuthTokens:          &TokenRepository{db},
 		PasswordResetTokens: &PasswordResetTokenRepository{db},
+		QRLoginTokens:       &QRLoginTokenRepository{db}, // homebox-fork: qr-login
 		APIKeys:             NewAPIKeyRepository(db),
 		Groups:              NewGroupRepository(db),
 		Entities:            &EntityRepository{db, bus, attachments},

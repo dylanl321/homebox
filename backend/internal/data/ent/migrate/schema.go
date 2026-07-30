@@ -515,6 +515,42 @@ var (
 			},
 		},
 	}
+	// QrLoginTokensColumns holds the columns for the "qr_login_tokens" table.
+	QrLoginTokensColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "token", Type: field.TypeBytes, Unique: true},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "used_at", Type: field.TypeTime, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID},
+	}
+	// QrLoginTokensTable holds the schema information for the "qr_login_tokens" table.
+	QrLoginTokensTable = &schema.Table{
+		Name:       "qr_login_tokens",
+		Columns:    QrLoginTokensColumns,
+		PrimaryKey: []*schema.Column{QrLoginTokensColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "qr_login_tokens_users_qr_login_tokens",
+				Columns:    []*schema.Column{QrLoginTokensColumns[6]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "qrlogintokens_token",
+				Unique:  false,
+				Columns: []*schema.Column{QrLoginTokensColumns[3]},
+			},
+			{
+				Name:    "qrlogintokens_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{QrLoginTokensColumns[6]},
+			},
+		},
+	}
 	// TagsColumns holds the columns for the "tags" table.
 	TagsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -671,6 +707,7 @@ var (
 		MaintenanceEntriesTable,
 		NotifiersTable,
 		PasswordResetTokensTable,
+		QrLoginTokensTable,
 		TagsTable,
 		TemplateFieldsTable,
 		UsersTable,
@@ -699,6 +736,7 @@ func init() {
 	NotifiersTable.ForeignKeys[0].RefTable = GroupsTable
 	NotifiersTable.ForeignKeys[1].RefTable = UsersTable
 	PasswordResetTokensTable.ForeignKeys[0].RefTable = UsersTable
+	QrLoginTokensTable.ForeignKeys[0].RefTable = UsersTable
 	TagsTable.ForeignKeys[0].RefTable = GroupsTable
 	TagsTable.ForeignKeys[1].RefTable = TagsTable
 	TemplateFieldsTable.ForeignKeys[0].RefTable = EntityTemplatesTable

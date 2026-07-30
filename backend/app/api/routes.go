@@ -90,6 +90,8 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 
 		r.Post("/users/register", chain.ToHandlerFunc(v1Ctrl.HandleUserRegistration()))
 		r.Post("/users/login", chain.ToHandlerFunc(v1Ctrl.HandleAuthLogin(providers...), a.mwAuthRateLimit))
+		// homebox-fork: qr-login
+		r.Post("/users/login/qr", chain.ToHandlerFunc(v1Ctrl.HandleQRLoginExchange(), a.mwAuthRateLimit))
 		r.Post("/users/forgot-password", chain.ToHandlerFunc(v1Ctrl.HandleForgotPassword(), a.mwAuthRateLimit))
 		r.Post("/users/reset-password", chain.ToHandlerFunc(v1Ctrl.HandleResetPassword(), a.mwAuthRateLimit))
 
@@ -116,6 +118,8 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		r.Post("/users/logout/all", chain.ToHandlerFunc(v1Ctrl.HandleAuthLogoutAll(), userMW...))
 		r.Get("/users/refresh", chain.ToHandlerFunc(v1Ctrl.HandleAuthRefresh(), userMW...))
 		r.Put("/users/self/change-password", chain.ToHandlerFunc(v1Ctrl.HandleUserSelfChangePassword(), userMW...))
+		// homebox-fork: qr-login
+		r.Post("/users/self/qr-login", chain.ToHandlerFunc(v1Ctrl.HandleQRLoginCreate(), userMW...))
 
 		// User API keys (static tokens that authenticate as the owning user)
 		r.Get("/users/self/api-keys", chain.ToHandlerFunc(v1Ctrl.HandleUserAPIKeysList(), userMW...))

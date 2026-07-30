@@ -26,6 +26,8 @@
   import PasswordScore from "~/components/global/PasswordScore.vue";
   import { PASSWORD_MIN_LENGTH, PASSWORD_RULES } from "~/lib/passwords";
   import type { APIKeyOut } from "~~/lib/api/types/data-contracts";
+  // homebox-fork: qr-login
+  import ProfileQRLogin from "~/components/Profile/QRLogin.vue";
 
   const { t } = useI18n();
 
@@ -372,6 +374,9 @@
         </div>
         <LanguageSelector />
       </BaseCard>
+
+      <!-- homebox-fork: qr-login -->
+      <ProfileQRLogin />
 
       <BaseCard>
         <template #title>

@@ -1,0 +1,50 @@
+# TrueNAS SCALE custom-app compose for the dylanl321/homebox fork
+# (includes QR-login). Paste into Apps → Discover Apps → ⋮ → Install via YAML.
+#
+# Before deploy:
+# 1. Create dataset e.g. /mnt/<pool>/apps/homebox
+# 2. Replace PLACEHOLDER values below
+# 3. Ensure the image exists (ghcr.io/dylanl321/homebox:main or your tag)
+
+services:
+  homebox:
+    image: ghcr.io/dylanl321/homebox:main
+    container_name: homebox
+    restart: unless-stopped
+    ports:
+      # Host:container — change host port if 3100 is taken
+      - "3100:7745"
+    environment:
+      HBOX_LOG_LEVEL: info
+      HBOX_LOG_FORMAT: text
+      HBOX_MODE: production
+      HBOX_WEB_MAX_UPLOAD_SIZE: "50"
+      HBOX_OPTIONS_ALLOW_ANALYTICS: "false"
+      HBOX_OPTIONS_ALLOW_REGISTRATION: "true"
+      # Required for secure API keys. Generate once and keep stable:
+      #   openssl rand -base64 48
+      HBOX_AUTH_API_KEY_PEPPER: "REPLACE_WITH_LONG_RANDOM_PEPPER"
+      # Public URL phones will open after scanning QR codes.
+      # Use the URL you actually browse (LAN IP, hostname, or reverse-proxy URL).
+      # Examples: http://192.168.1.50:3100  or  https://homebox.example.com
+      HBOX_OPTIONS_HOSTNAME: "http://REPLACE_WITH_HOST_OR_IP:3100"
+      # Only if TrueNAS / reverse proxy sets X-Forwarded-* correctly:
+      # HBOX_OPTIONS_TRUST_PROXY: "true"
+    volumes:
+      # Bind to a TrueNAS dataset so SQLite + attachments survive upgrades
+      - /mnt/REPLACE_POOL/apps/homebox:/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "-O",
+          "-",
+          "http://localhost:7745/api/v1/status",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

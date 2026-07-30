@@ -769,6 +769,45 @@ definitions:
         - $ref: '#/definitions/ent.User'
         description: User holds the value of the user edge.
     type: object
+  ent.QRLoginTokens:
+    properties:
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/ent.QRLoginTokensEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the QRLoginTokensQuery when eager-loading is set.
+      expires_at:
+        description: ExpiresAt holds the value of the "expires_at" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      token:
+        description: Token holds the value of the "token" field.
+        items:
+          type: integer
+        type: array
+      updated_at:
+        description: UpdatedAt holds the value of the "updated_at" field.
+        type: string
+      used_at:
+        description: UsedAt holds the value of the "used_at" field.
+        type: string
+      user_id:
+        description: UserID holds the value of the "user_id" field.
+        type: string
+    type: object
+  ent.QRLoginTokensEdges:
+    properties:
+      user:
+        allOf:
+        - $ref: '#/definitions/ent.User'
+        description: User holds the value of the user edge.
+    type: object
   ent.Tag:
     properties:
       color:
@@ -940,6 +979,11 @@ definitions:
           edge.
         items:
           $ref: '#/definitions/ent.PasswordResetTokens'
+        type: array
+      qr_login_tokens:
+        description: QrLoginTokens holds the value of the qr_login_tokens edge.
+        items:
+          $ref: '#/definitions/ent.QRLoginTokens'
         type: array
       user_groups:
         description: UserGroups holds the value of the user_groups edge.
@@ -2301,6 +2345,23 @@ definitions:
         type: string
       enabled:
         type: boolean
+    type: object
+  v1.QRLoginCreateResponse:
+    properties:
+      expiresAt:
+        type: string
+      token:
+        type: string
+    type: object
+  v1.QRLoginExchangeRequest:
+    properties:
+      stayLoggedIn:
+        type: boolean
+      token:
+        example: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        type: string
+    required:
+    - token
     type: object
   v1.ResetPasswordRequest:
     properties:
@@ -4077,6 +4138,37 @@ paths:
       summary: OIDC Callback Handler
       tags:
       - Authentication
+  /v1/users/login/qr:
+    post:
+      consumes:
+      - application/json
+      description: Consumes a QR login token and establishes a session for the owning
+        user.
+      parameters:
+      - description: QR login token
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/v1.QRLoginExchangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.TokenResponse'
+        "400":
+          description: missing or invalid request body
+          schema:
+            type: string
+        "401":
+          description: invalid or expired QR login token
+          schema:
+            type: string
+      summary: Exchange QR Login Token
+      tags:
+      - Authentication
   /v1/users/logout:
     post:
       responses:
@@ -4278,6 +4370,27 @@ paths:
       summary: Delete API Key
       tags:
       - User
+  /v1/users/self/qr-login:
+    post:
+      description: |-
+        Mints a short-lived single-use token for logging in another device via QR code.
+        Any previously unused QR login token for this user is invalidated.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.QRLoginCreateResponse'
+        "401":
+          description: unauthorized
+          schema:
+            type: string
+      security:
+      - Bearer: []
+      summary: Create QR Login Token
+      tags:
+      - Authentication
   /v1/users/self/settings:
     get:
       produces:

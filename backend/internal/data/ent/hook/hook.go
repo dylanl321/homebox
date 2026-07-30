@@ -177,6 +177,18 @@ func (f PasswordResetTokensFunc) Mutate(ctx context.Context, m ent.Mutation) (en
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PasswordResetTokensMutation", m)
 }
 
+// The QRLoginTokensFunc type is an adapter to allow the use of ordinary
+// function as QRLoginTokens mutator.
+type QRLoginTokensFunc func(context.Context, *ent.QRLoginTokensMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QRLoginTokensFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QRLoginTokensMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QRLoginTokensMutation", m)
+}
+
 // The TagFunc type is an adapter to allow the use of ordinary
 // function as Tag mutator.
 type TagFunc func(context.Context, *ent.TagMutation) (ent.Value, error)

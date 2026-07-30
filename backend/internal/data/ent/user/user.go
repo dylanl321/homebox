@@ -45,6 +45,8 @@ const (
 	EdgeAuthTokens = "auth_tokens"
 	// EdgePasswordResetTokens holds the string denoting the password_reset_tokens edge name in mutations.
 	EdgePasswordResetTokens = "password_reset_tokens"
+	// EdgeQrLoginTokens holds the string denoting the qr_login_tokens edge name in mutations.
+	EdgeQrLoginTokens = "qr_login_tokens"
 	// EdgeAPIKeys holds the string denoting the api_keys edge name in mutations.
 	EdgeAPIKeys = "api_keys"
 	// EdgeNotifiers holds the string denoting the notifiers edge name in mutations.
@@ -72,6 +74,13 @@ const (
 	PasswordResetTokensInverseTable = "password_reset_tokens"
 	// PasswordResetTokensColumn is the table column denoting the password_reset_tokens relation/edge.
 	PasswordResetTokensColumn = "user_id"
+	// QrLoginTokensTable is the table that holds the qr_login_tokens relation/edge.
+	QrLoginTokensTable = "qr_login_tokens"
+	// QrLoginTokensInverseTable is the table name for the QRLoginTokens entity.
+	// It exists in this package in order to avoid circular dependency with the "qrlogintokens" package.
+	QrLoginTokensInverseTable = "qr_login_tokens"
+	// QrLoginTokensColumn is the table column denoting the qr_login_tokens relation/edge.
+	QrLoginTokensColumn = "user_id"
 	// APIKeysTable is the table that holds the api_keys relation/edge.
 	APIKeysTable = "api_keys"
 	// APIKeysInverseTable is the table name for the APIKey entity.
@@ -254,6 +263,20 @@ func ByPasswordResetTokens(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 	}
 }
 
+// ByQrLoginTokensCount orders the results by qr_login_tokens count.
+func ByQrLoginTokensCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newQrLoginTokensStep(), opts...)
+	}
+}
+
+// ByQrLoginTokens orders the results by qr_login_tokens terms.
+func ByQrLoginTokens(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQrLoginTokensStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByAPIKeysCount orders the results by api_keys count.
 func ByAPIKeysCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -314,6 +337,13 @@ func newPasswordResetTokensStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PasswordResetTokensInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, PasswordResetTokensTable, PasswordResetTokensColumn),
+	)
+}
+func newQrLoginTokensStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(QrLoginTokensInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, QrLoginTokensTable, QrLoginTokensColumn),
 	)
 }
 func newAPIKeysStep() *sqlgraph.Step {

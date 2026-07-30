@@ -27,6 +27,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/qrlogintokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/templatefield"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
@@ -56,6 +57,7 @@ const (
 	TypeMaintenanceEntry     = "MaintenanceEntry"
 	TypeNotifier             = "Notifier"
 	TypePasswordResetTokens  = "PasswordResetTokens"
+	TypeQRLoginTokens        = "QRLoginTokens"
 	TypeTag                  = "Tag"
 	TypeTemplateField        = "TemplateField"
 	TypeUser                 = "User"
@@ -13607,6 +13609,684 @@ func (m *PasswordResetTokensMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown PasswordResetTokens edge %s", name)
 }
 
+// QRLoginTokensMutation represents an operation that mutates the QRLoginTokens nodes in the graph.
+type QRLoginTokensMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	created_at    *time.Time
+	updated_at    *time.Time
+	token         *[]byte
+	expires_at    *time.Time
+	used_at       *time.Time
+	clearedFields map[string]struct{}
+	user          *uuid.UUID
+	cleareduser   bool
+	done          bool
+	oldValue      func(context.Context) (*QRLoginTokens, error)
+	predicates    []predicate.QRLoginTokens
+}
+
+var _ ent.Mutation = (*QRLoginTokensMutation)(nil)
+
+// qrlogintokensOption allows management of the mutation configuration using functional options.
+type qrlogintokensOption func(*QRLoginTokensMutation)
+
+// newQRLoginTokensMutation creates new mutation for the QRLoginTokens entity.
+func newQRLoginTokensMutation(c config, op Op, opts ...qrlogintokensOption) *QRLoginTokensMutation {
+	m := &QRLoginTokensMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeQRLoginTokens,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withQRLoginTokensID sets the ID field of the mutation.
+func withQRLoginTokensID(id uuid.UUID) qrlogintokensOption {
+	return func(m *QRLoginTokensMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *QRLoginTokens
+		)
+		m.oldValue = func(ctx context.Context) (*QRLoginTokens, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().QRLoginTokens.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withQRLoginTokens sets the old QRLoginTokens of the mutation.
+func withQRLoginTokens(node *QRLoginTokens) qrlogintokensOption {
+	return func(m *QRLoginTokensMutation) {
+		m.oldValue = func(context.Context) (*QRLoginTokens, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m QRLoginTokensMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m QRLoginTokensMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of QRLoginTokens entities.
+func (m *QRLoginTokensMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *QRLoginTokensMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *QRLoginTokensMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().QRLoginTokens.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *QRLoginTokensMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *QRLoginTokensMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the QRLoginTokens entity.
+// If the QRLoginTokens object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QRLoginTokensMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *QRLoginTokensMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *QRLoginTokensMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *QRLoginTokensMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the QRLoginTokens entity.
+// If the QRLoginTokens object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QRLoginTokensMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *QRLoginTokensMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *QRLoginTokensMutation) SetUserID(u uuid.UUID) {
+	m.user = &u
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *QRLoginTokensMutation) UserID() (r uuid.UUID, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the QRLoginTokens entity.
+// If the QRLoginTokens object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QRLoginTokensMutation) OldUserID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *QRLoginTokensMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetToken sets the "token" field.
+func (m *QRLoginTokensMutation) SetToken(b []byte) {
+	m.token = &b
+}
+
+// Token returns the value of the "token" field in the mutation.
+func (m *QRLoginTokensMutation) Token() (r []byte, exists bool) {
+	v := m.token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToken returns the old "token" field's value of the QRLoginTokens entity.
+// If the QRLoginTokens object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QRLoginTokensMutation) OldToken(ctx context.Context) (v []byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToken: %w", err)
+	}
+	return oldValue.Token, nil
+}
+
+// ResetToken resets all changes to the "token" field.
+func (m *QRLoginTokensMutation) ResetToken() {
+	m.token = nil
+}
+
+// SetExpiresAt sets the "expires_at" field.
+func (m *QRLoginTokensMutation) SetExpiresAt(t time.Time) {
+	m.expires_at = &t
+}
+
+// ExpiresAt returns the value of the "expires_at" field in the mutation.
+func (m *QRLoginTokensMutation) ExpiresAt() (r time.Time, exists bool) {
+	v := m.expires_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExpiresAt returns the old "expires_at" field's value of the QRLoginTokens entity.
+// If the QRLoginTokens object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QRLoginTokensMutation) OldExpiresAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
+	}
+	return oldValue.ExpiresAt, nil
+}
+
+// ResetExpiresAt resets all changes to the "expires_at" field.
+func (m *QRLoginTokensMutation) ResetExpiresAt() {
+	m.expires_at = nil
+}
+
+// SetUsedAt sets the "used_at" field.
+func (m *QRLoginTokensMutation) SetUsedAt(t time.Time) {
+	m.used_at = &t
+}
+
+// UsedAt returns the value of the "used_at" field in the mutation.
+func (m *QRLoginTokensMutation) UsedAt() (r time.Time, exists bool) {
+	v := m.used_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsedAt returns the old "used_at" field's value of the QRLoginTokens entity.
+// If the QRLoginTokens object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QRLoginTokensMutation) OldUsedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsedAt: %w", err)
+	}
+	return oldValue.UsedAt, nil
+}
+
+// ClearUsedAt clears the value of the "used_at" field.
+func (m *QRLoginTokensMutation) ClearUsedAt() {
+	m.used_at = nil
+	m.clearedFields[qrlogintokens.FieldUsedAt] = struct{}{}
+}
+
+// UsedAtCleared returns if the "used_at" field was cleared in this mutation.
+func (m *QRLoginTokensMutation) UsedAtCleared() bool {
+	_, ok := m.clearedFields[qrlogintokens.FieldUsedAt]
+	return ok
+}
+
+// ResetUsedAt resets all changes to the "used_at" field.
+func (m *QRLoginTokensMutation) ResetUsedAt() {
+	m.used_at = nil
+	delete(m.clearedFields, qrlogintokens.FieldUsedAt)
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *QRLoginTokensMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[qrlogintokens.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *QRLoginTokensMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *QRLoginTokensMutation) UserIDs() (ids []uuid.UUID) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *QRLoginTokensMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the QRLoginTokensMutation builder.
+func (m *QRLoginTokensMutation) Where(ps ...predicate.QRLoginTokens) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the QRLoginTokensMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *QRLoginTokensMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.QRLoginTokens, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *QRLoginTokensMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *QRLoginTokensMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (QRLoginTokens).
+func (m *QRLoginTokensMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *QRLoginTokensMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, qrlogintokens.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, qrlogintokens.FieldUpdatedAt)
+	}
+	if m.user != nil {
+		fields = append(fields, qrlogintokens.FieldUserID)
+	}
+	if m.token != nil {
+		fields = append(fields, qrlogintokens.FieldToken)
+	}
+	if m.expires_at != nil {
+		fields = append(fields, qrlogintokens.FieldExpiresAt)
+	}
+	if m.used_at != nil {
+		fields = append(fields, qrlogintokens.FieldUsedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *QRLoginTokensMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case qrlogintokens.FieldCreatedAt:
+		return m.CreatedAt()
+	case qrlogintokens.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case qrlogintokens.FieldUserID:
+		return m.UserID()
+	case qrlogintokens.FieldToken:
+		return m.Token()
+	case qrlogintokens.FieldExpiresAt:
+		return m.ExpiresAt()
+	case qrlogintokens.FieldUsedAt:
+		return m.UsedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *QRLoginTokensMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case qrlogintokens.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case qrlogintokens.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case qrlogintokens.FieldUserID:
+		return m.OldUserID(ctx)
+	case qrlogintokens.FieldToken:
+		return m.OldToken(ctx)
+	case qrlogintokens.FieldExpiresAt:
+		return m.OldExpiresAt(ctx)
+	case qrlogintokens.FieldUsedAt:
+		return m.OldUsedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown QRLoginTokens field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *QRLoginTokensMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case qrlogintokens.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case qrlogintokens.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case qrlogintokens.FieldUserID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case qrlogintokens.FieldToken:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToken(v)
+		return nil
+	case qrlogintokens.FieldExpiresAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExpiresAt(v)
+		return nil
+	case qrlogintokens.FieldUsedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown QRLoginTokens field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *QRLoginTokensMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *QRLoginTokensMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *QRLoginTokensMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown QRLoginTokens numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *QRLoginTokensMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(qrlogintokens.FieldUsedAt) {
+		fields = append(fields, qrlogintokens.FieldUsedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *QRLoginTokensMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *QRLoginTokensMutation) ClearField(name string) error {
+	switch name {
+	case qrlogintokens.FieldUsedAt:
+		m.ClearUsedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown QRLoginTokens nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *QRLoginTokensMutation) ResetField(name string) error {
+	switch name {
+	case qrlogintokens.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case qrlogintokens.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case qrlogintokens.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case qrlogintokens.FieldToken:
+		m.ResetToken()
+		return nil
+	case qrlogintokens.FieldExpiresAt:
+		m.ResetExpiresAt()
+		return nil
+	case qrlogintokens.FieldUsedAt:
+		m.ResetUsedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown QRLoginTokens field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *QRLoginTokensMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, qrlogintokens.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *QRLoginTokensMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case qrlogintokens.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *QRLoginTokensMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *QRLoginTokensMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *QRLoginTokensMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, qrlogintokens.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *QRLoginTokensMutation) EdgeCleared(name string) bool {
+	switch name {
+	case qrlogintokens.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *QRLoginTokensMutation) ClearEdge(name string) error {
+	switch name {
+	case qrlogintokens.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown QRLoginTokens unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *QRLoginTokensMutation) ResetEdge(name string) error {
+	switch name {
+	case qrlogintokens.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown QRLoginTokens edge %s", name)
+}
+
 // TagMutation represents an operation that mutates the Tag nodes in the graph.
 type TagMutation struct {
 	config
@@ -15519,6 +16199,9 @@ type UserMutation struct {
 	password_reset_tokens        map[uuid.UUID]struct{}
 	removedpassword_reset_tokens map[uuid.UUID]struct{}
 	clearedpassword_reset_tokens bool
+	qr_login_tokens              map[uuid.UUID]struct{}
+	removedqr_login_tokens       map[uuid.UUID]struct{}
+	clearedqr_login_tokens       bool
 	api_keys                     map[uuid.UUID]struct{}
 	removedapi_keys              map[uuid.UUID]struct{}
 	clearedapi_keys              bool
@@ -16306,6 +16989,60 @@ func (m *UserMutation) ResetPasswordResetTokens() {
 	m.removedpassword_reset_tokens = nil
 }
 
+// AddQrLoginTokenIDs adds the "qr_login_tokens" edge to the QRLoginTokens entity by ids.
+func (m *UserMutation) AddQrLoginTokenIDs(ids ...uuid.UUID) {
+	if m.qr_login_tokens == nil {
+		m.qr_login_tokens = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.qr_login_tokens[ids[i]] = struct{}{}
+	}
+}
+
+// ClearQrLoginTokens clears the "qr_login_tokens" edge to the QRLoginTokens entity.
+func (m *UserMutation) ClearQrLoginTokens() {
+	m.clearedqr_login_tokens = true
+}
+
+// QrLoginTokensCleared reports if the "qr_login_tokens" edge to the QRLoginTokens entity was cleared.
+func (m *UserMutation) QrLoginTokensCleared() bool {
+	return m.clearedqr_login_tokens
+}
+
+// RemoveQrLoginTokenIDs removes the "qr_login_tokens" edge to the QRLoginTokens entity by IDs.
+func (m *UserMutation) RemoveQrLoginTokenIDs(ids ...uuid.UUID) {
+	if m.removedqr_login_tokens == nil {
+		m.removedqr_login_tokens = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.qr_login_tokens, ids[i])
+		m.removedqr_login_tokens[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedQrLoginTokens returns the removed IDs of the "qr_login_tokens" edge to the QRLoginTokens entity.
+func (m *UserMutation) RemovedQrLoginTokensIDs() (ids []uuid.UUID) {
+	for id := range m.removedqr_login_tokens {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// QrLoginTokensIDs returns the "qr_login_tokens" edge IDs in the mutation.
+func (m *UserMutation) QrLoginTokensIDs() (ids []uuid.UUID) {
+	for id := range m.qr_login_tokens {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetQrLoginTokens resets all changes to the "qr_login_tokens" edge.
+func (m *UserMutation) ResetQrLoginTokens() {
+	m.qr_login_tokens = nil
+	m.clearedqr_login_tokens = false
+	m.removedqr_login_tokens = nil
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by ids.
 func (m *UserMutation) AddAPIKeyIDs(ids ...uuid.UUID) {
 	if m.api_keys == nil {
@@ -16773,7 +17510,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.groups != nil {
 		edges = append(edges, user.EdgeGroups)
 	}
@@ -16782,6 +17519,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.password_reset_tokens != nil {
 		edges = append(edges, user.EdgePasswordResetTokens)
+	}
+	if m.qr_login_tokens != nil {
+		edges = append(edges, user.EdgeQrLoginTokens)
 	}
 	if m.api_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
@@ -16814,6 +17554,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeQrLoginTokens:
+		ids := make([]ent.Value, 0, len(m.qr_login_tokens))
+		for id := range m.qr_login_tokens {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeAPIKeys:
 		ids := make([]ent.Value, 0, len(m.api_keys))
 		for id := range m.api_keys {
@@ -16832,7 +17578,7 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedgroups != nil {
 		edges = append(edges, user.EdgeGroups)
 	}
@@ -16841,6 +17587,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedpassword_reset_tokens != nil {
 		edges = append(edges, user.EdgePasswordResetTokens)
+	}
+	if m.removedqr_login_tokens != nil {
+		edges = append(edges, user.EdgeQrLoginTokens)
 	}
 	if m.removedapi_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
@@ -16873,6 +17622,12 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeQrLoginTokens:
+		ids := make([]ent.Value, 0, len(m.removedqr_login_tokens))
+		for id := range m.removedqr_login_tokens {
+			ids = append(ids, id)
+		}
+		return ids
 	case user.EdgeAPIKeys:
 		ids := make([]ent.Value, 0, len(m.removedapi_keys))
 		for id := range m.removedapi_keys {
@@ -16891,7 +17646,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedgroups {
 		edges = append(edges, user.EdgeGroups)
 	}
@@ -16900,6 +17655,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	}
 	if m.clearedpassword_reset_tokens {
 		edges = append(edges, user.EdgePasswordResetTokens)
+	}
+	if m.clearedqr_login_tokens {
+		edges = append(edges, user.EdgeQrLoginTokens)
 	}
 	if m.clearedapi_keys {
 		edges = append(edges, user.EdgeAPIKeys)
@@ -16920,6 +17678,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedauth_tokens
 	case user.EdgePasswordResetTokens:
 		return m.clearedpassword_reset_tokens
+	case user.EdgeQrLoginTokens:
+		return m.clearedqr_login_tokens
 	case user.EdgeAPIKeys:
 		return m.clearedapi_keys
 	case user.EdgeNotifiers:
@@ -16948,6 +17708,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgePasswordResetTokens:
 		m.ResetPasswordResetTokens()
+		return nil
+	case user.EdgeQrLoginTokens:
+		m.ResetQrLoginTokens()
 		return nil
 	case user.EdgeAPIKeys:
 		m.ResetAPIKeys()

@@ -45,6 +45,14 @@ func registerRecurringTasks(app *app, cfg *config.Config, runner *graceful.Runne
 		}
 	}))
 
+	// homebox-fork: qr-login
+	runner.AddPlugin(NewTask("purge-qr-login-tokens", 24*time.Hour, func(ctx context.Context) {
+		_, err := app.repos.QRLoginTokens.PurgeExpired(ctx)
+		if err != nil {
+			log.Error().Err(err).Msg("failed to purge expired QR login tokens")
+		}
+	}))
+
 	runner.AddPlugin(NewTask("purge-invitations", 24*time.Hour, func(ctx context.Context) {
 		_, err := app.repos.Groups.InvitationPurge(ctx)
 		if err != nil {

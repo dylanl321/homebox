@@ -16,6 +16,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/qrlogintokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
 )
 
@@ -227,6 +228,21 @@ func (_c *UserCreate) AddPasswordResetTokens(v ...*PasswordResetTokens) *UserCre
 		ids[i] = v[i].ID
 	}
 	return _c.AddPasswordResetTokenIDs(ids...)
+}
+
+// AddQrLoginTokenIDs adds the "qr_login_tokens" edge to the QRLoginTokens entity by IDs.
+func (_c *UserCreate) AddQrLoginTokenIDs(ids ...uuid.UUID) *UserCreate {
+	_c.mutation.AddQrLoginTokenIDs(ids...)
+	return _c
+}
+
+// AddQrLoginTokens adds the "qr_login_tokens" edges to the QRLoginTokens entity.
+func (_c *UserCreate) AddQrLoginTokens(v ...*QRLoginTokens) *UserCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddQrLoginTokenIDs(ids...)
 }
 
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
@@ -479,6 +495,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(passwordresettokens.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.QrLoginTokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.QrLoginTokensTable,
+			Columns: []string{user.QrLoginTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qrlogintokens.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -40,6 +40,8 @@ type Tx struct {
 	Notifier *NotifierClient
 	// PasswordResetTokens is the client for interacting with the PasswordResetTokens builders.
 	PasswordResetTokens *PasswordResetTokensClient
+	// QRLoginTokens is the client for interacting with the QRLoginTokens builders.
+	QRLoginTokens *QRLoginTokensClient
 	// Tag is the client for interacting with the Tag builders.
 	Tag *TagClient
 	// TemplateField is the client for interacting with the TemplateField builders.
@@ -193,6 +195,7 @@ func (tx *Tx) init() {
 	tx.MaintenanceEntry = NewMaintenanceEntryClient(tx.config)
 	tx.Notifier = NewNotifierClient(tx.config)
 	tx.PasswordResetTokens = NewPasswordResetTokensClient(tx.config)
+	tx.QRLoginTokens = NewQRLoginTokensClient(tx.config)
 	tx.Tag = NewTagClient(tx.config)
 	tx.TemplateField = NewTemplateFieldClient(tx.config)
 	tx.User = NewUserClient(tx.config)

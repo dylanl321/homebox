@@ -48,6 +48,9 @@ type Notifier func(*sql.Selector)
 // PasswordResetTokens is the predicate function for passwordresettokens builders.
 type PasswordResetTokens func(*sql.Selector)
 
+// QRLoginTokens is the predicate function for qrlogintokens builders.
+type QRLoginTokens func(*sql.Selector)
+
 // Tag is the predicate function for tag builders.
 type Tag func(*sql.Selector)
 

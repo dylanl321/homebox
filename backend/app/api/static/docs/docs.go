@@ -2786,6 +2786,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/users/login/qr": {
+            "post": {
+                "description": "Consumes a QR login token and establishes a session for the owning user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Exchange QR Login Token",
+                "parameters": [
+                    {
+                        "description": "QR login token",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.QRLoginExchangeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.TokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "missing or invalid request body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "invalid or expired QR login token",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users/logout": {
             "post": {
                 "security": [
@@ -3107,6 +3153,37 @@ const docTemplate = `{
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/users/self/qr-login": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Mints a short-lived single-use token for logging in another device via QR code.\nAny previously unused QR login token for this user is invalidated.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Create QR Login Token",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.QRLoginCreateResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 }
             }
@@ -4313,6 +4390,63 @@ const docTemplate = `{
                 }
             }
         },
+        "ent.QRLoginTokens": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the QRLoginTokensQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.QRLoginTokensEdges"
+                        }
+                    ]
+                },
+                "expires_at": {
+                    "description": "ExpiresAt holds the value of the \"expires_at\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "token": {
+                    "description": "Token holds the value of the \"token\" field.",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "updated_at": {
+                    "description": "UpdatedAt holds the value of the \"updated_at\" field.",
+                    "type": "string"
+                },
+                "used_at": {
+                    "description": "UsedAt holds the value of the \"used_at\" field.",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "UserID holds the value of the \"user_id\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "ent.QRLoginTokensEdges": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "description": "User holds the value of the user edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.User"
+                        }
+                    ]
+                }
+            }
+        },
         "ent.Tag": {
             "type": "object",
             "properties": {
@@ -4557,6 +4691,13 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/ent.PasswordResetTokens"
+                    }
+                },
+                "qr_login_tokens": {
+                    "description": "QrLoginTokens holds the value of the qr_login_tokens edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.QRLoginTokens"
                     }
                 },
                 "user_groups": {
@@ -6538,6 +6679,32 @@ const docTemplate = `{
                 },
                 "enabled": {
                     "type": "boolean"
+                }
+            }
+        },
+        "v1.QRLoginCreateResponse": {
+            "type": "object",
+            "properties": {
+                "expiresAt": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.QRLoginExchangeRequest": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "stayLoggedIn": {
+                    "type": "boolean"
+                },
+                "token": {
+                    "type": "string",
+                    "example": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                 }
             }
         },

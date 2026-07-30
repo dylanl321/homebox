@@ -60,6 +60,10 @@ func (_m *PasswordResetTokens) GetID() uuid.UUID {
 	return _m.ID
 }
 
+func (_m *QRLoginTokens) GetID() uuid.UUID {
+	return _m.ID
+}
+
 func (_m *Tag) GetID() uuid.UUID {
 	return _m.ID
 }

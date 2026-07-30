@@ -19,6 +19,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/qrlogintokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/schema"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/templatefield"
@@ -652,6 +653,29 @@ func init() {
 	passwordresettokensDescID := passwordresettokensMixinFields0[0].Descriptor()
 	// passwordresettokens.DefaultID holds the default value on creation for the id field.
 	passwordresettokens.DefaultID = passwordresettokensDescID.Default.(func() uuid.UUID)
+	qrlogintokensMixin := schema.QRLoginTokens{}.Mixin()
+	qrlogintokensMixinFields0 := qrlogintokensMixin[0].Fields()
+	_ = qrlogintokensMixinFields0
+	qrlogintokensFields := schema.QRLoginTokens{}.Fields()
+	_ = qrlogintokensFields
+	// qrlogintokensDescCreatedAt is the schema descriptor for created_at field.
+	qrlogintokensDescCreatedAt := qrlogintokensMixinFields0[1].Descriptor()
+	// qrlogintokens.DefaultCreatedAt holds the default value on creation for the created_at field.
+	qrlogintokens.DefaultCreatedAt = qrlogintokensDescCreatedAt.Default.(func() time.Time)
+	// qrlogintokensDescUpdatedAt is the schema descriptor for updated_at field.
+	qrlogintokensDescUpdatedAt := qrlogintokensMixinFields0[2].Descriptor()
+	// qrlogintokens.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	qrlogintokens.DefaultUpdatedAt = qrlogintokensDescUpdatedAt.Default.(func() time.Time)
+	// qrlogintokens.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	qrlogintokens.UpdateDefaultUpdatedAt = qrlogintokensDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// qrlogintokensDescExpiresAt is the schema descriptor for expires_at field.
+	qrlogintokensDescExpiresAt := qrlogintokensFields[2].Descriptor()
+	// qrlogintokens.DefaultExpiresAt holds the default value on creation for the expires_at field.
+	qrlogintokens.DefaultExpiresAt = qrlogintokensDescExpiresAt.Default.(func() time.Time)
+	// qrlogintokensDescID is the schema descriptor for id field.
+	qrlogintokensDescID := qrlogintokensMixinFields0[0].Descriptor()
+	// qrlogintokens.DefaultID holds the default value on creation for the id field.
+	qrlogintokens.DefaultID = qrlogintokensDescID.Default.(func() uuid.UUID)
 	tagMixin := schema.Tag{}.Mixin()
 	tagMixinFields0 := tagMixin[0].Fields()
 	_ = tagMixinFields0

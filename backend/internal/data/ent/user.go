@@ -57,6 +57,8 @@ type UserEdges struct {
 	AuthTokens []*AuthTokens `json:"auth_tokens,omitempty"`
 	// PasswordResetTokens holds the value of the password_reset_tokens edge.
 	PasswordResetTokens []*PasswordResetTokens `json:"password_reset_tokens,omitempty"`
+	// QrLoginTokens holds the value of the qr_login_tokens edge.
+	QrLoginTokens []*QRLoginTokens `json:"qr_login_tokens,omitempty"`
 	// APIKeys holds the value of the api_keys edge.
 	APIKeys []*APIKey `json:"api_keys,omitempty"`
 	// Notifiers holds the value of the notifiers edge.
@@ -65,7 +67,7 @@ type UserEdges struct {
 	UserGroups []*UserGroup `json:"user_groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // GroupsOrErr returns the Groups value or an error if the edge
@@ -95,10 +97,19 @@ func (e UserEdges) PasswordResetTokensOrErr() ([]*PasswordResetTokens, error) {
 	return nil, &NotLoadedError{edge: "password_reset_tokens"}
 }
 
+// QrLoginTokensOrErr returns the QrLoginTokens value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) QrLoginTokensOrErr() ([]*QRLoginTokens, error) {
+	if e.loadedTypes[3] {
+		return e.QrLoginTokens, nil
+	}
+	return nil, &NotLoadedError{edge: "qr_login_tokens"}
+}
+
 // APIKeysOrErr returns the APIKeys value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) APIKeysOrErr() ([]*APIKey, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.APIKeys, nil
 	}
 	return nil, &NotLoadedError{edge: "api_keys"}
@@ -107,7 +118,7 @@ func (e UserEdges) APIKeysOrErr() ([]*APIKey, error) {
 // NotifiersOrErr returns the Notifiers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) NotifiersOrErr() ([]*Notifier, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.Notifiers, nil
 	}
 	return nil, &NotLoadedError{edge: "notifiers"}
@@ -116,7 +127,7 @@ func (e UserEdges) NotifiersOrErr() ([]*Notifier, error) {
 // UserGroupsOrErr returns the UserGroups value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UserGroupsOrErr() ([]*UserGroup, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.UserGroups, nil
 	}
 	return nil, &NotLoadedError{edge: "user_groups"}
@@ -264,6 +275,11 @@ func (_m *User) QueryAuthTokens() *AuthTokensQuery {
 // QueryPasswordResetTokens queries the "password_reset_tokens" edge of the User entity.
 func (_m *User) QueryPasswordResetTokens() *PasswordResetTokensQuery {
 	return NewUserClient(_m.config).QueryPasswordResetTokens(_m)
+}
+
+// QueryQrLoginTokens queries the "qr_login_tokens" edge of the User entity.
+func (_m *User) QueryQrLoginTokens() *QRLoginTokensQuery {
+	return NewUserClient(_m.config).QueryQrLoginTokens(_m)
 }
 
 // QueryAPIKeys queries the "api_keys" edge of the User entity.

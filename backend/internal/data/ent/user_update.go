@@ -18,6 +18,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/qrlogintokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/user"
 )
 
@@ -253,6 +254,21 @@ func (_u *UserUpdate) AddPasswordResetTokens(v ...*PasswordResetTokens) *UserUpd
 	return _u.AddPasswordResetTokenIDs(ids...)
 }
 
+// AddQrLoginTokenIDs adds the "qr_login_tokens" edge to the QRLoginTokens entity by IDs.
+func (_u *UserUpdate) AddQrLoginTokenIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.AddQrLoginTokenIDs(ids...)
+	return _u
+}
+
+// AddQrLoginTokens adds the "qr_login_tokens" edges to the QRLoginTokens entity.
+func (_u *UserUpdate) AddQrLoginTokens(v ...*QRLoginTokens) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddQrLoginTokenIDs(ids...)
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
 func (_u *UserUpdate) AddAPIKeyIDs(ids ...uuid.UUID) *UserUpdate {
 	_u.mutation.AddAPIKeyIDs(ids...)
@@ -349,6 +365,27 @@ func (_u *UserUpdate) RemovePasswordResetTokens(v ...*PasswordResetTokens) *User
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePasswordResetTokenIDs(ids...)
+}
+
+// ClearQrLoginTokens clears all "qr_login_tokens" edges to the QRLoginTokens entity.
+func (_u *UserUpdate) ClearQrLoginTokens() *UserUpdate {
+	_u.mutation.ClearQrLoginTokens()
+	return _u
+}
+
+// RemoveQrLoginTokenIDs removes the "qr_login_tokens" edge to QRLoginTokens entities by IDs.
+func (_u *UserUpdate) RemoveQrLoginTokenIDs(ids ...uuid.UUID) *UserUpdate {
+	_u.mutation.RemoveQrLoginTokenIDs(ids...)
+	return _u
+}
+
+// RemoveQrLoginTokens removes "qr_login_tokens" edges to QRLoginTokens entities.
+func (_u *UserUpdate) RemoveQrLoginTokens(v ...*QRLoginTokens) *UserUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveQrLoginTokenIDs(ids...)
 }
 
 // ClearAPIKeys clears all "api_keys" edges to the APIKey entity.
@@ -652,6 +689,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(passwordresettokens.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.QrLoginTokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.QrLoginTokensTable,
+			Columns: []string{user.QrLoginTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qrlogintokens.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedQrLoginTokensIDs(); len(nodes) > 0 && !_u.mutation.QrLoginTokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.QrLoginTokensTable,
+			Columns: []string{user.QrLoginTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qrlogintokens.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.QrLoginTokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.QrLoginTokensTable,
+			Columns: []string{user.QrLoginTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qrlogintokens.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -988,6 +1070,21 @@ func (_u *UserUpdateOne) AddPasswordResetTokens(v ...*PasswordResetTokens) *User
 	return _u.AddPasswordResetTokenIDs(ids...)
 }
 
+// AddQrLoginTokenIDs adds the "qr_login_tokens" edge to the QRLoginTokens entity by IDs.
+func (_u *UserUpdateOne) AddQrLoginTokenIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.AddQrLoginTokenIDs(ids...)
+	return _u
+}
+
+// AddQrLoginTokens adds the "qr_login_tokens" edges to the QRLoginTokens entity.
+func (_u *UserUpdateOne) AddQrLoginTokens(v ...*QRLoginTokens) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddQrLoginTokenIDs(ids...)
+}
+
 // AddAPIKeyIDs adds the "api_keys" edge to the APIKey entity by IDs.
 func (_u *UserUpdateOne) AddAPIKeyIDs(ids ...uuid.UUID) *UserUpdateOne {
 	_u.mutation.AddAPIKeyIDs(ids...)
@@ -1084,6 +1181,27 @@ func (_u *UserUpdateOne) RemovePasswordResetTokens(v ...*PasswordResetTokens) *U
 		ids[i] = v[i].ID
 	}
 	return _u.RemovePasswordResetTokenIDs(ids...)
+}
+
+// ClearQrLoginTokens clears all "qr_login_tokens" edges to the QRLoginTokens entity.
+func (_u *UserUpdateOne) ClearQrLoginTokens() *UserUpdateOne {
+	_u.mutation.ClearQrLoginTokens()
+	return _u
+}
+
+// RemoveQrLoginTokenIDs removes the "qr_login_tokens" edge to QRLoginTokens entities by IDs.
+func (_u *UserUpdateOne) RemoveQrLoginTokenIDs(ids ...uuid.UUID) *UserUpdateOne {
+	_u.mutation.RemoveQrLoginTokenIDs(ids...)
+	return _u
+}
+
+// RemoveQrLoginTokens removes "qr_login_tokens" edges to QRLoginTokens entities.
+func (_u *UserUpdateOne) RemoveQrLoginTokens(v ...*QRLoginTokens) *UserUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveQrLoginTokenIDs(ids...)
 }
 
 // ClearAPIKeys clears all "api_keys" edges to the APIKey entity.
@@ -1417,6 +1535,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(passwordresettokens.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.QrLoginTokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.QrLoginTokensTable,
+			Columns: []string{user.QrLoginTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qrlogintokens.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedQrLoginTokensIDs(); len(nodes) > 0 && !_u.mutation.QrLoginTokensCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.QrLoginTokensTable,
+			Columns: []string{user.QrLoginTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qrlogintokens.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.QrLoginTokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.QrLoginTokensTable,
+			Columns: []string{user.QrLoginTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qrlogintokens.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
