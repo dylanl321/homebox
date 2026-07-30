@@ -99,3 +99,5 @@ VOLUME [ "/data" ]
 # Entrypoint and CMD
 ENTRYPOINT [ "/app/api" ]
 CMD [ "/data/config.yml" ]
+
+# fork-qr build trigger 2026-07-30T13:12:17.3825013-04:00
