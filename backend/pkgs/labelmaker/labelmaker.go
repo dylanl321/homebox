@@ -470,6 +470,18 @@ func splitCommandTemplate(s string) []string {
 }
 
 func PrintLabel(cfg *config.Config, params *GenerateParameters) error {
+	// homebox-fork: zebra-print — ZPL over TCP (or optional HTTP bridge / legacy PNG command)
+	if cfg != nil && cfg.LabelMaker.PrintingEnabled() {
+		hasBridge := cfg.LabelMaker.PrintServerURL != nil && strings.TrimSpace(*cfg.LabelMaker.PrintServerURL) != ""
+		if cfg.LabelMaker.DirectPrint || hasBridge {
+			return printZPL(cfg, params)
+		}
+	}
+
+	if cfg == nil || cfg.LabelMaker.PrintCommand == nil || strings.TrimSpace(*cfg.LabelMaker.PrintCommand) == "" {
+		return fmt.Errorf("no print method configured (direct print, print server URL, or print command)")
+	}
+
 	tmpFile := filepath.Join(os.TempDir(), fmt.Sprintf("label-%d.png", time.Now().UnixNano()))
 	f, err := os.OpenFile(tmpFile, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil {
@@ -485,10 +497,6 @@ func PrintLabel(cfg *config.Config, params *GenerateParameters) error {
 	err = GenerateLabel(f, params, cfg)
 	if err != nil {
 		return err
-	}
-
-	if cfg.LabelMaker.PrintCommand == nil {
-		return fmt.Errorf("no print command specified")
 	}
 
 	additionalInformation := func() string {

@@ -35,6 +35,7 @@ Do **not** try to `docker build` inside the TrueNAS Apps YAML path unless Dockge
 
 - `HBOX_AUTH_API_KEY_PEPPER`: long random string (≥32 chars). Generate with `openssl rand -base64 48`. **Keep stable** across upgrades or API keys break.
 - `HBOX_OPTIONS_HOSTNAME`: the exact public/LAN base URL users open in a browser, e.g. `http://192.168.1.50:3100` or `https://homebox.example.com`. QR codes encode the browser origin; this hostname should match how users reach the app.
+- Optional label printing: Homebox sends ZPL directly to the Zebra (`HBOX_LABEL_MAKER_DIRECT_PRINT=true`, default printer `10.0.1.161:9100`). No separate print-server process.
 - Optional later: reverse proxy + TLS; then set hostname to the HTTPS URL and enable `HBOX_OPTIONS_TRUST_PROXY=true` only if the proxy forwards `X-Forwarded-*` correctly.
 
 ## Exact compose to install
@@ -58,6 +59,9 @@ services:
       HBOX_OPTIONS_ALLOW_REGISTRATION: "true"
       HBOX_AUTH_API_KEY_PEPPER: "<PASTE_GENERATED_PEPPER>"
       HBOX_OPTIONS_HOSTNAME: "http://<TRUENAS_LAN_IP>:3100"
+      HBOX_LABEL_MAKER_DIRECT_PRINT: "true"
+      HBOX_LABEL_MAKER_PRINTER_IP: "10.0.1.161"
+      HBOX_LABEL_MAKER_PRINTER_PORT: "9100"
     volumes:
       - /mnt/<POOL>/apps/homebox:/data
     healthcheck:

@@ -1,0 +1,29 @@
+---
+title: Zebra Network Label Printing
+---
+
+Homebox prints item/location labels by generating **native ZPL** and sending it
+**directly to the printer over TCP** (port 9100). You do **not** need to run
+[zebra-label-maker](https://github.com/dylanl321/zebra-label-maker) for printing —
+that repo was the reference for ZPL layout and the default printer IP.
+
+The dialog PNG is preview only. **Print on Server** opens a TCP connection to
+`PRINTER_IP:PRINTER_PORT` and writes ZPL (same thing `print-server.py` does).
+
+## Defaults
+
+| Variable | Default |
+| --- | --- |
+| `HBOX_LABEL_MAKER_DIRECT_PRINT` | `true` |
+| `HBOX_LABEL_MAKER_PRINTER_IP` | `10.0.1.161` |
+| `HBOX_LABEL_MAKER_PRINTER_PORT` | `9100` |
+| `HBOX_LABEL_MAKER_LABEL_SIZE` | `2x1` (406×203 dots @ 203 DPI) |
+| `HBOX_LABEL_MAKER_ORIENTATION` | `portrait` (`landscape` → 1″×2″) |
+
+Homebox must be able to reach the printer on your LAN (same network / firewall
+allows TCP 9100 from the Homebox host).
+
+## Optional HTTP bridge
+
+Only set `HBOX_LABEL_MAKER_PRINT_SERVER_URL` if Homebox cannot reach the printer
+directly and you already run the zebra-label-maker bridge somewhere that can.

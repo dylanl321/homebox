@@ -30,6 +30,11 @@ services:
       HBOX_OPTIONS_HOSTNAME: "http://REPLACE_WITH_HOST_OR_IP:3100"
       # Only if TrueNAS / reverse proxy sets X-Forwarded-* correctly:
       # HBOX_OPTIONS_TRUST_PROXY: "true"
+      # Zebra label printing — Homebox sends ZPL directly to the printer (TCP 9100).
+      # No separate print-server process required.
+      HBOX_LABEL_MAKER_DIRECT_PRINT: "true"
+      HBOX_LABEL_MAKER_PRINTER_IP: "10.0.1.161"
+      HBOX_LABEL_MAKER_PRINTER_PORT: "9100"
     volumes:
       # Bind to a TrueNAS dataset so SQLite + attachments survive upgrades
       - /mnt/REPLACE_POOL/apps/homebox:/data

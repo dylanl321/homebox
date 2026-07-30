@@ -191,7 +191,7 @@ func (ctrl *V1Controller) HandleBase(ready ReadyFunc, build Build) errchain.Hand
 			Latest:            ctrl.svc.BackgroundService.GetLatestVersion(),
 			Demo:              ctrl.isDemo,
 			AllowRegistration: ctrl.allowRegistration,
-			LabelPrinting:     ctrl.config.LabelMaker.PrintCommand != nil,
+			LabelPrinting:     ctrl.config.LabelMaker.PrintingEnabled(), // homebox-fork: zebra-print
 			OIDC: OIDCStatus{
 				Enabled:      ctrl.config.OIDC.Enabled,
 				ButtonText:   ctrl.config.OIDC.ButtonText,
