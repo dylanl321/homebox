@@ -12,11 +12,17 @@ Do **not** use the official `ghcr.io/sysadminsmedia/homebox` image — it does n
 
 ## Recommended approach (best)
 
-1. Pull a pre-built image from GHCR: `ghcr.io/dylanl321/homebox:main` (or a semver/tag if present).
+1. Use the already-built image (see **Image availability** below).
 2. Install via TrueNAS **Apps → Discover Apps → ⋮ → Install via YAML**.
 3. Bind-mount a dedicated dataset to `/data` inside the container.
 
-If the GHCR image is missing or private, fall back to **Option B** (build from source on a machine with Docker, push to GHCR, then deploy). Do **not** try to `docker build` inside the TrueNAS Apps YAML path unless Dockge/Portainer with a host build context is already available.
+### Image availability (as of last build)
+
+- Git commit on `main`: includes QR login (`feat: add QR code device login…`).
+- Local build tags: `ghcr.io/dylanl321/homebox:main` and `ghcr.io/dylanl321/homebox:fork-qr-fd38fb5f` (≈199MB).
+- If GHCR pull fails (package not published yet), use **Option C: load from tar** below.
+
+Do **not** try to `docker build` inside the TrueNAS Apps YAML path unless Dockge/Portainer with a host build context is already available.
 
 ## Prerequisites to verify
 
@@ -84,7 +90,6 @@ Build and push from a machine with Docker (not required on TrueNAS itself):
 ```bash
 git clone https://github.com/dylanl321/homebox.git
 cd homebox
-# Ensure QR-login commits are on the branch you build
 docker build -t ghcr.io/dylanl321/homebox:main \
   --build-arg VERSION=fork-qr \
   --build-arg COMMIT=$(git rev-parse --short HEAD) \
@@ -96,7 +101,24 @@ docker push ghcr.io/dylanl321/homebox:main
 
 Then retry the TrueNAS YAML install using that image tag.
 
-Alternatively, enable the fork’s existing GitHub Actions `Docker publish` workflow on `main` so pushes publish `ghcr.io/dylanl321/homebox` automatically.
+Alternatively, open https://github.com/dylanl321/homebox/actions once and enable Actions on the fork, then push to `main` so the `Docker publish` workflow can publish `ghcr.io/dylanl321/homebox`.
+
+## Option C: Load a prebuilt tar on TrueNAS (no registry)
+
+If a `homebox-main.tar` was copied to the NAS (e.g. `/mnt/<POOL>/apps/homebox/homebox-main.tar`):
+
+```bash
+docker load -i /mnt/<POOL>/apps/homebox/homebox-main.tar
+docker images | grep homebox
+```
+
+Then use this compose image line (match whatever tag `docker load` printed; usually `ghcr.io/dylanl321/homebox:main`):
+
+```yaml
+image: ghcr.io/dylanl321/homebox:main
+```
+
+Proceed with **Install via YAML** as above.
 
 ## Upgrades
 
