@@ -3,7 +3,7 @@
 - Prefer fork-friendly customizations: isolate new features in new files and keep only minimal, clearly marked hooks in upstream files so merges from source stay easy
 - When a reference repo or existing implementation is provided, study and match it before inventing a different approach
 - Follow through on requested commit, build, and deploy steps rather than stopping after a plan
-- After implementing features, always rebuild the Homebox image and deploy (do not leave changes local-only)
+- After implementing features, always rebuild the Homebox image and deploy (do not leave changes local-only). Default path: commit → push → Docker image (`ghcr.io/dylanl321/homebox:main`) → redeploy running containers with any new env vars.
 - Zebra label printing must use native ZPL generation and send ZPL to the printer; do not treat PNG label output as printable ZPL
 
 ## Learned Workspace Facts
