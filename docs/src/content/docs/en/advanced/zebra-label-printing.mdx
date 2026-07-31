@@ -30,6 +30,10 @@ label size, orientation, darkness, speed, font size, a live layout preview, and 
 **Test print** button. Settings are saved to your Homebox user profile and override
 the environment defaults for labels you print.
 
+Native ZPL reserves the left side for the QR code and the right side for text.
+Text is wrapped and font-reduced within that region, then truncated when necessary,
+so it cannot overlap the QR code or extend beyond the label.
+
 ## Optional HTTP bridge
 
 Only set `HBOX_LABEL_MAKER_PRINT_SERVER_URL` if Homebox cannot reach the printer

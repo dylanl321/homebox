@@ -21,29 +21,39 @@ var zebraLabelPresets = map[string]struct{ W, H float64 }{
 	"4x2":       {4, 2},
 }
 
-type zplLine struct {
-	Type  string // text | qr | separator | barcode
-	Text  string
-	Data  string
-	Style string // header | bold | center | right | normal
-}
-
 type zplDims struct {
 	WDots int
 	HDots int
 }
 
-// GenerateZPL builds ZPL II the same way zebra-label-maker does: vertically stacked,
-// horizontally centered content on a preset label size (default 2x1 @ 203 DPI).
+type zplTextLine struct {
+	Text string
+	Font int
+	Y    int
+	Bold bool
+}
+
+type zplLayout struct {
+	Width     int
+	Height    int
+	Margin    int
+	QRX       int
+	QRY       int
+	QRMag     int
+	QRSize    int
+	TextX     int
+	TextWidth int
+	TextLines []zplTextLine
+}
+
+// GenerateZPL creates a bounded side-by-side layout: QR on the left and text on
+// the right. Text is wrapped, font-reduced, line-limited, and truncated before
+// ZPL is emitted so fields cannot overlap each other or the QR region.
 func GenerateZPL(params *GenerateParameters, cfg *config.Config) string {
-	dim := zebraDimensions(cfg)
-	fontSize := 30
+	layout := buildZPLLayout(params, cfg)
 	darkness := 15
 	speed := 4
 	if cfg != nil {
-		if cfg.LabelMaker.PrintFontSize > 0 {
-			fontSize = cfg.LabelMaker.PrintFontSize
-		}
 		if cfg.LabelMaker.PrintDarkness > 0 {
 			darkness = cfg.LabelMaker.PrintDarkness
 		}
@@ -51,77 +61,129 @@ func GenerateZPL(params *GenerateParameters, cfg *config.Config) string {
 			speed = cfg.LabelMaker.PrintSpeed
 		}
 	}
-	headerSize := int(math.Round(float64(fontSize) * 1.8))
-	lineHeight := fontSize + 12
-	headerLineHeight := headerSize + 16
-
-	lines := homeboxLabelLines(params)
-
-	totalHeight := 0
-	for _, line := range lines {
-		switch line.Type {
-		case "separator":
-			totalHeight += 16
-		case "barcode":
-			totalHeight += 90
-		case "qr":
-			totalHeight += 120
-		default:
-			if line.Style == "header" {
-				totalHeight += headerLineHeight
-			} else {
-				totalHeight += lineHeight
-			}
-		}
-	}
-
-	y := int(math.Max(10, math.Round(float64(dim.HDots-totalHeight)/2)))
-
 	var b strings.Builder
 	b.WriteString("^XA\n")
-	fmt.Fprintf(&b, "^PW%d\n", dim.WDots)
-	fmt.Fprintf(&b, "^LL%d\n", dim.HDots)
+	fmt.Fprintf(&b, "^PW%d\n", layout.Width)
+	fmt.Fprintf(&b, "^LL%d\n", layout.Height)
 	fmt.Fprintf(&b, "~SD%d\n", darkness)
 	fmt.Fprintf(&b, "^PR%d\n", speed)
-	fmt.Fprintf(&b, "^CF0,%d\n", fontSize)
 
-	for _, line := range lines {
-		switch line.Type {
-		case "separator":
-			fmt.Fprintf(&b, "^FO10,%d^GB%d,1,2^FS\n", y, dim.WDots-20)
-			y += 16
-		case "barcode":
-			barcodeWidth := len(line.Data) * 2 * 11
-			bx := int(math.Max(20, math.Round(float64(dim.WDots-barcodeWidth)/2)))
-			fmt.Fprintf(&b, "^FO%d,%d^BY2,2,60^BCN,60,Y,N,N^FD%s^FS\n", bx, y, escapeZPLField(line.Data))
-			y += 90
-		case "qr":
-			qx := int(math.Round(float64(dim.WDots-100) / 2))
-			fmt.Fprintf(&b, "^FO%d,%d^BQN,2,5^FDQA,%s^FS\n", qx, y, escapeZPLField(line.Data))
-			y += 120
-		default:
-			fSize, fWidth := fontSize, fontSize
-			switch line.Style {
-			case "header":
-				fSize, fWidth = headerSize, headerSize
-			case "bold":
-				fWidth = fontSize + 8
-			}
-			if line.Style == "right" {
-				fmt.Fprintf(&b, "^FO0,%d^A0N,%d,%d^FB%d,1,0,R^FD%s^FS\n", y, fSize, fWidth, dim.WDots-20, escapeZPLField(line.Text))
-			} else {
-				fmt.Fprintf(&b, "^FO0,%d^A0N,%d,%d^FB%d,1,0,C^FD%s^FS\n", y, fSize, fWidth, dim.WDots, escapeZPLField(line.Text))
-			}
-			if line.Style == "header" {
-				y += headerLineHeight
-			} else {
-				y += lineHeight
-			}
+	if url := strings.TrimSpace(params.URL); url != "" {
+		fmt.Fprintf(
+			&b,
+			"^FO%d,%d^BQN,2,%d^FDQA,%s^FS\n",
+			layout.QRX,
+			layout.QRY,
+			layout.QRMag,
+			escapeZPLField(url),
+		)
+	}
+
+	for _, line := range layout.TextLines {
+		fontWidth := line.Font
+		if line.Bold {
+			fontWidth += 2
 		}
+		fmt.Fprintf(
+			&b,
+			"^FO%d,%d^A0N,%d,%d^FB%d,1,0,L^FD%s^FS\n",
+			layout.TextX,
+			line.Y,
+			line.Font,
+			fontWidth,
+			layout.TextWidth,
+			escapeZPLField(line.Text),
+		)
 	}
 
 	b.WriteString("^XZ")
 	return b.String()
+}
+
+func buildZPLLayout(params *GenerateParameters, cfg *config.Config) zplLayout {
+	dim := zebraDimensions(cfg)
+	minDimension := min(dim.WDots, dim.HDots)
+	margin := clamp(minDimension/16, 8, 20)
+	gap := clamp(minDimension/20, 8, 16)
+
+	layout := zplLayout{
+		Width:  dim.WDots,
+		Height: dim.HDots,
+		Margin: margin,
+	}
+
+	availableHeight := dim.HDots - (2 * margin)
+	hasQR := strings.TrimSpace(params.URL) != ""
+	if hasQR {
+		maxQRRegion := int(math.Round(float64(dim.WDots) * 0.44))
+		qrRegion := min(availableHeight, maxQRRegion)
+		qrRegion = max(qrRegion, minDimension/2)
+		qrRegion = min(qrRegion, dim.WDots-(2*margin)-gap-48)
+
+		modules := estimatedQRModules(params.URL)
+		layout.QRMag = clamp(qrRegion/modules, 1, 8)
+		layout.QRSize = modules * layout.QRMag
+		layout.QRX = margin + max(0, (qrRegion-layout.QRSize)/2)
+		layout.QRY = margin + max(0, (availableHeight-layout.QRSize)/2)
+		layout.TextX = margin + qrRegion + gap
+	} else {
+		layout.TextX = margin
+	}
+	layout.TextWidth = max(32, dim.WDots-layout.TextX-margin)
+
+	titleFont := 30
+	if cfg != nil && cfg.LabelMaker.PrintFontSize > 0 {
+		titleFont = cfg.LabelMaker.PrintFontSize
+	}
+	titleFont = clamp(titleFont, 14, max(14, availableHeight/3))
+
+	title := normalizeLabelText(params.TitleText)
+	var titleLines []string
+	for font := titleFont; font >= 14; font -= 2 {
+		candidate, truncated := wrapAndTruncate(title, charsForWidth(layout.TextWidth, font), 2)
+		titleFont = font
+		titleLines = candidate
+		if !truncated || font == 14 {
+			break
+		}
+	}
+
+	description := normalizeLabelText(params.DescriptionText)
+	if params.AdditionalInformation != nil {
+		additional := normalizeLabelText(*params.AdditionalInformation)
+		if additional != "" {
+			if description != "" {
+				description += " | "
+			}
+			description += additional
+		}
+	}
+
+	titleLineHeight := titleFont + 4
+	titleHeight := len(titleLines) * titleLineHeight
+	bodyFont := clamp(int(math.Round(float64(titleFont)*0.72)), 12, 30)
+	bodyLineHeight := bodyFont + 4
+	bodyLinesAvailable := max(0, (availableHeight-titleHeight-4)/bodyLineHeight)
+	bodyLines := wrapTextBounded(description, charsForWidth(layout.TextWidth, bodyFont), bodyLinesAvailable)
+
+	totalTextHeight := titleHeight
+	if len(bodyLines) > 0 {
+		totalTextHeight += 4 + (len(bodyLines) * bodyLineHeight)
+	}
+	y := margin + max(0, (availableHeight-totalTextHeight)/2)
+	for _, text := range titleLines {
+		layout.TextLines = append(layout.TextLines, zplTextLine{Text: text, Font: titleFont, Y: y, Bold: true})
+		y += titleLineHeight
+	}
+	if len(bodyLines) > 0 {
+		y += 4
+	}
+	for _, text := range bodyLines {
+		layout.TextLines = append(layout.TextLines, zplTextLine{Text: text, Font: bodyFont, Y: y})
+		y += bodyLineHeight
+	}
+
+	return layout
 }
 
 func zebraDimensions(cfg *config.Config) zplDims {
@@ -149,31 +211,104 @@ func zebraDimensions(cfg *config.Config) zplDims {
 	}
 }
 
-// homeboxLabelLines maps Homebox label fields into zebra-label-maker line types:
-//
-//	#Title
-//	description lines…
-//	[qr:url]
-//	optional additional info
-func homeboxLabelLines(params *GenerateParameters) []zplLine {
-	var lines []zplLine
-	if title := strings.TrimSpace(params.TitleText); title != "" {
-		lines = append(lines, zplLine{Type: "text", Text: title, Style: "header"})
+func estimatedQRModules(data string) int {
+	switch length := len([]byte(data)); {
+	case length <= 20:
+		return 25
+	case length <= 35:
+		return 29
+	case length <= 50:
+		return 33
+	case length <= 70:
+		return 37
+	case length <= 90:
+		return 41
+	case length <= 120:
+		return 45
+	default:
+		return 49
 	}
-	for _, part := range strings.Split(params.DescriptionText, "\n") {
-		if text := strings.TrimSpace(part); text != "" {
-			lines = append(lines, zplLine{Type: "text", Text: text, Style: "normal"})
-		}
+}
+
+func charsForWidth(width, font int) int {
+	if font <= 0 {
+		return 1
 	}
-	if url := strings.TrimSpace(params.URL); url != "" {
-		lines = append(lines, zplLine{Type: "qr", Data: url})
-	}
-	if params.AdditionalInformation != nil {
-		if text := strings.TrimSpace(*params.AdditionalInformation); text != "" {
-			lines = append(lines, zplLine{Type: "text", Text: text, Style: "normal"})
-		}
-	}
+	return max(1, int(math.Floor(float64(width)/(float64(font)*0.58))))
+}
+
+func normalizeLabelText(text string) string {
+	return strings.Join(strings.Fields(text), " ")
+}
+
+func wrapTextBounded(text string, maxChars, maxLines int) []string {
+	lines, _ := wrapAndTruncate(text, maxChars, maxLines)
 	return lines
+}
+
+func wrapAndTruncate(text string, maxChars, maxLines int) ([]string, bool) {
+	text = normalizeLabelText(text)
+	if text == "" || maxChars <= 0 || maxLines <= 0 {
+		return nil, text != ""
+	}
+
+	var lines []string
+	var current []rune
+	appendCurrent := func() {
+		if len(current) > 0 {
+			lines = append(lines, string(current))
+			current = nil
+		}
+	}
+
+	for _, word := range strings.Fields(text) {
+		wordRunes := []rune(word)
+		for len(wordRunes) > 0 {
+			space := 0
+			if len(current) > 0 {
+				space = 1
+			}
+			remaining := maxChars - len(current) - space
+			if remaining <= 0 {
+				appendCurrent()
+				continue
+			}
+			if len(wordRunes) <= remaining {
+				if space == 1 {
+					current = append(current, ' ')
+				}
+				current = append(current, wordRunes...)
+				wordRunes = nil
+				continue
+			}
+			if len(current) > 0 {
+				appendCurrent()
+				continue
+			}
+			current = append(current, wordRunes[:remaining]...)
+			wordRunes = wordRunes[remaining:]
+			appendCurrent()
+		}
+	}
+	appendCurrent()
+
+	if len(lines) <= maxLines {
+		return lines, false
+	}
+
+	lines = lines[:maxLines]
+	last := []rune(lines[maxLines-1])
+	if maxChars >= 4 {
+		if len(last) > maxChars-3 {
+			last = last[:maxChars-3]
+		}
+		lines[maxLines-1] = strings.TrimSpace(string(last)) + "..."
+	}
+	return lines, true
+}
+
+func clamp(value, low, high int) int {
+	return min(max(value, low), high)
 }
 
 // escapeZPLField strips ZPL control characters from field data.

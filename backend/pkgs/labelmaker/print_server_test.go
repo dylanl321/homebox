@@ -15,7 +15,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/sys/config"
 )
 
-func TestGenerateZPL_MatchesZebraLabelMaker2x1(t *testing.T) {
+func TestGenerateZPL_UsesBoundedSideBySide2x1Layout(t *testing.T) {
 	params := NewGenerateParams(526, 200, 32, 32, 32, "Spare Parts", "Location: Garage", "http://homebox.local/item/abc", false, nil)
 	cfg := &config.Config{}
 	cfg.LabelMaker.LabelSize = "2x1"
@@ -25,11 +25,75 @@ func TestGenerateZPL_MatchesZebraLabelMaker2x1(t *testing.T) {
 	cfg.LabelMaker.PrintFontSize = 30
 
 	zpl := GenerateZPL(&params, cfg)
+	layout := buildZPLLayout(&params, cfg)
 
 	assert.Contains(t, zpl, "^PW406")
 	assert.Contains(t, zpl, "^LL203")
-	assert.Contains(t, zpl, "^BQN,2,5^FDQA,http://homebox.local/item/abc^FS")
-	assert.Contains(t, zpl, "^FB406,1,0,C^FDSpare Parts^FS")
+	assert.Contains(t, zpl, "^BQN,2,")
+	assert.Contains(t, zpl, "^FDQA,http://homebox.local/item/abc^FS")
+	assert.Less(t, layout.QRX+layout.QRSize, layout.TextX, "QR region must end before text begins")
+	assert.LessOrEqual(t, layout.TextX+layout.TextWidth, layout.Width-layout.Margin)
+	assert.NotEmpty(t, layout.TextLines)
+	for _, line := range layout.TextLines {
+		assert.GreaterOrEqual(t, line.Y, layout.Margin)
+		assert.LessOrEqual(t, line.Y+line.Font, layout.Height-layout.Margin)
+	}
+}
+
+func TestGenerateZPL_TruncatesLongTextWithoutOverlap(t *testing.T) {
+	longTitle := strings.Repeat("Extremely Long Inventory Item Name ", 8)
+	longDescription := strings.Repeat("Location and descriptive information that must remain bounded ", 12)
+	params := NewGenerateParams(526, 200, 32, 32, 32, longTitle, longDescription, "http://homebox.local/item/very-long-identifier", false, nil)
+	cfg := &config.Config{}
+	cfg.LabelMaker.LabelSize = "2x1"
+	cfg.LabelMaker.PrintFontSize = 30
+
+	layout := buildZPLLayout(&params, cfg)
+	zpl := GenerateZPL(&params, cfg)
+
+	assert.Contains(t, zpl, "...")
+	assert.NotContains(t, zpl, longTitle)
+	assert.Less(t, layout.QRX+layout.QRSize, layout.TextX)
+	for _, line := range layout.TextLines {
+		assert.LessOrEqual(t, line.Y+line.Font, layout.Height-layout.Margin)
+	}
+}
+
+func TestZPLLayoutStaysBoundedForEveryPresetAndOrientation(t *testing.T) {
+	params := NewGenerateParams(
+		526,
+		200,
+		32,
+		32,
+		32,
+		strings.Repeat("Long inventory title ", 6),
+		strings.Repeat("Detailed location and item information ", 10),
+		"http://homebox.local/item/1234567890",
+		false,
+		nil,
+	)
+
+	for _, size := range []string{"1x1", "2x1", "2.25x1.25", "3x2", "4x2", "4x6"} {
+		for _, orientation := range []string{"portrait", "landscape"} {
+			t.Run(size+"-"+orientation, func(t *testing.T) {
+				cfg := &config.Config{}
+				cfg.LabelMaker.LabelSize = size
+				cfg.LabelMaker.Orientation = orientation
+				cfg.LabelMaker.PrintFontSize = 30
+
+				layout := buildZPLLayout(&params, cfg)
+
+				assert.Greater(t, layout.QRX, 0)
+				assert.Greater(t, layout.QRY, 0)
+				assert.Less(t, layout.QRX+layout.QRSize, layout.TextX)
+				assert.LessOrEqual(t, layout.TextX+layout.TextWidth, layout.Width-layout.Margin)
+				for _, line := range layout.TextLines {
+					assert.GreaterOrEqual(t, line.Y, layout.Margin)
+					assert.LessOrEqual(t, line.Y+line.Font, layout.Height-layout.Margin)
+				}
+			})
+		}
+	}
 }
 
 func TestGenerateZPL_Landscape2x1Is1x2(t *testing.T) {
@@ -76,7 +140,8 @@ func TestPrintViaTCP_SendsZPL(t *testing.T) {
 	zpl := <-got
 	assert.True(t, strings.HasPrefix(zpl, "^XA"))
 	assert.Contains(t, zpl, "Box A")
-	assert.Contains(t, zpl, "^BQN,2,5^FDQA,http://example/item/1^FS")
+	assert.Contains(t, zpl, "^BQN,2,")
+	assert.Contains(t, zpl, "^FDQA,http://example/item/1^FS")
 }
 
 func TestPrintViaHTTPBridge_Optional(t *testing.T) {

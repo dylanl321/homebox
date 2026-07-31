@@ -55,6 +55,14 @@
     return route("/qrcode", { data: encodeURIComponent(`${base}/profile`) });
   });
 
+  const previewTitleFont = computed(() => {
+    return `${Math.max(11, Math.min(24, settings.value.printFontSize * 0.55))}px`;
+  });
+
+  const previewBodyFont = computed(() => {
+    return `${Math.max(9, Math.min(16, settings.value.printFontSize * 0.38))}px`;
+  });
+
   async function load() {
     loading.value = true;
     const { data, error } = await api.zebraPrinter.settings();
@@ -181,14 +189,29 @@
       <div>
         <Label>{{ $t("profile.zebra_preview") }}</Label>
         <div
-          class="mt-1.5 flex flex-col items-center justify-center gap-1 overflow-hidden border-2 border-foreground bg-white p-2 text-center text-black"
+          class="mt-1.5 flex items-stretch overflow-hidden border-2 border-foreground bg-white p-2 text-black"
           :style="previewStyle"
         >
-          <strong :style="{ fontSize: `${Math.max(12, settings.printFontSize * 0.6)}px` }">
-            {{ auth.user?.name || "Homebox" }}
-          </strong>
-          <span class="text-xs">{{ settings.printerIp }}:{{ settings.printerPort }}</span>
-          <img :src="qrPreviewURL" class="max-h-[45%] max-w-[45%]" alt="" />
+          <div class="flex h-full w-[44%] shrink-0 items-center justify-center pr-2">
+            <img :src="qrPreviewURL" class="max-h-full max-w-full object-contain" style="aspect-ratio: 1 / 1" alt="" />
+          </div>
+          <div
+            class="flex min-w-0 flex-1 flex-col justify-center overflow-hidden border-l border-black/20 pl-2 text-left"
+          >
+            <strong
+              class="line-clamp-2 break-words leading-tight"
+              :style="{ fontSize: previewTitleFont, overflowWrap: 'anywhere' }"
+            >
+              {{ $t("profile.zebra_test_label_title") }}
+            </strong>
+            <span
+              class="mt-1 line-clamp-3 break-words leading-tight"
+              :style="{ fontSize: previewBodyFont, overflowWrap: 'anywhere' }"
+            >
+              {{ auth.user?.name || "Homebox" }}<br />
+              {{ settings.printerIp }}:{{ settings.printerPort }}
+            </span>
+          </div>
         </div>
         <p class="mt-2 text-xs text-muted-foreground">
           {{ $t("profile.zebra_preview_note") }}
