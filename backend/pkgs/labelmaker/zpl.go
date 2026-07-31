@@ -101,9 +101,10 @@ func GenerateZPL(params *GenerateParameters, cfg *config.Config) string {
 			y += 120
 		default:
 			fSize, fWidth := fontSize, fontSize
-			if line.Style == "header" {
+			switch line.Style {
+			case "header":
 				fSize, fWidth = headerSize, headerSize
-			} else if line.Style == "bold" {
+			case "bold":
 				fWidth = fontSize + 8
 			}
 			if line.Style == "right" {

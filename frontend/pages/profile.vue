@@ -28,6 +28,8 @@
   import type { APIKeyOut } from "~~/lib/api/types/data-contracts";
   // homebox-fork: qr-login
   import ProfileQRLogin from "~/components/Profile/QRLogin.vue";
+  // homebox-fork: zebra-printer-settings
+  import ProfileZebraPrinterSettings from "~/components/Profile/ZebraPrinterSettings.vue";
 
   const { t } = useI18n();
 
@@ -429,6 +431,9 @@
           </div>
         </div>
       </BaseCard>
+
+      <!-- homebox-fork: zebra-printer-settings -->
+      <ProfileZebraPrinterSettings />
 
       <!-- TODO: Remove this notice once users are familiar with the collection-based settings. -->
       <BaseCard>

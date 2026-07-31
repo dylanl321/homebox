@@ -239,6 +239,10 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		)
 
 		// Labelmaker
+		// homebox-fork: zebra-printer-settings
+		r.Get("/labelmaker/settings", chain.ToHandlerFunc(v1Ctrl.HandleZebraPrinterSettingsGet(), userMW...))
+		r.Put("/labelmaker/settings", chain.ToHandlerFunc(v1Ctrl.HandleZebraPrinterSettingsUpdate(), userMW...))
+		r.Post("/labelmaker/test", chain.ToHandlerFunc(v1Ctrl.HandleZebraPrinterTest(), append(userMW, a.notifierTestLimiter.middleware)...))
 		r.Get("/labelmaker/entity/{id}", chain.ToHandlerFunc(v1Ctrl.HandleGetItemLabel(), userMW...))
 		r.Get("/labelmaker/location/{id}", chain.ToHandlerFunc(v1Ctrl.HandleGetLocationLabel(), userMW...))
 		r.Get("/labelmaker/item/{id}", chain.ToHandlerFunc(v1Ctrl.HandleGetItemLabel(), userMW...))

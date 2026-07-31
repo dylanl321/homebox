@@ -122,12 +122,12 @@ type LabelMakerConf struct {
 	BoldFontPath          *string        `yaml:"bold_font_path"`
 	// homebox-fork: zebra-print — send ZPL to a Zebra over raw TCP (default),
 	// using the same defaults as dylanl321/zebra-label-maker. PrintServerURL is optional.
-	DirectPrint    bool    `yaml:"direct_print"    conf:"default:true"`
+	DirectPrint    bool    `yaml:"direct_print"     conf:"default:true"`
 	PrintServerURL *string `yaml:"print_server_url"`
-	PrinterIP      string  `yaml:"printer_ip"      conf:"default:10.0.1.161"`
-	PrinterPort    int     `yaml:"printer_port"    conf:"default:9100"`
-	PrintDarkness  int     `yaml:"print_darkness"  conf:"default:15"`
-	PrintSpeed     int     `yaml:"print_speed"     conf:"default:4"`
+	PrinterIP      string  `yaml:"printer_ip"       conf:"default:10.0.1.161"`
+	PrinterPort    int     `yaml:"printer_port"     conf:"default:9100"`
+	PrintDarkness  int     `yaml:"print_darkness"   conf:"default:15"`
+	PrintSpeed     int     `yaml:"print_speed"      conf:"default:4"`
 	// LabelSize presets: 1x1, 2x1, 2.25x1.25, 3x2, 4x2, 4x6. Default 2x1 @ 203 DPI = 406×203.
 	// Orientation "landscape" on 2x1 yields 1"×2" (203×406).
 	LabelSize     string `yaml:"label_size"      conf:"default:2x1"`

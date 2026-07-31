@@ -83,8 +83,14 @@ func TestPrintViaHTTPBridge_Optional(t *testing.T) {
 	var gotBody printServerRequest
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		raw, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
-		require.NoError(t, json.Unmarshal(raw, &gotBody))
+		if !assert.NoError(t, err) {
+			http.Error(w, "read failed", http.StatusBadRequest)
+			return
+		}
+		if !assert.NoError(t, json.Unmarshal(raw, &gotBody)) {
+			http.Error(w, "decode failed", http.StatusBadRequest)
+			return
+		}
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer srv.Close()

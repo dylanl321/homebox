@@ -2409,6 +2409,23 @@ definitions:
     properties:
       item: {}
     type: object
+  v1.ZebraPrinterSettings:
+    properties:
+      darkness:
+        type: integer
+      labelSize:
+        type: string
+      orientation:
+        type: string
+      printFontSize:
+        type: integer
+      printSpeed:
+        type: integer
+      printerIp:
+        type: string
+      printerPort:
+        type: integer
+    type: object
   v1.externalAttachmentRequest:
     properties:
       attachment_type:
@@ -3580,6 +3597,67 @@ paths:
       summary: Get Location label
       tags:
       - Locations
+  /v1/labelmaker/settings:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.ZebraPrinterSettings'
+      security:
+      - Bearer: []
+      summary: Get Zebra printer settings
+      tags:
+      - Labelmaker
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Printer settings
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/v1.ZebraPrinterSettings'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.ZebraPrinterSettings'
+      security:
+      - Bearer: []
+      summary: Update Zebra printer settings
+      tags:
+      - Labelmaker
+  /v1/labelmaker/test:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Printer settings
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/v1.ZebraPrinterSettings'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+      security:
+      - Bearer: []
+      summary: Print a Zebra test label
+      tags:
+      - Labelmaker
   /v1/maintenance:
     get:
       parameters:

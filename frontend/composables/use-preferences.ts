@@ -165,7 +165,14 @@ export function useViewPreferencesSync() {
     try {
       while (syncedRevision < localRevision && !pauseServerSaves && auth.isAuthorized()) {
         const targetRevision = localRevision;
-        const { error } = await api.user.setSettings(buildSyncedSettings(preferences.value));
+        // Preserve feature-specific settings (for example Zebra printer setup)
+        // when updating the synchronized view preferences.
+        const current = await api.user.getSettings();
+        const payload = {
+          ...(current.data?.item ?? {}),
+          ...buildSyncedSettings(preferences.value),
+        };
+        const { error } = await api.user.setSettings(payload);
         if (error) {
           scheduleRetry();
           return;

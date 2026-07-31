@@ -1486,6 +1486,16 @@ export interface Wrapped {
   item: any;
 }
 
+export interface ZebraPrinterSettings {
+  darkness: number;
+  labelSize: string;
+  orientation: string;
+  printFontSize: number;
+  printSpeed: number;
+  printerIp: string;
+  printerPort: number;
+}
+
 export interface ExternalAttachmentRequest {
   attachment_type: string;
   external_id: string;

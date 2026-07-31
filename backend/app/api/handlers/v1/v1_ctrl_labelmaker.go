@@ -21,7 +21,12 @@ func generateOrPrint(ctrl *V1Controller, w http.ResponseWriter, r *http.Request,
 	print := queryBool(r.URL.Query().Get("print"))
 
 	if print {
-		err := labelmaker.PrintLabel(ctrl.config, &params)
+		// homebox-fork: zebra-printer-settings
+		settings, err := ctrl.zebraPrinterSettingsForRequest(r)
+		if err != nil {
+			return err
+		}
+		err = labelmaker.PrintLabel(applyZebraPrinterSettings(ctrl.config, settings), &params)
 		if err != nil {
 			return err
 		}

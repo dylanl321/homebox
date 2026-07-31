@@ -1881,6 +1881,107 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/labelmaker/settings": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Labelmaker"
+                ],
+                "summary": "Get Zebra printer settings",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ZebraPrinterSettings"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Labelmaker"
+                ],
+                "summary": "Update Zebra printer settings",
+                "parameters": [
+                    {
+                        "description": "Printer settings",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.ZebraPrinterSettings"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ZebraPrinterSettings"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/labelmaker/test": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Labelmaker"
+                ],
+                "summary": "Print a Zebra test label",
+                "parameters": [
+                    {
+                        "description": "Printer settings",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.ZebraPrinterSettings"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/maintenance": {
             "get": {
                 "security": [
@@ -6776,6 +6877,32 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "item": {}
+            }
+        },
+        "v1.ZebraPrinterSettings": {
+            "type": "object",
+            "properties": {
+                "darkness": {
+                    "type": "integer"
+                },
+                "labelSize": {
+                    "type": "string"
+                },
+                "orientation": {
+                    "type": "string"
+                },
+                "printFontSize": {
+                    "type": "integer"
+                },
+                "printSpeed": {
+                    "type": "integer"
+                },
+                "printerIp": {
+                    "type": "string"
+                },
+                "printerPort": {
+                    "type": "integer"
+                }
             }
         },
         "v1.externalAttachmentRequest": {
