@@ -33,6 +33,8 @@ jobs:
       packages: write
     steps:
       - uses: dataaxiom/ghcr-cleanup-action@cd0cdb900b5dbf3a6f2cc869f0dbb0b8211f50c4
+        # Forks may not have a devcache package until their first successful build.
+        continue-on-error: true
         with:
           dry-run: false
           delete-untagged: true
