@@ -1140,6 +1140,55 @@ export interface ItemAttachmentUpdate {
   type: string;
 }
 
+export interface LocationLayoutElementInput {
+  endX: number;
+  endY: number;
+  height: number;
+  id: string;
+  kind: string;
+  rotation: number;
+  targetId: string;
+  width: number;
+  x: number;
+  y: number;
+  zOrder: number;
+}
+
+export interface LocationLayoutOut {
+  canvasHeight: number;
+  canvasWidth: number;
+  locations: LocationLayoutPlacement[];
+  revision: number;
+  walls: LocationLayoutWall[];
+}
+
+export interface LocationLayoutPlacement {
+  height: number;
+  id: string;
+  itemCount: number;
+  name: string;
+  rotation: number;
+  targetId: string;
+  width: number;
+  x: number;
+  y: number;
+  zOrder: number;
+}
+
+export interface LocationLayoutReplace {
+  elements: LocationLayoutElementInput[];
+  expectedRevision: number;
+}
+
+export interface LocationLayoutWall {
+  endX: number;
+  endY: number;
+  id: string;
+  x: number;
+  y: number;
+  zOrder: number;
+}
+
 export interface MaintenanceEntry {
   completedDate: Date | string;
   /** @example "0" */

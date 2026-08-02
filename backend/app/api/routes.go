@@ -186,6 +186,10 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 
 		r.Get("/entities/{id}", chain.ToHandlerFunc(v1Ctrl.HandleEntityGet(), userMW...))
 		r.Get("/entities/{id}/path", chain.ToHandlerFunc(v1Ctrl.HandleEntityFullPath(), userMW...))
+		// homebox-fork: overhead-location-layout
+		r.Get("/entities/{id}/layout", chain.ToHandlerFunc(v1Ctrl.HandleLocationLayoutGet(), userMW...))
+		r.Put("/entities/{id}/layout", chain.ToHandlerFunc(v1Ctrl.HandleLocationLayoutReplace(), userMW...))
+		r.Delete("/entities/{id}/layout", chain.ToHandlerFunc(v1Ctrl.HandleLocationLayoutDelete(), userMW...))
 		r.Put("/entities/{id}", chain.ToHandlerFunc(v1Ctrl.HandleEntityUpdate(), userMW...))
 		r.Patch("/entities/{id}", chain.ToHandlerFunc(v1Ctrl.HandleEntityPatch(), userMW...))
 		r.Delete("/entities/{id}", chain.ToHandlerFunc(v1Ctrl.HandleEntityDelete(), userMW...))

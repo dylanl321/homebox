@@ -16,6 +16,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entityfield"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayout"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayoutelement"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
 )
@@ -485,6 +487,40 @@ func (_c *EntityCreate) AddAttachments(v ...*Attachment) *EntityCreate {
 	return _c.AddAttachmentIDs(ids...)
 }
 
+// SetLocationLayoutID sets the "location_layout" edge to the LocationLayout entity by ID.
+func (_c *EntityCreate) SetLocationLayoutID(id uuid.UUID) *EntityCreate {
+	_c.mutation.SetLocationLayoutID(id)
+	return _c
+}
+
+// SetNillableLocationLayoutID sets the "location_layout" edge to the LocationLayout entity by ID if the given value is not nil.
+func (_c *EntityCreate) SetNillableLocationLayoutID(id *uuid.UUID) *EntityCreate {
+	if id != nil {
+		_c = _c.SetLocationLayoutID(*id)
+	}
+	return _c
+}
+
+// SetLocationLayout sets the "location_layout" edge to the LocationLayout entity.
+func (_c *EntityCreate) SetLocationLayout(v *LocationLayout) *EntityCreate {
+	return _c.SetLocationLayoutID(v.ID)
+}
+
+// AddLayoutPlacementIDs adds the "layout_placements" edge to the LocationLayoutElement entity by IDs.
+func (_c *EntityCreate) AddLayoutPlacementIDs(ids ...uuid.UUID) *EntityCreate {
+	_c.mutation.AddLayoutPlacementIDs(ids...)
+	return _c
+}
+
+// AddLayoutPlacements adds the "layout_placements" edges to the LocationLayoutElement entity.
+func (_c *EntityCreate) AddLayoutPlacements(v ...*LocationLayoutElement) *EntityCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddLayoutPlacementIDs(ids...)
+}
+
 // Mutation returns the EntityMutation object of the builder.
 func (_c *EntityCreate) Mutation() *EntityMutation {
 	return _c.mutation
@@ -907,6 +943,38 @@ func (_c *EntityCreate) createSpec() (*Entity, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.LocationLayoutIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   entity.LocationLayoutTable,
+			Columns: []string{entity.LocationLayoutColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayout.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.LayoutPlacementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.LayoutPlacementsTable,
+			Columns: []string{entity.LayoutPlacementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayoutelement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

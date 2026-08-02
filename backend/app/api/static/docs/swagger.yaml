@@ -295,6 +295,15 @@ definitions:
         allOf:
         - $ref: '#/definitions/ent.Group'
         description: Group holds the value of the group edge.
+      layout_placements:
+        description: LayoutPlacements holds the value of the layout_placements edge.
+        items:
+          $ref: '#/definitions/ent.LocationLayoutElement'
+        type: array
+      location_layout:
+        allOf:
+        - $ref: '#/definitions/ent.LocationLayout'
+        description: LocationLayout holds the value of the location_layout edge.
       maintenance_entries:
         description: MaintenanceEntries holds the value of the maintenance_entries
           edge.
@@ -645,6 +654,102 @@ definitions:
         allOf:
         - $ref: '#/definitions/ent.Group'
         description: Group holds the value of the group edge.
+    type: object
+  ent.LocationLayout:
+    properties:
+      canvas_height:
+        description: CanvasHeight holds the value of the "canvas_height" field.
+        type: integer
+      canvas_width:
+        description: CanvasWidth holds the value of the "canvas_width" field.
+        type: integer
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/ent.LocationLayoutEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the LocationLayoutQuery when eager-loading is set.
+      id:
+        description: ID of the ent.
+        type: string
+      revision:
+        description: Revision holds the value of the "revision" field.
+        type: integer
+      updated_at:
+        description: UpdatedAt holds the value of the "updated_at" field.
+        type: string
+    type: object
+  ent.LocationLayoutEdges:
+    properties:
+      elements:
+        description: Elements holds the value of the elements edge.
+        items:
+          $ref: '#/definitions/ent.LocationLayoutElement'
+        type: array
+      owner:
+        allOf:
+        - $ref: '#/definitions/ent.Entity'
+        description: Owner holds the value of the owner edge.
+    type: object
+  ent.LocationLayoutElement:
+    properties:
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/ent.LocationLayoutElementEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the LocationLayoutElementQuery when eager-loading is set.
+      end_x:
+        description: EndX holds the value of the "end_x" field.
+        type: number
+      end_y:
+        description: EndY holds the value of the "end_y" field.
+        type: number
+      height:
+        description: Height holds the value of the "height" field.
+        type: number
+      id:
+        description: ID of the ent.
+        type: string
+      kind:
+        allOf:
+        - $ref: '#/definitions/locationlayoutelement.Kind'
+        description: Kind holds the value of the "kind" field.
+      rotation:
+        description: Rotation holds the value of the "rotation" field.
+        type: number
+      updated_at:
+        description: UpdatedAt holds the value of the "updated_at" field.
+        type: string
+      width:
+        description: Width holds the value of the "width" field.
+        type: number
+      x:
+        description: X holds the value of the "x" field.
+        type: number
+      "y":
+        description: Y holds the value of the "y" field.
+        type: number
+      z_order:
+        description: ZOrder holds the value of the "z_order" field.
+        type: integer
+    type: object
+  ent.LocationLayoutElementEdges:
+    properties:
+      layout:
+        allOf:
+        - $ref: '#/definitions/ent.LocationLayout'
+        description: Layout holds the value of the layout edge.
+      target:
+        allOf:
+        - $ref: '#/definitions/ent.Entity'
+        description: Target holds the value of the target edge.
     type: object
   ent.MaintenanceEntry:
     properties:
@@ -1057,6 +1162,14 @@ definitions:
     - StatusRunning
     - StatusCompleted
     - StatusFailed
+  locationlayoutelement.Kind:
+    enum:
+    - wall
+    - location
+    type: string
+    x-enum-varnames:
+    - KindWall
+    - KindLocation
   repo.APIKeyCreate:
     properties:
       expiresAt:
@@ -1825,6 +1938,95 @@ definitions:
         type: string
       type:
         type: string
+    type: object
+  repo.LocationLayoutElementInput:
+    properties:
+      endX:
+        type: number
+      endY:
+        type: number
+      height:
+        type: number
+      id:
+        type: string
+      kind:
+        type: string
+      rotation:
+        type: number
+      targetId:
+        type: string
+      width:
+        type: number
+      x:
+        type: number
+      "y":
+        type: number
+      zOrder:
+        type: integer
+    type: object
+  repo.LocationLayoutOut:
+    properties:
+      canvasHeight:
+        type: integer
+      canvasWidth:
+        type: integer
+      locations:
+        items:
+          $ref: '#/definitions/repo.LocationLayoutPlacement'
+        type: array
+      revision:
+        type: integer
+      walls:
+        items:
+          $ref: '#/definitions/repo.LocationLayoutWall'
+        type: array
+    type: object
+  repo.LocationLayoutPlacement:
+    properties:
+      height:
+        type: number
+      id:
+        type: string
+      itemCount:
+        type: integer
+      name:
+        type: string
+      rotation:
+        type: number
+      targetId:
+        type: string
+      width:
+        type: number
+      x:
+        type: number
+      "y":
+        type: number
+      zOrder:
+        type: integer
+    type: object
+  repo.LocationLayoutReplace:
+    properties:
+      elements:
+        items:
+          $ref: '#/definitions/repo.LocationLayoutElementInput'
+        type: array
+      expectedRevision:
+        type: integer
+    type: object
+  repo.LocationLayoutWall:
+    properties:
+      endX:
+        type: number
+      endY:
+        type: number
+      id:
+        type: string
+      x:
+        type: number
+      "y":
+        type: number
+      zOrder:
+        type: integer
     type: object
   repo.MaintenanceEntry:
     properties:
@@ -2905,6 +3107,72 @@ paths:
       summary: Duplicate Entity
       tags:
       - Entities
+  /v1/entities/{id}/layout:
+    delete:
+      parameters:
+      - description: Location ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+      security:
+      - Bearer: []
+      summary: Delete a location overhead layout
+      tags:
+      - Locations
+    get:
+      parameters:
+      - description: Location ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.LocationLayoutOut'
+      security:
+      - Bearer: []
+      summary: Get a location overhead layout
+      tags:
+      - Locations
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Location ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Complete layout
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/repo.LocationLayoutReplace'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.LocationLayoutOut'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/validate.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Replace a location overhead layout
+      tags:
+      - Locations
   /v1/entities/{id}/maintenance:
     get:
       parameters:

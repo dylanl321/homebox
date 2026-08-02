@@ -48,6 +48,14 @@ func (_m *GroupInvitationToken) GetID() uuid.UUID {
 	return _m.ID
 }
 
+func (_m *LocationLayout) GetID() uuid.UUID {
+	return _m.ID
+}
+
+func (_m *LocationLayoutElement) GetID() uuid.UUID {
+	return _m.ID
+}
+
 func (_m *MaintenanceEntry) GetID() uuid.UUID {
 	return _m.ID
 }

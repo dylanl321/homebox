@@ -27,6 +27,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/export"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/groupinvitationtoken"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayout"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayoutelement"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
@@ -64,6 +66,10 @@ type Client struct {
 	Group *GroupClient
 	// GroupInvitationToken is the client for interacting with the GroupInvitationToken builders.
 	GroupInvitationToken *GroupInvitationTokenClient
+	// LocationLayout is the client for interacting with the LocationLayout builders.
+	LocationLayout *LocationLayoutClient
+	// LocationLayoutElement is the client for interacting with the LocationLayoutElement builders.
+	LocationLayoutElement *LocationLayoutElementClient
 	// MaintenanceEntry is the client for interacting with the MaintenanceEntry builders.
 	MaintenanceEntry *MaintenanceEntryClient
 	// Notifier is the client for interacting with the Notifier builders.
@@ -102,6 +108,8 @@ func (c *Client) init() {
 	c.Export = NewExportClient(c.config)
 	c.Group = NewGroupClient(c.config)
 	c.GroupInvitationToken = NewGroupInvitationTokenClient(c.config)
+	c.LocationLayout = NewLocationLayoutClient(c.config)
+	c.LocationLayoutElement = NewLocationLayoutElementClient(c.config)
 	c.MaintenanceEntry = NewMaintenanceEntryClient(c.config)
 	c.Notifier = NewNotifierClient(c.config)
 	c.PasswordResetTokens = NewPasswordResetTokensClient(c.config)
@@ -200,27 +208,29 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                  ctx,
-		config:               cfg,
-		APIKey:               NewAPIKeyClient(cfg),
-		Attachment:           NewAttachmentClient(cfg),
-		AuthRoles:            NewAuthRolesClient(cfg),
-		AuthTokens:           NewAuthTokensClient(cfg),
-		Entity:               NewEntityClient(cfg),
-		EntityField:          NewEntityFieldClient(cfg),
-		EntityTemplate:       NewEntityTemplateClient(cfg),
-		EntityType:           NewEntityTypeClient(cfg),
-		Export:               NewExportClient(cfg),
-		Group:                NewGroupClient(cfg),
-		GroupInvitationToken: NewGroupInvitationTokenClient(cfg),
-		MaintenanceEntry:     NewMaintenanceEntryClient(cfg),
-		Notifier:             NewNotifierClient(cfg),
-		PasswordResetTokens:  NewPasswordResetTokensClient(cfg),
-		QRLoginTokens:        NewQRLoginTokensClient(cfg),
-		Tag:                  NewTagClient(cfg),
-		TemplateField:        NewTemplateFieldClient(cfg),
-		User:                 NewUserClient(cfg),
-		UserGroup:            NewUserGroupClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		APIKey:                NewAPIKeyClient(cfg),
+		Attachment:            NewAttachmentClient(cfg),
+		AuthRoles:             NewAuthRolesClient(cfg),
+		AuthTokens:            NewAuthTokensClient(cfg),
+		Entity:                NewEntityClient(cfg),
+		EntityField:           NewEntityFieldClient(cfg),
+		EntityTemplate:        NewEntityTemplateClient(cfg),
+		EntityType:            NewEntityTypeClient(cfg),
+		Export:                NewExportClient(cfg),
+		Group:                 NewGroupClient(cfg),
+		GroupInvitationToken:  NewGroupInvitationTokenClient(cfg),
+		LocationLayout:        NewLocationLayoutClient(cfg),
+		LocationLayoutElement: NewLocationLayoutElementClient(cfg),
+		MaintenanceEntry:      NewMaintenanceEntryClient(cfg),
+		Notifier:              NewNotifierClient(cfg),
+		PasswordResetTokens:   NewPasswordResetTokensClient(cfg),
+		QRLoginTokens:         NewQRLoginTokensClient(cfg),
+		Tag:                   NewTagClient(cfg),
+		TemplateField:         NewTemplateFieldClient(cfg),
+		User:                  NewUserClient(cfg),
+		UserGroup:             NewUserGroupClient(cfg),
 	}, nil
 }
 
@@ -238,27 +248,29 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                  ctx,
-		config:               cfg,
-		APIKey:               NewAPIKeyClient(cfg),
-		Attachment:           NewAttachmentClient(cfg),
-		AuthRoles:            NewAuthRolesClient(cfg),
-		AuthTokens:           NewAuthTokensClient(cfg),
-		Entity:               NewEntityClient(cfg),
-		EntityField:          NewEntityFieldClient(cfg),
-		EntityTemplate:       NewEntityTemplateClient(cfg),
-		EntityType:           NewEntityTypeClient(cfg),
-		Export:               NewExportClient(cfg),
-		Group:                NewGroupClient(cfg),
-		GroupInvitationToken: NewGroupInvitationTokenClient(cfg),
-		MaintenanceEntry:     NewMaintenanceEntryClient(cfg),
-		Notifier:             NewNotifierClient(cfg),
-		PasswordResetTokens:  NewPasswordResetTokensClient(cfg),
-		QRLoginTokens:        NewQRLoginTokensClient(cfg),
-		Tag:                  NewTagClient(cfg),
-		TemplateField:        NewTemplateFieldClient(cfg),
-		User:                 NewUserClient(cfg),
-		UserGroup:            NewUserGroupClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		APIKey:                NewAPIKeyClient(cfg),
+		Attachment:            NewAttachmentClient(cfg),
+		AuthRoles:             NewAuthRolesClient(cfg),
+		AuthTokens:            NewAuthTokensClient(cfg),
+		Entity:                NewEntityClient(cfg),
+		EntityField:           NewEntityFieldClient(cfg),
+		EntityTemplate:        NewEntityTemplateClient(cfg),
+		EntityType:            NewEntityTypeClient(cfg),
+		Export:                NewExportClient(cfg),
+		Group:                 NewGroupClient(cfg),
+		GroupInvitationToken:  NewGroupInvitationTokenClient(cfg),
+		LocationLayout:        NewLocationLayoutClient(cfg),
+		LocationLayoutElement: NewLocationLayoutElementClient(cfg),
+		MaintenanceEntry:      NewMaintenanceEntryClient(cfg),
+		Notifier:              NewNotifierClient(cfg),
+		PasswordResetTokens:   NewPasswordResetTokensClient(cfg),
+		QRLoginTokens:         NewQRLoginTokensClient(cfg),
+		Tag:                   NewTagClient(cfg),
+		TemplateField:         NewTemplateFieldClient(cfg),
+		User:                  NewUserClient(cfg),
+		UserGroup:             NewUserGroupClient(cfg),
 	}, nil
 }
 
@@ -290,8 +302,9 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.APIKey, c.Attachment, c.AuthRoles, c.AuthTokens, c.Entity, c.EntityField,
 		c.EntityTemplate, c.EntityType, c.Export, c.Group, c.GroupInvitationToken,
-		c.MaintenanceEntry, c.Notifier, c.PasswordResetTokens, c.QRLoginTokens, c.Tag,
-		c.TemplateField, c.User, c.UserGroup,
+		c.LocationLayout, c.LocationLayoutElement, c.MaintenanceEntry, c.Notifier,
+		c.PasswordResetTokens, c.QRLoginTokens, c.Tag, c.TemplateField, c.User,
+		c.UserGroup,
 	} {
 		n.Use(hooks...)
 	}
@@ -303,8 +316,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.APIKey, c.Attachment, c.AuthRoles, c.AuthTokens, c.Entity, c.EntityField,
 		c.EntityTemplate, c.EntityType, c.Export, c.Group, c.GroupInvitationToken,
-		c.MaintenanceEntry, c.Notifier, c.PasswordResetTokens, c.QRLoginTokens, c.Tag,
-		c.TemplateField, c.User, c.UserGroup,
+		c.LocationLayout, c.LocationLayoutElement, c.MaintenanceEntry, c.Notifier,
+		c.PasswordResetTokens, c.QRLoginTokens, c.Tag, c.TemplateField, c.User,
+		c.UserGroup,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -335,6 +349,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Group.mutate(ctx, m)
 	case *GroupInvitationTokenMutation:
 		return c.GroupInvitationToken.mutate(ctx, m)
+	case *LocationLayoutMutation:
+		return c.LocationLayout.mutate(ctx, m)
+	case *LocationLayoutElementMutation:
+		return c.LocationLayoutElement.mutate(ctx, m)
 	case *MaintenanceEntryMutation:
 		return c.MaintenanceEntry.mutate(ctx, m)
 	case *NotifierMutation:
@@ -1213,6 +1231,38 @@ func (c *EntityClient) QueryAttachments(_m *Entity) *AttachmentQuery {
 			sqlgraph.From(entity.Table, entity.FieldID, id),
 			sqlgraph.To(attachment.Table, attachment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, entity.AttachmentsTable, entity.AttachmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLocationLayout queries the location_layout edge of a Entity.
+func (c *EntityClient) QueryLocationLayout(_m *Entity) *LocationLayoutQuery {
+	query := (&LocationLayoutClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entity.Table, entity.FieldID, id),
+			sqlgraph.To(locationlayout.Table, locationlayout.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, entity.LocationLayoutTable, entity.LocationLayoutColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLayoutPlacements queries the layout_placements edge of a Entity.
+func (c *EntityClient) QueryLayoutPlacements(_m *Entity) *LocationLayoutElementQuery {
+	query := (&LocationLayoutElementClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entity.Table, entity.FieldID, id),
+			sqlgraph.To(locationlayoutelement.Table, locationlayoutelement.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, entity.LayoutPlacementsTable, entity.LayoutPlacementsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -2328,6 +2378,336 @@ func (c *GroupInvitationTokenClient) mutate(ctx context.Context, m *GroupInvitat
 		return (&GroupInvitationTokenDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown GroupInvitationToken mutation op: %q", m.Op())
+	}
+}
+
+// LocationLayoutClient is a client for the LocationLayout schema.
+type LocationLayoutClient struct {
+	config
+}
+
+// NewLocationLayoutClient returns a client for the LocationLayout from the given config.
+func NewLocationLayoutClient(c config) *LocationLayoutClient {
+	return &LocationLayoutClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `locationlayout.Hooks(f(g(h())))`.
+func (c *LocationLayoutClient) Use(hooks ...Hook) {
+	c.hooks.LocationLayout = append(c.hooks.LocationLayout, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `locationlayout.Intercept(f(g(h())))`.
+func (c *LocationLayoutClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LocationLayout = append(c.inters.LocationLayout, interceptors...)
+}
+
+// Create returns a builder for creating a LocationLayout entity.
+func (c *LocationLayoutClient) Create() *LocationLayoutCreate {
+	mutation := newLocationLayoutMutation(c.config, OpCreate)
+	return &LocationLayoutCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LocationLayout entities.
+func (c *LocationLayoutClient) CreateBulk(builders ...*LocationLayoutCreate) *LocationLayoutCreateBulk {
+	return &LocationLayoutCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LocationLayoutClient) MapCreateBulk(slice any, setFunc func(*LocationLayoutCreate, int)) *LocationLayoutCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LocationLayoutCreateBulk{err: fmt.Errorf("calling to LocationLayoutClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LocationLayoutCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LocationLayoutCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LocationLayout.
+func (c *LocationLayoutClient) Update() *LocationLayoutUpdate {
+	mutation := newLocationLayoutMutation(c.config, OpUpdate)
+	return &LocationLayoutUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LocationLayoutClient) UpdateOne(_m *LocationLayout) *LocationLayoutUpdateOne {
+	mutation := newLocationLayoutMutation(c.config, OpUpdateOne, withLocationLayout(_m))
+	return &LocationLayoutUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LocationLayoutClient) UpdateOneID(id uuid.UUID) *LocationLayoutUpdateOne {
+	mutation := newLocationLayoutMutation(c.config, OpUpdateOne, withLocationLayoutID(id))
+	return &LocationLayoutUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LocationLayout.
+func (c *LocationLayoutClient) Delete() *LocationLayoutDelete {
+	mutation := newLocationLayoutMutation(c.config, OpDelete)
+	return &LocationLayoutDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LocationLayoutClient) DeleteOne(_m *LocationLayout) *LocationLayoutDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LocationLayoutClient) DeleteOneID(id uuid.UUID) *LocationLayoutDeleteOne {
+	builder := c.Delete().Where(locationlayout.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LocationLayoutDeleteOne{builder}
+}
+
+// Query returns a query builder for LocationLayout.
+func (c *LocationLayoutClient) Query() *LocationLayoutQuery {
+	return &LocationLayoutQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLocationLayout},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LocationLayout entity by its id.
+func (c *LocationLayoutClient) Get(ctx context.Context, id uuid.UUID) (*LocationLayout, error) {
+	return c.Query().Where(locationlayout.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LocationLayoutClient) GetX(ctx context.Context, id uuid.UUID) *LocationLayout {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOwner queries the owner edge of a LocationLayout.
+func (c *LocationLayoutClient) QueryOwner(_m *LocationLayout) *EntityQuery {
+	query := (&EntityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locationlayout.Table, locationlayout.FieldID, id),
+			sqlgraph.To(entity.Table, entity.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, locationlayout.OwnerTable, locationlayout.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryElements queries the elements edge of a LocationLayout.
+func (c *LocationLayoutClient) QueryElements(_m *LocationLayout) *LocationLayoutElementQuery {
+	query := (&LocationLayoutElementClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locationlayout.Table, locationlayout.FieldID, id),
+			sqlgraph.To(locationlayoutelement.Table, locationlayoutelement.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, locationlayout.ElementsTable, locationlayout.ElementsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LocationLayoutClient) Hooks() []Hook {
+	return c.hooks.LocationLayout
+}
+
+// Interceptors returns the client interceptors.
+func (c *LocationLayoutClient) Interceptors() []Interceptor {
+	return c.inters.LocationLayout
+}
+
+func (c *LocationLayoutClient) mutate(ctx context.Context, m *LocationLayoutMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LocationLayoutCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LocationLayoutUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LocationLayoutUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LocationLayoutDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LocationLayout mutation op: %q", m.Op())
+	}
+}
+
+// LocationLayoutElementClient is a client for the LocationLayoutElement schema.
+type LocationLayoutElementClient struct {
+	config
+}
+
+// NewLocationLayoutElementClient returns a client for the LocationLayoutElement from the given config.
+func NewLocationLayoutElementClient(c config) *LocationLayoutElementClient {
+	return &LocationLayoutElementClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `locationlayoutelement.Hooks(f(g(h())))`.
+func (c *LocationLayoutElementClient) Use(hooks ...Hook) {
+	c.hooks.LocationLayoutElement = append(c.hooks.LocationLayoutElement, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `locationlayoutelement.Intercept(f(g(h())))`.
+func (c *LocationLayoutElementClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LocationLayoutElement = append(c.inters.LocationLayoutElement, interceptors...)
+}
+
+// Create returns a builder for creating a LocationLayoutElement entity.
+func (c *LocationLayoutElementClient) Create() *LocationLayoutElementCreate {
+	mutation := newLocationLayoutElementMutation(c.config, OpCreate)
+	return &LocationLayoutElementCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LocationLayoutElement entities.
+func (c *LocationLayoutElementClient) CreateBulk(builders ...*LocationLayoutElementCreate) *LocationLayoutElementCreateBulk {
+	return &LocationLayoutElementCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LocationLayoutElementClient) MapCreateBulk(slice any, setFunc func(*LocationLayoutElementCreate, int)) *LocationLayoutElementCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LocationLayoutElementCreateBulk{err: fmt.Errorf("calling to LocationLayoutElementClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LocationLayoutElementCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LocationLayoutElementCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LocationLayoutElement.
+func (c *LocationLayoutElementClient) Update() *LocationLayoutElementUpdate {
+	mutation := newLocationLayoutElementMutation(c.config, OpUpdate)
+	return &LocationLayoutElementUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LocationLayoutElementClient) UpdateOne(_m *LocationLayoutElement) *LocationLayoutElementUpdateOne {
+	mutation := newLocationLayoutElementMutation(c.config, OpUpdateOne, withLocationLayoutElement(_m))
+	return &LocationLayoutElementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LocationLayoutElementClient) UpdateOneID(id uuid.UUID) *LocationLayoutElementUpdateOne {
+	mutation := newLocationLayoutElementMutation(c.config, OpUpdateOne, withLocationLayoutElementID(id))
+	return &LocationLayoutElementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LocationLayoutElement.
+func (c *LocationLayoutElementClient) Delete() *LocationLayoutElementDelete {
+	mutation := newLocationLayoutElementMutation(c.config, OpDelete)
+	return &LocationLayoutElementDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LocationLayoutElementClient) DeleteOne(_m *LocationLayoutElement) *LocationLayoutElementDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LocationLayoutElementClient) DeleteOneID(id uuid.UUID) *LocationLayoutElementDeleteOne {
+	builder := c.Delete().Where(locationlayoutelement.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LocationLayoutElementDeleteOne{builder}
+}
+
+// Query returns a query builder for LocationLayoutElement.
+func (c *LocationLayoutElementClient) Query() *LocationLayoutElementQuery {
+	return &LocationLayoutElementQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLocationLayoutElement},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LocationLayoutElement entity by its id.
+func (c *LocationLayoutElementClient) Get(ctx context.Context, id uuid.UUID) (*LocationLayoutElement, error) {
+	return c.Query().Where(locationlayoutelement.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LocationLayoutElementClient) GetX(ctx context.Context, id uuid.UUID) *LocationLayoutElement {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLayout queries the layout edge of a LocationLayoutElement.
+func (c *LocationLayoutElementClient) QueryLayout(_m *LocationLayoutElement) *LocationLayoutQuery {
+	query := (&LocationLayoutClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locationlayoutelement.Table, locationlayoutelement.FieldID, id),
+			sqlgraph.To(locationlayout.Table, locationlayout.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, locationlayoutelement.LayoutTable, locationlayoutelement.LayoutColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTarget queries the target edge of a LocationLayoutElement.
+func (c *LocationLayoutElementClient) QueryTarget(_m *LocationLayoutElement) *EntityQuery {
+	query := (&EntityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(locationlayoutelement.Table, locationlayoutelement.FieldID, id),
+			sqlgraph.To(entity.Table, entity.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, locationlayoutelement.TargetTable, locationlayoutelement.TargetColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LocationLayoutElementClient) Hooks() []Hook {
+	return c.hooks.LocationLayoutElement
+}
+
+// Interceptors returns the client interceptors.
+func (c *LocationLayoutElementClient) Interceptors() []Interceptor {
+	return c.inters.LocationLayoutElement
+}
+
+func (c *LocationLayoutElementClient) mutate(ctx context.Context, m *LocationLayoutElementMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LocationLayoutElementCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LocationLayoutElementUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LocationLayoutElementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LocationLayoutElementDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LocationLayoutElement mutation op: %q", m.Op())
 	}
 }
 
@@ -3654,14 +4034,14 @@ func (c *UserGroupClient) mutate(ctx context.Context, m *UserGroupMutation) (Val
 type (
 	hooks struct {
 		APIKey, Attachment, AuthRoles, AuthTokens, Entity, EntityField, EntityTemplate,
-		EntityType, Export, Group, GroupInvitationToken, MaintenanceEntry, Notifier,
-		PasswordResetTokens, QRLoginTokens, Tag, TemplateField, User,
-		UserGroup []ent.Hook
+		EntityType, Export, Group, GroupInvitationToken, LocationLayout,
+		LocationLayoutElement, MaintenanceEntry, Notifier, PasswordResetTokens,
+		QRLoginTokens, Tag, TemplateField, User, UserGroup []ent.Hook
 	}
 	inters struct {
 		APIKey, Attachment, AuthRoles, AuthTokens, Entity, EntityField, EntityTemplate,
-		EntityType, Export, Group, GroupInvitationToken, MaintenanceEntry, Notifier,
-		PasswordResetTokens, QRLoginTokens, Tag, TemplateField, User,
-		UserGroup []ent.Interceptor
+		EntityType, Export, Group, GroupInvitationToken, LocationLayout,
+		LocationLayoutElement, MaintenanceEntry, Notifier, PasswordResetTokens,
+		QRLoginTokens, Tag, TemplateField, User, UserGroup []ent.Interceptor
 	}
 )

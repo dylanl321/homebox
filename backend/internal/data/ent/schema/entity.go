@@ -120,5 +120,11 @@ func (Entity) Edges() []ent.Edge {
 		owned("fields", EntityField.Type),
 		owned("maintenance_entries", MaintenanceEntry.Type),
 		owned("attachments", Attachment.Type),
+		// homebox-fork: overhead-location-layout
+		edge.To("location_layout", LocationLayout.Type).
+			Unique().
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
+		edge.To("layout_placements", LocationLayoutElement.Type).
+			Annotations(entsql.Annotation{OnDelete: entsql.Cascade}),
 	}
 }

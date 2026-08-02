@@ -53,11 +53,27 @@ func TestExportRoundTrip(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	shelf, err := tRepos.Entities.Create(ctx, src.ID, repo.EntityCreate{
+		Name:         "Shelf A",
+		ParentID:     loc.ID,
+		EntityTypeID: containerET.ID,
+	})
+	require.NoError(t, err)
+
 	item, err := tRepos.Entities.Create(ctx, src.ID, repo.EntityCreate{
 		Name:         "Drill",
 		Description:  "cordless",
 		ParentID:     loc.ID,
 		EntityTypeID: itemET.ID,
+	})
+	require.NoError(t, err)
+
+	_, err = tRepos.LocationLayouts.Replace(ctx, src.ID, loc.ID, repo.LocationLayoutReplace{
+		ExpectedRevision: 0,
+		Elements: []repo.LocationLayoutElementInput{
+			{Kind: "wall", X: 0.05, Y: 0.05, EndX: 0.95, EndY: 0.05},
+			{Kind: "location", TargetID: shelf.ID, X: 0.2, Y: 0.25, Width: 0.3, Height: 0.2, Rotation: 25},
+		},
 	})
 	require.NoError(t, err)
 
@@ -152,7 +168,7 @@ func TestExportRoundTrip(t *testing.T) {
 	// --- Assertions ----------------------------------------------------
 	dstEntities, err := tClient.Entity.Query().Where(entity.HasGroupWith(group.ID(dst.ID))).All(ctx)
 	require.NoError(t, err)
-	require.Len(t, dstEntities, 2, "exactly the location and the item should remain — seeded defaults wiped, source data restored")
+	require.Len(t, dstEntities, 3, "the two locations and item should remain — seeded defaults wiped, source data restored")
 
 	gotItem, err := tClient.Entity.Query().
 		Where(entity.HasGroupWith(group.ID(dst.ID)), entity.Name("Drill")).
@@ -179,6 +195,20 @@ func TestExportRoundTrip(t *testing.T) {
 	// PK). Names + relationship structure are what matters.
 	assert.NotEqual(t, item.ID, gotItem.ID, "import should remap PKs")
 	assert.NotEqual(t, tg.ID, tags[0].ID, "import should remap PKs")
+
+	gotShelf, err := tClient.Entity.Query().
+		Where(entity.HasGroupWith(group.ID(dst.ID)), entity.Name("Shelf A")).
+		Only(ctx)
+	require.NoError(t, err)
+	assert.NotEqual(t, shelf.ID, gotShelf.ID, "layout targets must receive remapped entity IDs")
+
+	gotLayout, err := tRepos.LocationLayouts.Get(ctx, dst.ID, parent.ID)
+	require.NoError(t, err)
+	require.Equal(t, 1, gotLayout.Revision)
+	require.Len(t, gotLayout.Walls, 1)
+	require.Len(t, gotLayout.Locations, 1)
+	assert.Equal(t, gotShelf.ID, gotLayout.Locations[0].TargetID, "placement target must use the restored child ID")
+	assert.NotEqual(t, loc.ID, parent.ID, "layout owner must use the restored owner ID")
 
 	// Attachment + thumbnail must both round-trip with the parent→thumbnail
 	// link intact and both blobs present at their new on-disk paths.

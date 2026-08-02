@@ -27,11 +27,10 @@
   import LabelMaker from "~/components/global/LabelMaker.vue";
   import Markdown from "~/components/global/Markdown.vue";
   import DetailsSection from "~/components/global/DetailsSection/DetailsSection.vue";
-  import BaseSectionHeader from "@/components/Base/SectionHeader.vue";
   import ItemViewSelectable from "~/components/Item/View/Selectable.vue";
   import ItemAttachmentsList from "~/components/Item/AttachmentsList.vue";
   import ItemImageDialog from "~/components/Item/ImageDialog.vue";
-  import LocationCard from "~/components/Location/Card.vue";
+  import LocationLayoutSection from "~/components/Location/Layout/Section.vue";
   import TagChip from "~/components/Tag/Chip.vue";
 
   definePageMeta({
@@ -346,13 +345,8 @@
         <ItemViewSelectable :items="items" @refresh="refreshItemList" />
       </section>
 
-      <!-- Child locations -->
-      <section v-if="location && location.children && location.children.length > 0" class="mt-6">
-        <BaseSectionHeader class="mb-5"> {{ $t("locations.child_locations") }} </BaseSectionHeader>
-        <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <LocationCard v-for="child in location.children" :key="child.id" :location="child" />
-        </div>
-      </section>
+      <!-- homebox-fork: overhead-location-layout -->
+      <LocationLayoutSection v-if="location" :location-id="location.id" :children="location.children || []" />
     </div>
   </div>
 </template>

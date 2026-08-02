@@ -17,6 +17,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entityfield"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayout"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayoutelement"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
@@ -571,6 +573,40 @@ func (_u *EntityUpdate) AddAttachments(v ...*Attachment) *EntityUpdate {
 	return _u.AddAttachmentIDs(ids...)
 }
 
+// SetLocationLayoutID sets the "location_layout" edge to the LocationLayout entity by ID.
+func (_u *EntityUpdate) SetLocationLayoutID(id uuid.UUID) *EntityUpdate {
+	_u.mutation.SetLocationLayoutID(id)
+	return _u
+}
+
+// SetNillableLocationLayoutID sets the "location_layout" edge to the LocationLayout entity by ID if the given value is not nil.
+func (_u *EntityUpdate) SetNillableLocationLayoutID(id *uuid.UUID) *EntityUpdate {
+	if id != nil {
+		_u = _u.SetLocationLayoutID(*id)
+	}
+	return _u
+}
+
+// SetLocationLayout sets the "location_layout" edge to the LocationLayout entity.
+func (_u *EntityUpdate) SetLocationLayout(v *LocationLayout) *EntityUpdate {
+	return _u.SetLocationLayoutID(v.ID)
+}
+
+// AddLayoutPlacementIDs adds the "layout_placements" edge to the LocationLayoutElement entity by IDs.
+func (_u *EntityUpdate) AddLayoutPlacementIDs(ids ...uuid.UUID) *EntityUpdate {
+	_u.mutation.AddLayoutPlacementIDs(ids...)
+	return _u
+}
+
+// AddLayoutPlacements adds the "layout_placements" edges to the LocationLayoutElement entity.
+func (_u *EntityUpdate) AddLayoutPlacements(v ...*LocationLayoutElement) *EntityUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddLayoutPlacementIDs(ids...)
+}
+
 // Mutation returns the EntityMutation object of the builder.
 func (_u *EntityUpdate) Mutation() *EntityMutation {
 	return _u.mutation
@@ -697,6 +733,33 @@ func (_u *EntityUpdate) RemoveAttachments(v ...*Attachment) *EntityUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAttachmentIDs(ids...)
+}
+
+// ClearLocationLayout clears the "location_layout" edge to the LocationLayout entity.
+func (_u *EntityUpdate) ClearLocationLayout() *EntityUpdate {
+	_u.mutation.ClearLocationLayout()
+	return _u
+}
+
+// ClearLayoutPlacements clears all "layout_placements" edges to the LocationLayoutElement entity.
+func (_u *EntityUpdate) ClearLayoutPlacements() *EntityUpdate {
+	_u.mutation.ClearLayoutPlacements()
+	return _u
+}
+
+// RemoveLayoutPlacementIDs removes the "layout_placements" edge to LocationLayoutElement entities by IDs.
+func (_u *EntityUpdate) RemoveLayoutPlacementIDs(ids ...uuid.UUID) *EntityUpdate {
+	_u.mutation.RemoveLayoutPlacementIDs(ids...)
+	return _u
+}
+
+// RemoveLayoutPlacements removes "layout_placements" edges to LocationLayoutElement entities.
+func (_u *EntityUpdate) RemoveLayoutPlacements(v ...*LocationLayoutElement) *EntityUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveLayoutPlacementIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -1228,6 +1291,80 @@ func (_u *EntityUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LocationLayoutCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   entity.LocationLayoutTable,
+			Columns: []string{entity.LocationLayoutColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayout.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LocationLayoutIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   entity.LocationLayoutTable,
+			Columns: []string{entity.LocationLayoutColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayout.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LayoutPlacementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.LayoutPlacementsTable,
+			Columns: []string{entity.LayoutPlacementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayoutelement.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedLayoutPlacementsIDs(); len(nodes) > 0 && !_u.mutation.LayoutPlacementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.LayoutPlacementsTable,
+			Columns: []string{entity.LayoutPlacementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayoutelement.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LayoutPlacementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.LayoutPlacementsTable,
+			Columns: []string{entity.LayoutPlacementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayoutelement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1791,6 +1928,40 @@ func (_u *EntityUpdateOne) AddAttachments(v ...*Attachment) *EntityUpdateOne {
 	return _u.AddAttachmentIDs(ids...)
 }
 
+// SetLocationLayoutID sets the "location_layout" edge to the LocationLayout entity by ID.
+func (_u *EntityUpdateOne) SetLocationLayoutID(id uuid.UUID) *EntityUpdateOne {
+	_u.mutation.SetLocationLayoutID(id)
+	return _u
+}
+
+// SetNillableLocationLayoutID sets the "location_layout" edge to the LocationLayout entity by ID if the given value is not nil.
+func (_u *EntityUpdateOne) SetNillableLocationLayoutID(id *uuid.UUID) *EntityUpdateOne {
+	if id != nil {
+		_u = _u.SetLocationLayoutID(*id)
+	}
+	return _u
+}
+
+// SetLocationLayout sets the "location_layout" edge to the LocationLayout entity.
+func (_u *EntityUpdateOne) SetLocationLayout(v *LocationLayout) *EntityUpdateOne {
+	return _u.SetLocationLayoutID(v.ID)
+}
+
+// AddLayoutPlacementIDs adds the "layout_placements" edge to the LocationLayoutElement entity by IDs.
+func (_u *EntityUpdateOne) AddLayoutPlacementIDs(ids ...uuid.UUID) *EntityUpdateOne {
+	_u.mutation.AddLayoutPlacementIDs(ids...)
+	return _u
+}
+
+// AddLayoutPlacements adds the "layout_placements" edges to the LocationLayoutElement entity.
+func (_u *EntityUpdateOne) AddLayoutPlacements(v ...*LocationLayoutElement) *EntityUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddLayoutPlacementIDs(ids...)
+}
+
 // Mutation returns the EntityMutation object of the builder.
 func (_u *EntityUpdateOne) Mutation() *EntityMutation {
 	return _u.mutation
@@ -1917,6 +2088,33 @@ func (_u *EntityUpdateOne) RemoveAttachments(v ...*Attachment) *EntityUpdateOne 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAttachmentIDs(ids...)
+}
+
+// ClearLocationLayout clears the "location_layout" edge to the LocationLayout entity.
+func (_u *EntityUpdateOne) ClearLocationLayout() *EntityUpdateOne {
+	_u.mutation.ClearLocationLayout()
+	return _u
+}
+
+// ClearLayoutPlacements clears all "layout_placements" edges to the LocationLayoutElement entity.
+func (_u *EntityUpdateOne) ClearLayoutPlacements() *EntityUpdateOne {
+	_u.mutation.ClearLayoutPlacements()
+	return _u
+}
+
+// RemoveLayoutPlacementIDs removes the "layout_placements" edge to LocationLayoutElement entities by IDs.
+func (_u *EntityUpdateOne) RemoveLayoutPlacementIDs(ids ...uuid.UUID) *EntityUpdateOne {
+	_u.mutation.RemoveLayoutPlacementIDs(ids...)
+	return _u
+}
+
+// RemoveLayoutPlacements removes "layout_placements" edges to LocationLayoutElement entities.
+func (_u *EntityUpdateOne) RemoveLayoutPlacements(v ...*LocationLayoutElement) *EntityUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveLayoutPlacementIDs(ids...)
 }
 
 // Where appends a list predicates to the EntityUpdate builder.
@@ -2478,6 +2676,80 @@ func (_u *EntityUpdateOne) sqlSave(ctx context.Context) (_node *Entity, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LocationLayoutCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   entity.LocationLayoutTable,
+			Columns: []string{entity.LocationLayoutColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayout.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LocationLayoutIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   entity.LocationLayoutTable,
+			Columns: []string{entity.LocationLayoutColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayout.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.LayoutPlacementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.LayoutPlacementsTable,
+			Columns: []string{entity.LayoutPlacementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayoutelement.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedLayoutPlacementsIDs(); len(nodes) > 0 && !_u.mutation.LayoutPlacementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.LayoutPlacementsTable,
+			Columns: []string{entity.LayoutPlacementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayoutelement.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.LayoutPlacementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.LayoutPlacementsTable,
+			Columns: []string{entity.LayoutPlacementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(locationlayoutelement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

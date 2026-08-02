@@ -141,6 +141,30 @@ func (f GroupInvitationTokenFunc) Mutate(ctx context.Context, m ent.Mutation) (e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupInvitationTokenMutation", m)
 }
 
+// The LocationLayoutFunc type is an adapter to allow the use of ordinary
+// function as LocationLayout mutator.
+type LocationLayoutFunc func(context.Context, *ent.LocationLayoutMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LocationLayoutFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LocationLayoutMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LocationLayoutMutation", m)
+}
+
+// The LocationLayoutElementFunc type is an adapter to allow the use of ordinary
+// function as LocationLayoutElement mutator.
+type LocationLayoutElementFunc func(context.Context, *ent.LocationLayoutElementMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LocationLayoutElementFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LocationLayoutElementMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LocationLayoutElementMutation", m)
+}
+
 // The MaintenanceEntryFunc type is an adapter to allow the use of ordinary
 // function as MaintenanceEntry mutator.
 type MaintenanceEntryFunc func(context.Context, *ent.MaintenanceEntryMutation) (ent.Value, error)

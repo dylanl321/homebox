@@ -13,6 +13,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entity"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayout"
 )
 
 // Entity is the model entity for the Entity schema.
@@ -95,9 +96,13 @@ type EntityEdges struct {
 	MaintenanceEntries []*MaintenanceEntry `json:"maintenance_entries,omitempty"`
 	// Attachments holds the value of the attachments edge.
 	Attachments []*Attachment `json:"attachments,omitempty"`
+	// LocationLayout holds the value of the location_layout edge.
+	LocationLayout *LocationLayout `json:"location_layout,omitempty"`
+	// LayoutPlacements holds the value of the layout_placements edge.
+	LayoutPlacements []*LocationLayoutElement `json:"layout_placements,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [10]bool
 }
 
 // GroupOrErr returns the Group value or an error if the edge
@@ -176,6 +181,26 @@ func (e EntityEdges) AttachmentsOrErr() ([]*Attachment, error) {
 		return e.Attachments, nil
 	}
 	return nil, &NotLoadedError{edge: "attachments"}
+}
+
+// LocationLayoutOrErr returns the LocationLayout value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e EntityEdges) LocationLayoutOrErr() (*LocationLayout, error) {
+	if e.LocationLayout != nil {
+		return e.LocationLayout, nil
+	} else if e.loadedTypes[8] {
+		return nil, &NotFoundError{label: locationlayout.Label}
+	}
+	return nil, &NotLoadedError{edge: "location_layout"}
+}
+
+// LayoutPlacementsOrErr returns the LayoutPlacements value or an error if the edge
+// was not loaded in eager-loading.
+func (e EntityEdges) LayoutPlacementsOrErr() ([]*LocationLayoutElement, error) {
+	if e.loadedTypes[9] {
+		return e.LayoutPlacements, nil
+	}
+	return nil, &NotLoadedError{edge: "layout_placements"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -438,6 +463,16 @@ func (_m *Entity) QueryMaintenanceEntries() *MaintenanceEntryQuery {
 // QueryAttachments queries the "attachments" edge of the Entity entity.
 func (_m *Entity) QueryAttachments() *AttachmentQuery {
 	return NewEntityClient(_m.config).QueryAttachments(_m)
+}
+
+// QueryLocationLayout queries the "location_layout" edge of the Entity entity.
+func (_m *Entity) QueryLocationLayout() *LocationLayoutQuery {
+	return NewEntityClient(_m.config).QueryLocationLayout(_m)
+}
+
+// QueryLayoutPlacements queries the "layout_placements" edge of the Entity entity.
+func (_m *Entity) QueryLayoutPlacements() *LocationLayoutElementQuery {
+	return NewEntityClient(_m.config).QueryLayoutPlacements(_m)
 }
 
 // Update returns a builder for updating this Entity.

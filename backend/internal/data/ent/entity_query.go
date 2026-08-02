@@ -18,6 +18,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entityfield"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayout"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayoutelement"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/predicate"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/tag"
@@ -38,6 +40,8 @@ type EntityQuery struct {
 	withFields             *EntityFieldQuery
 	withMaintenanceEntries *MaintenanceEntryQuery
 	withAttachments        *AttachmentQuery
+	withLocationLayout     *LocationLayoutQuery
+	withLayoutPlacements   *LocationLayoutElementQuery
 	withFKs                bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -251,6 +255,50 @@ func (_q *EntityQuery) QueryAttachments() *AttachmentQuery {
 	return query
 }
 
+// QueryLocationLayout chains the current query on the "location_layout" edge.
+func (_q *EntityQuery) QueryLocationLayout() *LocationLayoutQuery {
+	query := (&LocationLayoutClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entity.Table, entity.FieldID, selector),
+			sqlgraph.To(locationlayout.Table, locationlayout.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, entity.LocationLayoutTable, entity.LocationLayoutColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLayoutPlacements chains the current query on the "layout_placements" edge.
+func (_q *EntityQuery) QueryLayoutPlacements() *LocationLayoutElementQuery {
+	query := (&LocationLayoutElementClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entity.Table, entity.FieldID, selector),
+			sqlgraph.To(locationlayoutelement.Table, locationlayoutelement.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, entity.LayoutPlacementsTable, entity.LayoutPlacementsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Entity entity from the query.
 // Returns a *NotFoundError when no Entity was found.
 func (_q *EntityQuery) First(ctx context.Context) (*Entity, error) {
@@ -451,6 +499,8 @@ func (_q *EntityQuery) Clone() *EntityQuery {
 		withFields:             _q.withFields.Clone(),
 		withMaintenanceEntries: _q.withMaintenanceEntries.Clone(),
 		withAttachments:        _q.withAttachments.Clone(),
+		withLocationLayout:     _q.withLocationLayout.Clone(),
+		withLayoutPlacements:   _q.withLayoutPlacements.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -545,6 +595,28 @@ func (_q *EntityQuery) WithAttachments(opts ...func(*AttachmentQuery)) *EntityQu
 	return _q
 }
 
+// WithLocationLayout tells the query-builder to eager-load the nodes that are connected to
+// the "location_layout" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EntityQuery) WithLocationLayout(opts ...func(*LocationLayoutQuery)) *EntityQuery {
+	query := (&LocationLayoutClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withLocationLayout = query
+	return _q
+}
+
+// WithLayoutPlacements tells the query-builder to eager-load the nodes that are connected to
+// the "layout_placements" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EntityQuery) WithLayoutPlacements(opts ...func(*LocationLayoutElementQuery)) *EntityQuery {
+	query := (&LocationLayoutElementClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withLayoutPlacements = query
+	return _q
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -624,7 +696,7 @@ func (_q *EntityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Entit
 		nodes       = []*Entity{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [10]bool{
 			_q.withGroup != nil,
 			_q.withParent != nil,
 			_q.withChildren != nil,
@@ -633,6 +705,8 @@ func (_q *EntityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Entit
 			_q.withFields != nil,
 			_q.withMaintenanceEntries != nil,
 			_q.withAttachments != nil,
+			_q.withLocationLayout != nil,
+			_q.withLayoutPlacements != nil,
 		}
 	)
 	if _q.withGroup != nil || _q.withParent != nil || _q.withEntityType != nil {
@@ -711,6 +785,21 @@ func (_q *EntityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Entit
 		if err := _q.loadAttachments(ctx, query, nodes,
 			func(n *Entity) { n.Edges.Attachments = []*Attachment{} },
 			func(n *Entity, e *Attachment) { n.Edges.Attachments = append(n.Edges.Attachments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withLocationLayout; query != nil {
+		if err := _q.loadLocationLayout(ctx, query, nodes, nil,
+			func(n *Entity, e *LocationLayout) { n.Edges.LocationLayout = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withLayoutPlacements; query != nil {
+		if err := _q.loadLayoutPlacements(ctx, query, nodes,
+			func(n *Entity) { n.Edges.LayoutPlacements = []*LocationLayoutElement{} },
+			func(n *Entity, e *LocationLayoutElement) {
+				n.Edges.LayoutPlacements = append(n.Edges.LayoutPlacements, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -992,6 +1081,65 @@ func (_q *EntityQuery) loadAttachments(ctx context.Context, query *AttachmentQue
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "entity_attachments" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *EntityQuery) loadLocationLayout(ctx context.Context, query *LocationLayoutQuery, nodes []*Entity, init func(*Entity), assign func(*Entity, *LocationLayout)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Entity)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	query.withFKs = true
+	query.Where(predicate.LocationLayout(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(entity.LocationLayoutColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.entity_location_layout
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "entity_location_layout" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "entity_location_layout" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *EntityQuery) loadLayoutPlacements(ctx context.Context, query *LocationLayoutElementQuery, nodes []*Entity, init func(*Entity), assign func(*Entity, *LocationLayoutElement)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Entity)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.LocationLayoutElement(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(entity.LayoutPlacementsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.entity_layout_placements
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "entity_layout_placements" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "entity_layout_placements" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

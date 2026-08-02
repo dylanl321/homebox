@@ -23,6 +23,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/export"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/groupinvitationtoken"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayout"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayoutelement"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
@@ -43,25 +45,27 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAPIKey               = "APIKey"
-	TypeAttachment           = "Attachment"
-	TypeAuthRoles            = "AuthRoles"
-	TypeAuthTokens           = "AuthTokens"
-	TypeEntity               = "Entity"
-	TypeEntityField          = "EntityField"
-	TypeEntityTemplate       = "EntityTemplate"
-	TypeEntityType           = "EntityType"
-	TypeExport               = "Export"
-	TypeGroup                = "Group"
-	TypeGroupInvitationToken = "GroupInvitationToken"
-	TypeMaintenanceEntry     = "MaintenanceEntry"
-	TypeNotifier             = "Notifier"
-	TypePasswordResetTokens  = "PasswordResetTokens"
-	TypeQRLoginTokens        = "QRLoginTokens"
-	TypeTag                  = "Tag"
-	TypeTemplateField        = "TemplateField"
-	TypeUser                 = "User"
-	TypeUserGroup            = "UserGroup"
+	TypeAPIKey                = "APIKey"
+	TypeAttachment            = "Attachment"
+	TypeAuthRoles             = "AuthRoles"
+	TypeAuthTokens            = "AuthTokens"
+	TypeEntity                = "Entity"
+	TypeEntityField           = "EntityField"
+	TypeEntityTemplate        = "EntityTemplate"
+	TypeEntityType            = "EntityType"
+	TypeExport                = "Export"
+	TypeGroup                 = "Group"
+	TypeGroupInvitationToken  = "GroupInvitationToken"
+	TypeLocationLayout        = "LocationLayout"
+	TypeLocationLayoutElement = "LocationLayoutElement"
+	TypeMaintenanceEntry      = "MaintenanceEntry"
+	TypeNotifier              = "Notifier"
+	TypePasswordResetTokens   = "PasswordResetTokens"
+	TypeQRLoginTokens         = "QRLoginTokens"
+	TypeTag                   = "Tag"
+	TypeTemplateField         = "TemplateField"
+	TypeUser                  = "User"
+	TypeUserGroup             = "UserGroup"
 )
 
 // APIKeyMutation represents an operation that mutates the APIKey nodes in the graph.
@@ -2666,6 +2670,11 @@ type EntityMutation struct {
 	attachments                 map[uuid.UUID]struct{}
 	removedattachments          map[uuid.UUID]struct{}
 	clearedattachments          bool
+	location_layout             *uuid.UUID
+	clearedlocation_layout      bool
+	layout_placements           map[uuid.UUID]struct{}
+	removedlayout_placements    map[uuid.UUID]struct{}
+	clearedlayout_placements    bool
 	done                        bool
 	oldValue                    func(context.Context) (*Entity, error)
 	predicates                  []predicate.Entity
@@ -4275,6 +4284,99 @@ func (m *EntityMutation) ResetAttachments() {
 	m.removedattachments = nil
 }
 
+// SetLocationLayoutID sets the "location_layout" edge to the LocationLayout entity by id.
+func (m *EntityMutation) SetLocationLayoutID(id uuid.UUID) {
+	m.location_layout = &id
+}
+
+// ClearLocationLayout clears the "location_layout" edge to the LocationLayout entity.
+func (m *EntityMutation) ClearLocationLayout() {
+	m.clearedlocation_layout = true
+}
+
+// LocationLayoutCleared reports if the "location_layout" edge to the LocationLayout entity was cleared.
+func (m *EntityMutation) LocationLayoutCleared() bool {
+	return m.clearedlocation_layout
+}
+
+// LocationLayoutID returns the "location_layout" edge ID in the mutation.
+func (m *EntityMutation) LocationLayoutID() (id uuid.UUID, exists bool) {
+	if m.location_layout != nil {
+		return *m.location_layout, true
+	}
+	return
+}
+
+// LocationLayoutIDs returns the "location_layout" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LocationLayoutID instead. It exists only for internal usage by the builders.
+func (m *EntityMutation) LocationLayoutIDs() (ids []uuid.UUID) {
+	if id := m.location_layout; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLocationLayout resets all changes to the "location_layout" edge.
+func (m *EntityMutation) ResetLocationLayout() {
+	m.location_layout = nil
+	m.clearedlocation_layout = false
+}
+
+// AddLayoutPlacementIDs adds the "layout_placements" edge to the LocationLayoutElement entity by ids.
+func (m *EntityMutation) AddLayoutPlacementIDs(ids ...uuid.UUID) {
+	if m.layout_placements == nil {
+		m.layout_placements = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.layout_placements[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLayoutPlacements clears the "layout_placements" edge to the LocationLayoutElement entity.
+func (m *EntityMutation) ClearLayoutPlacements() {
+	m.clearedlayout_placements = true
+}
+
+// LayoutPlacementsCleared reports if the "layout_placements" edge to the LocationLayoutElement entity was cleared.
+func (m *EntityMutation) LayoutPlacementsCleared() bool {
+	return m.clearedlayout_placements
+}
+
+// RemoveLayoutPlacementIDs removes the "layout_placements" edge to the LocationLayoutElement entity by IDs.
+func (m *EntityMutation) RemoveLayoutPlacementIDs(ids ...uuid.UUID) {
+	if m.removedlayout_placements == nil {
+		m.removedlayout_placements = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.layout_placements, ids[i])
+		m.removedlayout_placements[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLayoutPlacements returns the removed IDs of the "layout_placements" edge to the LocationLayoutElement entity.
+func (m *EntityMutation) RemovedLayoutPlacementsIDs() (ids []uuid.UUID) {
+	for id := range m.removedlayout_placements {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LayoutPlacementsIDs returns the "layout_placements" edge IDs in the mutation.
+func (m *EntityMutation) LayoutPlacementsIDs() (ids []uuid.UUID) {
+	for id := range m.layout_placements {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLayoutPlacements resets all changes to the "layout_placements" edge.
+func (m *EntityMutation) ResetLayoutPlacements() {
+	m.layout_placements = nil
+	m.clearedlayout_placements = false
+	m.removedlayout_placements = nil
+}
+
 // Where appends a list predicates to the EntityMutation builder.
 func (m *EntityMutation) Where(ps ...predicate.Entity) {
 	m.predicates = append(m.predicates, ps...)
@@ -4931,7 +5033,7 @@ func (m *EntityMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EntityMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 10)
 	if m.group != nil {
 		edges = append(edges, entity.EdgeGroup)
 	}
@@ -4955,6 +5057,12 @@ func (m *EntityMutation) AddedEdges() []string {
 	}
 	if m.attachments != nil {
 		edges = append(edges, entity.EdgeAttachments)
+	}
+	if m.location_layout != nil {
+		edges = append(edges, entity.EdgeLocationLayout)
+	}
+	if m.layout_placements != nil {
+		edges = append(edges, entity.EdgeLayoutPlacements)
 	}
 	return edges
 }
@@ -5005,13 +5113,23 @@ func (m *EntityMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case entity.EdgeLocationLayout:
+		if id := m.location_layout; id != nil {
+			return []ent.Value{*id}
+		}
+	case entity.EdgeLayoutPlacements:
+		ids := make([]ent.Value, 0, len(m.layout_placements))
+		for id := range m.layout_placements {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EntityMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 10)
 	if m.removedchildren != nil {
 		edges = append(edges, entity.EdgeChildren)
 	}
@@ -5026,6 +5144,9 @@ func (m *EntityMutation) RemovedEdges() []string {
 	}
 	if m.removedattachments != nil {
 		edges = append(edges, entity.EdgeAttachments)
+	}
+	if m.removedlayout_placements != nil {
+		edges = append(edges, entity.EdgeLayoutPlacements)
 	}
 	return edges
 }
@@ -5064,13 +5185,19 @@ func (m *EntityMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case entity.EdgeLayoutPlacements:
+		ids := make([]ent.Value, 0, len(m.removedlayout_placements))
+		for id := range m.removedlayout_placements {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EntityMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 10)
 	if m.clearedgroup {
 		edges = append(edges, entity.EdgeGroup)
 	}
@@ -5095,6 +5222,12 @@ func (m *EntityMutation) ClearedEdges() []string {
 	if m.clearedattachments {
 		edges = append(edges, entity.EdgeAttachments)
 	}
+	if m.clearedlocation_layout {
+		edges = append(edges, entity.EdgeLocationLayout)
+	}
+	if m.clearedlayout_placements {
+		edges = append(edges, entity.EdgeLayoutPlacements)
+	}
 	return edges
 }
 
@@ -5118,6 +5251,10 @@ func (m *EntityMutation) EdgeCleared(name string) bool {
 		return m.clearedmaintenance_entries
 	case entity.EdgeAttachments:
 		return m.clearedattachments
+	case entity.EdgeLocationLayout:
+		return m.clearedlocation_layout
+	case entity.EdgeLayoutPlacements:
+		return m.clearedlayout_placements
 	}
 	return false
 }
@@ -5134,6 +5271,9 @@ func (m *EntityMutation) ClearEdge(name string) error {
 		return nil
 	case entity.EdgeEntityType:
 		m.ClearEntityType()
+		return nil
+	case entity.EdgeLocationLayout:
+		m.ClearLocationLayout()
 		return nil
 	}
 	return fmt.Errorf("unknown Entity unique edge %s", name)
@@ -5166,6 +5306,12 @@ func (m *EntityMutation) ResetEdge(name string) error {
 		return nil
 	case entity.EdgeAttachments:
 		m.ResetAttachments()
+		return nil
+	case entity.EdgeLocationLayout:
+		m.ResetLocationLayout()
+		return nil
+	case entity.EdgeLayoutPlacements:
+		m.ResetLayoutPlacements()
 		return nil
 	}
 	return fmt.Errorf("unknown Entity edge %s", name)
@@ -11313,6 +11459,2073 @@ func (m *GroupInvitationTokenMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown GroupInvitationToken edge %s", name)
+}
+
+// LocationLayoutMutation represents an operation that mutates the LocationLayout nodes in the graph.
+type LocationLayoutMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	created_at       *time.Time
+	updated_at       *time.Time
+	canvas_width     *int
+	addcanvas_width  *int
+	canvas_height    *int
+	addcanvas_height *int
+	revision         *int
+	addrevision      *int
+	clearedFields    map[string]struct{}
+	owner            *uuid.UUID
+	clearedowner     bool
+	elements         map[uuid.UUID]struct{}
+	removedelements  map[uuid.UUID]struct{}
+	clearedelements  bool
+	done             bool
+	oldValue         func(context.Context) (*LocationLayout, error)
+	predicates       []predicate.LocationLayout
+}
+
+var _ ent.Mutation = (*LocationLayoutMutation)(nil)
+
+// locationlayoutOption allows management of the mutation configuration using functional options.
+type locationlayoutOption func(*LocationLayoutMutation)
+
+// newLocationLayoutMutation creates new mutation for the LocationLayout entity.
+func newLocationLayoutMutation(c config, op Op, opts ...locationlayoutOption) *LocationLayoutMutation {
+	m := &LocationLayoutMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLocationLayout,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLocationLayoutID sets the ID field of the mutation.
+func withLocationLayoutID(id uuid.UUID) locationlayoutOption {
+	return func(m *LocationLayoutMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LocationLayout
+		)
+		m.oldValue = func(ctx context.Context) (*LocationLayout, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LocationLayout.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLocationLayout sets the old LocationLayout of the mutation.
+func withLocationLayout(node *LocationLayout) locationlayoutOption {
+	return func(m *LocationLayoutMutation) {
+		m.oldValue = func(context.Context) (*LocationLayout, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LocationLayoutMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LocationLayoutMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LocationLayout entities.
+func (m *LocationLayoutMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LocationLayoutMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LocationLayoutMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LocationLayout.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LocationLayoutMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LocationLayoutMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LocationLayout entity.
+// If the LocationLayout object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LocationLayoutMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LocationLayoutMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LocationLayoutMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LocationLayout entity.
+// If the LocationLayout object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LocationLayoutMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetCanvasWidth sets the "canvas_width" field.
+func (m *LocationLayoutMutation) SetCanvasWidth(i int) {
+	m.canvas_width = &i
+	m.addcanvas_width = nil
+}
+
+// CanvasWidth returns the value of the "canvas_width" field in the mutation.
+func (m *LocationLayoutMutation) CanvasWidth() (r int, exists bool) {
+	v := m.canvas_width
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCanvasWidth returns the old "canvas_width" field's value of the LocationLayout entity.
+// If the LocationLayout object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutMutation) OldCanvasWidth(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCanvasWidth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCanvasWidth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCanvasWidth: %w", err)
+	}
+	return oldValue.CanvasWidth, nil
+}
+
+// AddCanvasWidth adds i to the "canvas_width" field.
+func (m *LocationLayoutMutation) AddCanvasWidth(i int) {
+	if m.addcanvas_width != nil {
+		*m.addcanvas_width += i
+	} else {
+		m.addcanvas_width = &i
+	}
+}
+
+// AddedCanvasWidth returns the value that was added to the "canvas_width" field in this mutation.
+func (m *LocationLayoutMutation) AddedCanvasWidth() (r int, exists bool) {
+	v := m.addcanvas_width
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCanvasWidth resets all changes to the "canvas_width" field.
+func (m *LocationLayoutMutation) ResetCanvasWidth() {
+	m.canvas_width = nil
+	m.addcanvas_width = nil
+}
+
+// SetCanvasHeight sets the "canvas_height" field.
+func (m *LocationLayoutMutation) SetCanvasHeight(i int) {
+	m.canvas_height = &i
+	m.addcanvas_height = nil
+}
+
+// CanvasHeight returns the value of the "canvas_height" field in the mutation.
+func (m *LocationLayoutMutation) CanvasHeight() (r int, exists bool) {
+	v := m.canvas_height
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCanvasHeight returns the old "canvas_height" field's value of the LocationLayout entity.
+// If the LocationLayout object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutMutation) OldCanvasHeight(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCanvasHeight is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCanvasHeight requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCanvasHeight: %w", err)
+	}
+	return oldValue.CanvasHeight, nil
+}
+
+// AddCanvasHeight adds i to the "canvas_height" field.
+func (m *LocationLayoutMutation) AddCanvasHeight(i int) {
+	if m.addcanvas_height != nil {
+		*m.addcanvas_height += i
+	} else {
+		m.addcanvas_height = &i
+	}
+}
+
+// AddedCanvasHeight returns the value that was added to the "canvas_height" field in this mutation.
+func (m *LocationLayoutMutation) AddedCanvasHeight() (r int, exists bool) {
+	v := m.addcanvas_height
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCanvasHeight resets all changes to the "canvas_height" field.
+func (m *LocationLayoutMutation) ResetCanvasHeight() {
+	m.canvas_height = nil
+	m.addcanvas_height = nil
+}
+
+// SetRevision sets the "revision" field.
+func (m *LocationLayoutMutation) SetRevision(i int) {
+	m.revision = &i
+	m.addrevision = nil
+}
+
+// Revision returns the value of the "revision" field in the mutation.
+func (m *LocationLayoutMutation) Revision() (r int, exists bool) {
+	v := m.revision
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRevision returns the old "revision" field's value of the LocationLayout entity.
+// If the LocationLayout object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutMutation) OldRevision(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRevision is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRevision requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRevision: %w", err)
+	}
+	return oldValue.Revision, nil
+}
+
+// AddRevision adds i to the "revision" field.
+func (m *LocationLayoutMutation) AddRevision(i int) {
+	if m.addrevision != nil {
+		*m.addrevision += i
+	} else {
+		m.addrevision = &i
+	}
+}
+
+// AddedRevision returns the value that was added to the "revision" field in this mutation.
+func (m *LocationLayoutMutation) AddedRevision() (r int, exists bool) {
+	v := m.addrevision
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRevision resets all changes to the "revision" field.
+func (m *LocationLayoutMutation) ResetRevision() {
+	m.revision = nil
+	m.addrevision = nil
+}
+
+// SetOwnerID sets the "owner" edge to the Entity entity by id.
+func (m *LocationLayoutMutation) SetOwnerID(id uuid.UUID) {
+	m.owner = &id
+}
+
+// ClearOwner clears the "owner" edge to the Entity entity.
+func (m *LocationLayoutMutation) ClearOwner() {
+	m.clearedowner = true
+}
+
+// OwnerCleared reports if the "owner" edge to the Entity entity was cleared.
+func (m *LocationLayoutMutation) OwnerCleared() bool {
+	return m.clearedowner
+}
+
+// OwnerID returns the "owner" edge ID in the mutation.
+func (m *LocationLayoutMutation) OwnerID() (id uuid.UUID, exists bool) {
+	if m.owner != nil {
+		return *m.owner, true
+	}
+	return
+}
+
+// OwnerIDs returns the "owner" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OwnerID instead. It exists only for internal usage by the builders.
+func (m *LocationLayoutMutation) OwnerIDs() (ids []uuid.UUID) {
+	if id := m.owner; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOwner resets all changes to the "owner" edge.
+func (m *LocationLayoutMutation) ResetOwner() {
+	m.owner = nil
+	m.clearedowner = false
+}
+
+// AddElementIDs adds the "elements" edge to the LocationLayoutElement entity by ids.
+func (m *LocationLayoutMutation) AddElementIDs(ids ...uuid.UUID) {
+	if m.elements == nil {
+		m.elements = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.elements[ids[i]] = struct{}{}
+	}
+}
+
+// ClearElements clears the "elements" edge to the LocationLayoutElement entity.
+func (m *LocationLayoutMutation) ClearElements() {
+	m.clearedelements = true
+}
+
+// ElementsCleared reports if the "elements" edge to the LocationLayoutElement entity was cleared.
+func (m *LocationLayoutMutation) ElementsCleared() bool {
+	return m.clearedelements
+}
+
+// RemoveElementIDs removes the "elements" edge to the LocationLayoutElement entity by IDs.
+func (m *LocationLayoutMutation) RemoveElementIDs(ids ...uuid.UUID) {
+	if m.removedelements == nil {
+		m.removedelements = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.elements, ids[i])
+		m.removedelements[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedElements returns the removed IDs of the "elements" edge to the LocationLayoutElement entity.
+func (m *LocationLayoutMutation) RemovedElementsIDs() (ids []uuid.UUID) {
+	for id := range m.removedelements {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ElementsIDs returns the "elements" edge IDs in the mutation.
+func (m *LocationLayoutMutation) ElementsIDs() (ids []uuid.UUID) {
+	for id := range m.elements {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetElements resets all changes to the "elements" edge.
+func (m *LocationLayoutMutation) ResetElements() {
+	m.elements = nil
+	m.clearedelements = false
+	m.removedelements = nil
+}
+
+// Where appends a list predicates to the LocationLayoutMutation builder.
+func (m *LocationLayoutMutation) Where(ps ...predicate.LocationLayout) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LocationLayoutMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LocationLayoutMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LocationLayout, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LocationLayoutMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LocationLayoutMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LocationLayout).
+func (m *LocationLayoutMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LocationLayoutMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, locationlayout.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, locationlayout.FieldUpdatedAt)
+	}
+	if m.canvas_width != nil {
+		fields = append(fields, locationlayout.FieldCanvasWidth)
+	}
+	if m.canvas_height != nil {
+		fields = append(fields, locationlayout.FieldCanvasHeight)
+	}
+	if m.revision != nil {
+		fields = append(fields, locationlayout.FieldRevision)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LocationLayoutMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case locationlayout.FieldCreatedAt:
+		return m.CreatedAt()
+	case locationlayout.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case locationlayout.FieldCanvasWidth:
+		return m.CanvasWidth()
+	case locationlayout.FieldCanvasHeight:
+		return m.CanvasHeight()
+	case locationlayout.FieldRevision:
+		return m.Revision()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LocationLayoutMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case locationlayout.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case locationlayout.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case locationlayout.FieldCanvasWidth:
+		return m.OldCanvasWidth(ctx)
+	case locationlayout.FieldCanvasHeight:
+		return m.OldCanvasHeight(ctx)
+	case locationlayout.FieldRevision:
+		return m.OldRevision(ctx)
+	}
+	return nil, fmt.Errorf("unknown LocationLayout field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LocationLayoutMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case locationlayout.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case locationlayout.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case locationlayout.FieldCanvasWidth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCanvasWidth(v)
+		return nil
+	case locationlayout.FieldCanvasHeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCanvasHeight(v)
+		return nil
+	case locationlayout.FieldRevision:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRevision(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LocationLayout field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LocationLayoutMutation) AddedFields() []string {
+	var fields []string
+	if m.addcanvas_width != nil {
+		fields = append(fields, locationlayout.FieldCanvasWidth)
+	}
+	if m.addcanvas_height != nil {
+		fields = append(fields, locationlayout.FieldCanvasHeight)
+	}
+	if m.addrevision != nil {
+		fields = append(fields, locationlayout.FieldRevision)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LocationLayoutMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case locationlayout.FieldCanvasWidth:
+		return m.AddedCanvasWidth()
+	case locationlayout.FieldCanvasHeight:
+		return m.AddedCanvasHeight()
+	case locationlayout.FieldRevision:
+		return m.AddedRevision()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LocationLayoutMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case locationlayout.FieldCanvasWidth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCanvasWidth(v)
+		return nil
+	case locationlayout.FieldCanvasHeight:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCanvasHeight(v)
+		return nil
+	case locationlayout.FieldRevision:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRevision(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LocationLayout numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LocationLayoutMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LocationLayoutMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LocationLayoutMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LocationLayout nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LocationLayoutMutation) ResetField(name string) error {
+	switch name {
+	case locationlayout.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case locationlayout.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case locationlayout.FieldCanvasWidth:
+		m.ResetCanvasWidth()
+		return nil
+	case locationlayout.FieldCanvasHeight:
+		m.ResetCanvasHeight()
+		return nil
+	case locationlayout.FieldRevision:
+		m.ResetRevision()
+		return nil
+	}
+	return fmt.Errorf("unknown LocationLayout field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LocationLayoutMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.owner != nil {
+		edges = append(edges, locationlayout.EdgeOwner)
+	}
+	if m.elements != nil {
+		edges = append(edges, locationlayout.EdgeElements)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LocationLayoutMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case locationlayout.EdgeOwner:
+		if id := m.owner; id != nil {
+			return []ent.Value{*id}
+		}
+	case locationlayout.EdgeElements:
+		ids := make([]ent.Value, 0, len(m.elements))
+		for id := range m.elements {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LocationLayoutMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedelements != nil {
+		edges = append(edges, locationlayout.EdgeElements)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LocationLayoutMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case locationlayout.EdgeElements:
+		ids := make([]ent.Value, 0, len(m.removedelements))
+		for id := range m.removedelements {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LocationLayoutMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedowner {
+		edges = append(edges, locationlayout.EdgeOwner)
+	}
+	if m.clearedelements {
+		edges = append(edges, locationlayout.EdgeElements)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LocationLayoutMutation) EdgeCleared(name string) bool {
+	switch name {
+	case locationlayout.EdgeOwner:
+		return m.clearedowner
+	case locationlayout.EdgeElements:
+		return m.clearedelements
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LocationLayoutMutation) ClearEdge(name string) error {
+	switch name {
+	case locationlayout.EdgeOwner:
+		m.ClearOwner()
+		return nil
+	}
+	return fmt.Errorf("unknown LocationLayout unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LocationLayoutMutation) ResetEdge(name string) error {
+	switch name {
+	case locationlayout.EdgeOwner:
+		m.ResetOwner()
+		return nil
+	case locationlayout.EdgeElements:
+		m.ResetElements()
+		return nil
+	}
+	return fmt.Errorf("unknown LocationLayout edge %s", name)
+}
+
+// LocationLayoutElementMutation represents an operation that mutates the LocationLayoutElement nodes in the graph.
+type LocationLayoutElementMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	created_at    *time.Time
+	updated_at    *time.Time
+	kind          *locationlayoutelement.Kind
+	x             *float64
+	addx          *float64
+	y             *float64
+	addy          *float64
+	width         *float64
+	addwidth      *float64
+	height        *float64
+	addheight     *float64
+	end_x         *float64
+	addend_x      *float64
+	end_y         *float64
+	addend_y      *float64
+	rotation      *float64
+	addrotation   *float64
+	z_order       *int
+	addz_order    *int
+	clearedFields map[string]struct{}
+	layout        *uuid.UUID
+	clearedlayout bool
+	target        *uuid.UUID
+	clearedtarget bool
+	done          bool
+	oldValue      func(context.Context) (*LocationLayoutElement, error)
+	predicates    []predicate.LocationLayoutElement
+}
+
+var _ ent.Mutation = (*LocationLayoutElementMutation)(nil)
+
+// locationlayoutelementOption allows management of the mutation configuration using functional options.
+type locationlayoutelementOption func(*LocationLayoutElementMutation)
+
+// newLocationLayoutElementMutation creates new mutation for the LocationLayoutElement entity.
+func newLocationLayoutElementMutation(c config, op Op, opts ...locationlayoutelementOption) *LocationLayoutElementMutation {
+	m := &LocationLayoutElementMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLocationLayoutElement,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLocationLayoutElementID sets the ID field of the mutation.
+func withLocationLayoutElementID(id uuid.UUID) locationlayoutelementOption {
+	return func(m *LocationLayoutElementMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LocationLayoutElement
+		)
+		m.oldValue = func(ctx context.Context) (*LocationLayoutElement, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LocationLayoutElement.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLocationLayoutElement sets the old LocationLayoutElement of the mutation.
+func withLocationLayoutElement(node *LocationLayoutElement) locationlayoutelementOption {
+	return func(m *LocationLayoutElementMutation) {
+		m.oldValue = func(context.Context) (*LocationLayoutElement, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LocationLayoutElementMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LocationLayoutElementMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LocationLayoutElement entities.
+func (m *LocationLayoutElementMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LocationLayoutElementMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LocationLayoutElementMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LocationLayoutElement.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LocationLayoutElementMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LocationLayoutElementMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LocationLayoutElement entity.
+// If the LocationLayoutElement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutElementMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LocationLayoutElementMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LocationLayoutElementMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LocationLayoutElementMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LocationLayoutElement entity.
+// If the LocationLayoutElement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutElementMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LocationLayoutElementMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *LocationLayoutElementMutation) SetKind(l locationlayoutelement.Kind) {
+	m.kind = &l
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *LocationLayoutElementMutation) Kind() (r locationlayoutelement.Kind, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the LocationLayoutElement entity.
+// If the LocationLayoutElement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutElementMutation) OldKind(ctx context.Context) (v locationlayoutelement.Kind, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *LocationLayoutElementMutation) ResetKind() {
+	m.kind = nil
+}
+
+// SetX sets the "x" field.
+func (m *LocationLayoutElementMutation) SetX(f float64) {
+	m.x = &f
+	m.addx = nil
+}
+
+// X returns the value of the "x" field in the mutation.
+func (m *LocationLayoutElementMutation) X() (r float64, exists bool) {
+	v := m.x
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldX returns the old "x" field's value of the LocationLayoutElement entity.
+// If the LocationLayoutElement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutElementMutation) OldX(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldX is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldX requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldX: %w", err)
+	}
+	return oldValue.X, nil
+}
+
+// AddX adds f to the "x" field.
+func (m *LocationLayoutElementMutation) AddX(f float64) {
+	if m.addx != nil {
+		*m.addx += f
+	} else {
+		m.addx = &f
+	}
+}
+
+// AddedX returns the value that was added to the "x" field in this mutation.
+func (m *LocationLayoutElementMutation) AddedX() (r float64, exists bool) {
+	v := m.addx
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetX resets all changes to the "x" field.
+func (m *LocationLayoutElementMutation) ResetX() {
+	m.x = nil
+	m.addx = nil
+}
+
+// SetY sets the "y" field.
+func (m *LocationLayoutElementMutation) SetY(f float64) {
+	m.y = &f
+	m.addy = nil
+}
+
+// Y returns the value of the "y" field in the mutation.
+func (m *LocationLayoutElementMutation) Y() (r float64, exists bool) {
+	v := m.y
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldY returns the old "y" field's value of the LocationLayoutElement entity.
+// If the LocationLayoutElement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutElementMutation) OldY(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldY is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldY requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldY: %w", err)
+	}
+	return oldValue.Y, nil
+}
+
+// AddY adds f to the "y" field.
+func (m *LocationLayoutElementMutation) AddY(f float64) {
+	if m.addy != nil {
+		*m.addy += f
+	} else {
+		m.addy = &f
+	}
+}
+
+// AddedY returns the value that was added to the "y" field in this mutation.
+func (m *LocationLayoutElementMutation) AddedY() (r float64, exists bool) {
+	v := m.addy
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetY resets all changes to the "y" field.
+func (m *LocationLayoutElementMutation) ResetY() {
+	m.y = nil
+	m.addy = nil
+}
+
+// SetWidth sets the "width" field.
+func (m *LocationLayoutElementMutation) SetWidth(f float64) {
+	m.width = &f
+	m.addwidth = nil
+}
+
+// Width returns the value of the "width" field in the mutation.
+func (m *LocationLayoutElementMutation) Width() (r float64, exists bool) {
+	v := m.width
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWidth returns the old "width" field's value of the LocationLayoutElement entity.
+// If the LocationLayoutElement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutElementMutation) OldWidth(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWidth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWidth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWidth: %w", err)
+	}
+	return oldValue.Width, nil
+}
+
+// AddWidth adds f to the "width" field.
+func (m *LocationLayoutElementMutation) AddWidth(f float64) {
+	if m.addwidth != nil {
+		*m.addwidth += f
+	} else {
+		m.addwidth = &f
+	}
+}
+
+// AddedWidth returns the value that was added to the "width" field in this mutation.
+func (m *LocationLayoutElementMutation) AddedWidth() (r float64, exists bool) {
+	v := m.addwidth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetWidth resets all changes to the "width" field.
+func (m *LocationLayoutElementMutation) ResetWidth() {
+	m.width = nil
+	m.addwidth = nil
+}
+
+// SetHeight sets the "height" field.
+func (m *LocationLayoutElementMutation) SetHeight(f float64) {
+	m.height = &f
+	m.addheight = nil
+}
+
+// Height returns the value of the "height" field in the mutation.
+func (m *LocationLayoutElementMutation) Height() (r float64, exists bool) {
+	v := m.height
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHeight returns the old "height" field's value of the LocationLayoutElement entity.
+// If the LocationLayoutElement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutElementMutation) OldHeight(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHeight is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHeight requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHeight: %w", err)
+	}
+	return oldValue.Height, nil
+}
+
+// AddHeight adds f to the "height" field.
+func (m *LocationLayoutElementMutation) AddHeight(f float64) {
+	if m.addheight != nil {
+		*m.addheight += f
+	} else {
+		m.addheight = &f
+	}
+}
+
+// AddedHeight returns the value that was added to the "height" field in this mutation.
+func (m *LocationLayoutElementMutation) AddedHeight() (r float64, exists bool) {
+	v := m.addheight
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetHeight resets all changes to the "height" field.
+func (m *LocationLayoutElementMutation) ResetHeight() {
+	m.height = nil
+	m.addheight = nil
+}
+
+// SetEndX sets the "end_x" field.
+func (m *LocationLayoutElementMutation) SetEndX(f float64) {
+	m.end_x = &f
+	m.addend_x = nil
+}
+
+// EndX returns the value of the "end_x" field in the mutation.
+func (m *LocationLayoutElementMutation) EndX() (r float64, exists bool) {
+	v := m.end_x
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndX returns the old "end_x" field's value of the LocationLayoutElement entity.
+// If the LocationLayoutElement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutElementMutation) OldEndX(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndX is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndX requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndX: %w", err)
+	}
+	return oldValue.EndX, nil
+}
+
+// AddEndX adds f to the "end_x" field.
+func (m *LocationLayoutElementMutation) AddEndX(f float64) {
+	if m.addend_x != nil {
+		*m.addend_x += f
+	} else {
+		m.addend_x = &f
+	}
+}
+
+// AddedEndX returns the value that was added to the "end_x" field in this mutation.
+func (m *LocationLayoutElementMutation) AddedEndX() (r float64, exists bool) {
+	v := m.addend_x
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEndX resets all changes to the "end_x" field.
+func (m *LocationLayoutElementMutation) ResetEndX() {
+	m.end_x = nil
+	m.addend_x = nil
+}
+
+// SetEndY sets the "end_y" field.
+func (m *LocationLayoutElementMutation) SetEndY(f float64) {
+	m.end_y = &f
+	m.addend_y = nil
+}
+
+// EndY returns the value of the "end_y" field in the mutation.
+func (m *LocationLayoutElementMutation) EndY() (r float64, exists bool) {
+	v := m.end_y
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEndY returns the old "end_y" field's value of the LocationLayoutElement entity.
+// If the LocationLayoutElement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutElementMutation) OldEndY(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEndY is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEndY requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEndY: %w", err)
+	}
+	return oldValue.EndY, nil
+}
+
+// AddEndY adds f to the "end_y" field.
+func (m *LocationLayoutElementMutation) AddEndY(f float64) {
+	if m.addend_y != nil {
+		*m.addend_y += f
+	} else {
+		m.addend_y = &f
+	}
+}
+
+// AddedEndY returns the value that was added to the "end_y" field in this mutation.
+func (m *LocationLayoutElementMutation) AddedEndY() (r float64, exists bool) {
+	v := m.addend_y
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEndY resets all changes to the "end_y" field.
+func (m *LocationLayoutElementMutation) ResetEndY() {
+	m.end_y = nil
+	m.addend_y = nil
+}
+
+// SetRotation sets the "rotation" field.
+func (m *LocationLayoutElementMutation) SetRotation(f float64) {
+	m.rotation = &f
+	m.addrotation = nil
+}
+
+// Rotation returns the value of the "rotation" field in the mutation.
+func (m *LocationLayoutElementMutation) Rotation() (r float64, exists bool) {
+	v := m.rotation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRotation returns the old "rotation" field's value of the LocationLayoutElement entity.
+// If the LocationLayoutElement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutElementMutation) OldRotation(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRotation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRotation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRotation: %w", err)
+	}
+	return oldValue.Rotation, nil
+}
+
+// AddRotation adds f to the "rotation" field.
+func (m *LocationLayoutElementMutation) AddRotation(f float64) {
+	if m.addrotation != nil {
+		*m.addrotation += f
+	} else {
+		m.addrotation = &f
+	}
+}
+
+// AddedRotation returns the value that was added to the "rotation" field in this mutation.
+func (m *LocationLayoutElementMutation) AddedRotation() (r float64, exists bool) {
+	v := m.addrotation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRotation resets all changes to the "rotation" field.
+func (m *LocationLayoutElementMutation) ResetRotation() {
+	m.rotation = nil
+	m.addrotation = nil
+}
+
+// SetZOrder sets the "z_order" field.
+func (m *LocationLayoutElementMutation) SetZOrder(i int) {
+	m.z_order = &i
+	m.addz_order = nil
+}
+
+// ZOrder returns the value of the "z_order" field in the mutation.
+func (m *LocationLayoutElementMutation) ZOrder() (r int, exists bool) {
+	v := m.z_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldZOrder returns the old "z_order" field's value of the LocationLayoutElement entity.
+// If the LocationLayoutElement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LocationLayoutElementMutation) OldZOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldZOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldZOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldZOrder: %w", err)
+	}
+	return oldValue.ZOrder, nil
+}
+
+// AddZOrder adds i to the "z_order" field.
+func (m *LocationLayoutElementMutation) AddZOrder(i int) {
+	if m.addz_order != nil {
+		*m.addz_order += i
+	} else {
+		m.addz_order = &i
+	}
+}
+
+// AddedZOrder returns the value that was added to the "z_order" field in this mutation.
+func (m *LocationLayoutElementMutation) AddedZOrder() (r int, exists bool) {
+	v := m.addz_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetZOrder resets all changes to the "z_order" field.
+func (m *LocationLayoutElementMutation) ResetZOrder() {
+	m.z_order = nil
+	m.addz_order = nil
+}
+
+// SetLayoutID sets the "layout" edge to the LocationLayout entity by id.
+func (m *LocationLayoutElementMutation) SetLayoutID(id uuid.UUID) {
+	m.layout = &id
+}
+
+// ClearLayout clears the "layout" edge to the LocationLayout entity.
+func (m *LocationLayoutElementMutation) ClearLayout() {
+	m.clearedlayout = true
+}
+
+// LayoutCleared reports if the "layout" edge to the LocationLayout entity was cleared.
+func (m *LocationLayoutElementMutation) LayoutCleared() bool {
+	return m.clearedlayout
+}
+
+// LayoutID returns the "layout" edge ID in the mutation.
+func (m *LocationLayoutElementMutation) LayoutID() (id uuid.UUID, exists bool) {
+	if m.layout != nil {
+		return *m.layout, true
+	}
+	return
+}
+
+// LayoutIDs returns the "layout" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LayoutID instead. It exists only for internal usage by the builders.
+func (m *LocationLayoutElementMutation) LayoutIDs() (ids []uuid.UUID) {
+	if id := m.layout; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLayout resets all changes to the "layout" edge.
+func (m *LocationLayoutElementMutation) ResetLayout() {
+	m.layout = nil
+	m.clearedlayout = false
+}
+
+// SetTargetID sets the "target" edge to the Entity entity by id.
+func (m *LocationLayoutElementMutation) SetTargetID(id uuid.UUID) {
+	m.target = &id
+}
+
+// ClearTarget clears the "target" edge to the Entity entity.
+func (m *LocationLayoutElementMutation) ClearTarget() {
+	m.clearedtarget = true
+}
+
+// TargetCleared reports if the "target" edge to the Entity entity was cleared.
+func (m *LocationLayoutElementMutation) TargetCleared() bool {
+	return m.clearedtarget
+}
+
+// TargetID returns the "target" edge ID in the mutation.
+func (m *LocationLayoutElementMutation) TargetID() (id uuid.UUID, exists bool) {
+	if m.target != nil {
+		return *m.target, true
+	}
+	return
+}
+
+// TargetIDs returns the "target" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TargetID instead. It exists only for internal usage by the builders.
+func (m *LocationLayoutElementMutation) TargetIDs() (ids []uuid.UUID) {
+	if id := m.target; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTarget resets all changes to the "target" edge.
+func (m *LocationLayoutElementMutation) ResetTarget() {
+	m.target = nil
+	m.clearedtarget = false
+}
+
+// Where appends a list predicates to the LocationLayoutElementMutation builder.
+func (m *LocationLayoutElementMutation) Where(ps ...predicate.LocationLayoutElement) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LocationLayoutElementMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LocationLayoutElementMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LocationLayoutElement, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LocationLayoutElementMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LocationLayoutElementMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LocationLayoutElement).
+func (m *LocationLayoutElementMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LocationLayoutElementMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, locationlayoutelement.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, locationlayoutelement.FieldUpdatedAt)
+	}
+	if m.kind != nil {
+		fields = append(fields, locationlayoutelement.FieldKind)
+	}
+	if m.x != nil {
+		fields = append(fields, locationlayoutelement.FieldX)
+	}
+	if m.y != nil {
+		fields = append(fields, locationlayoutelement.FieldY)
+	}
+	if m.width != nil {
+		fields = append(fields, locationlayoutelement.FieldWidth)
+	}
+	if m.height != nil {
+		fields = append(fields, locationlayoutelement.FieldHeight)
+	}
+	if m.end_x != nil {
+		fields = append(fields, locationlayoutelement.FieldEndX)
+	}
+	if m.end_y != nil {
+		fields = append(fields, locationlayoutelement.FieldEndY)
+	}
+	if m.rotation != nil {
+		fields = append(fields, locationlayoutelement.FieldRotation)
+	}
+	if m.z_order != nil {
+		fields = append(fields, locationlayoutelement.FieldZOrder)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LocationLayoutElementMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case locationlayoutelement.FieldCreatedAt:
+		return m.CreatedAt()
+	case locationlayoutelement.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case locationlayoutelement.FieldKind:
+		return m.Kind()
+	case locationlayoutelement.FieldX:
+		return m.X()
+	case locationlayoutelement.FieldY:
+		return m.Y()
+	case locationlayoutelement.FieldWidth:
+		return m.Width()
+	case locationlayoutelement.FieldHeight:
+		return m.Height()
+	case locationlayoutelement.FieldEndX:
+		return m.EndX()
+	case locationlayoutelement.FieldEndY:
+		return m.EndY()
+	case locationlayoutelement.FieldRotation:
+		return m.Rotation()
+	case locationlayoutelement.FieldZOrder:
+		return m.ZOrder()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LocationLayoutElementMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case locationlayoutelement.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case locationlayoutelement.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case locationlayoutelement.FieldKind:
+		return m.OldKind(ctx)
+	case locationlayoutelement.FieldX:
+		return m.OldX(ctx)
+	case locationlayoutelement.FieldY:
+		return m.OldY(ctx)
+	case locationlayoutelement.FieldWidth:
+		return m.OldWidth(ctx)
+	case locationlayoutelement.FieldHeight:
+		return m.OldHeight(ctx)
+	case locationlayoutelement.FieldEndX:
+		return m.OldEndX(ctx)
+	case locationlayoutelement.FieldEndY:
+		return m.OldEndY(ctx)
+	case locationlayoutelement.FieldRotation:
+		return m.OldRotation(ctx)
+	case locationlayoutelement.FieldZOrder:
+		return m.OldZOrder(ctx)
+	}
+	return nil, fmt.Errorf("unknown LocationLayoutElement field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LocationLayoutElementMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case locationlayoutelement.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case locationlayoutelement.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case locationlayoutelement.FieldKind:
+		v, ok := value.(locationlayoutelement.Kind)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
+		return nil
+	case locationlayoutelement.FieldX:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetX(v)
+		return nil
+	case locationlayoutelement.FieldY:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetY(v)
+		return nil
+	case locationlayoutelement.FieldWidth:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWidth(v)
+		return nil
+	case locationlayoutelement.FieldHeight:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHeight(v)
+		return nil
+	case locationlayoutelement.FieldEndX:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndX(v)
+		return nil
+	case locationlayoutelement.FieldEndY:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEndY(v)
+		return nil
+	case locationlayoutelement.FieldRotation:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRotation(v)
+		return nil
+	case locationlayoutelement.FieldZOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetZOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LocationLayoutElement field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LocationLayoutElementMutation) AddedFields() []string {
+	var fields []string
+	if m.addx != nil {
+		fields = append(fields, locationlayoutelement.FieldX)
+	}
+	if m.addy != nil {
+		fields = append(fields, locationlayoutelement.FieldY)
+	}
+	if m.addwidth != nil {
+		fields = append(fields, locationlayoutelement.FieldWidth)
+	}
+	if m.addheight != nil {
+		fields = append(fields, locationlayoutelement.FieldHeight)
+	}
+	if m.addend_x != nil {
+		fields = append(fields, locationlayoutelement.FieldEndX)
+	}
+	if m.addend_y != nil {
+		fields = append(fields, locationlayoutelement.FieldEndY)
+	}
+	if m.addrotation != nil {
+		fields = append(fields, locationlayoutelement.FieldRotation)
+	}
+	if m.addz_order != nil {
+		fields = append(fields, locationlayoutelement.FieldZOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LocationLayoutElementMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case locationlayoutelement.FieldX:
+		return m.AddedX()
+	case locationlayoutelement.FieldY:
+		return m.AddedY()
+	case locationlayoutelement.FieldWidth:
+		return m.AddedWidth()
+	case locationlayoutelement.FieldHeight:
+		return m.AddedHeight()
+	case locationlayoutelement.FieldEndX:
+		return m.AddedEndX()
+	case locationlayoutelement.FieldEndY:
+		return m.AddedEndY()
+	case locationlayoutelement.FieldRotation:
+		return m.AddedRotation()
+	case locationlayoutelement.FieldZOrder:
+		return m.AddedZOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LocationLayoutElementMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case locationlayoutelement.FieldX:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddX(v)
+		return nil
+	case locationlayoutelement.FieldY:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddY(v)
+		return nil
+	case locationlayoutelement.FieldWidth:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddWidth(v)
+		return nil
+	case locationlayoutelement.FieldHeight:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddHeight(v)
+		return nil
+	case locationlayoutelement.FieldEndX:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEndX(v)
+		return nil
+	case locationlayoutelement.FieldEndY:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEndY(v)
+		return nil
+	case locationlayoutelement.FieldRotation:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRotation(v)
+		return nil
+	case locationlayoutelement.FieldZOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddZOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LocationLayoutElement numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LocationLayoutElementMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LocationLayoutElementMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LocationLayoutElementMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LocationLayoutElement nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LocationLayoutElementMutation) ResetField(name string) error {
+	switch name {
+	case locationlayoutelement.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case locationlayoutelement.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case locationlayoutelement.FieldKind:
+		m.ResetKind()
+		return nil
+	case locationlayoutelement.FieldX:
+		m.ResetX()
+		return nil
+	case locationlayoutelement.FieldY:
+		m.ResetY()
+		return nil
+	case locationlayoutelement.FieldWidth:
+		m.ResetWidth()
+		return nil
+	case locationlayoutelement.FieldHeight:
+		m.ResetHeight()
+		return nil
+	case locationlayoutelement.FieldEndX:
+		m.ResetEndX()
+		return nil
+	case locationlayoutelement.FieldEndY:
+		m.ResetEndY()
+		return nil
+	case locationlayoutelement.FieldRotation:
+		m.ResetRotation()
+		return nil
+	case locationlayoutelement.FieldZOrder:
+		m.ResetZOrder()
+		return nil
+	}
+	return fmt.Errorf("unknown LocationLayoutElement field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LocationLayoutElementMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.layout != nil {
+		edges = append(edges, locationlayoutelement.EdgeLayout)
+	}
+	if m.target != nil {
+		edges = append(edges, locationlayoutelement.EdgeTarget)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LocationLayoutElementMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case locationlayoutelement.EdgeLayout:
+		if id := m.layout; id != nil {
+			return []ent.Value{*id}
+		}
+	case locationlayoutelement.EdgeTarget:
+		if id := m.target; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LocationLayoutElementMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LocationLayoutElementMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LocationLayoutElementMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedlayout {
+		edges = append(edges, locationlayoutelement.EdgeLayout)
+	}
+	if m.clearedtarget {
+		edges = append(edges, locationlayoutelement.EdgeTarget)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LocationLayoutElementMutation) EdgeCleared(name string) bool {
+	switch name {
+	case locationlayoutelement.EdgeLayout:
+		return m.clearedlayout
+	case locationlayoutelement.EdgeTarget:
+		return m.clearedtarget
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LocationLayoutElementMutation) ClearEdge(name string) error {
+	switch name {
+	case locationlayoutelement.EdgeLayout:
+		m.ClearLayout()
+		return nil
+	case locationlayoutelement.EdgeTarget:
+		m.ClearTarget()
+		return nil
+	}
+	return fmt.Errorf("unknown LocationLayoutElement unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LocationLayoutElementMutation) ResetEdge(name string) error {
+	switch name {
+	case locationlayoutelement.EdgeLayout:
+		m.ResetLayout()
+		return nil
+	case locationlayoutelement.EdgeTarget:
+		m.ResetTarget()
+		return nil
+	}
+	return fmt.Errorf("unknown LocationLayoutElement edge %s", name)
 }
 
 // MaintenanceEntryMutation represents an operation that mutates the MaintenanceEntry nodes in the graph.

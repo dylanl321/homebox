@@ -79,6 +79,10 @@ const (
 	EdgeMaintenanceEntries = "maintenance_entries"
 	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
 	EdgeAttachments = "attachments"
+	// EdgeLocationLayout holds the string denoting the location_layout edge name in mutations.
+	EdgeLocationLayout = "location_layout"
+	// EdgeLayoutPlacements holds the string denoting the layout_placements edge name in mutations.
+	EdgeLayoutPlacements = "layout_placements"
 	// Table holds the table name of the entity in the database.
 	Table = "entities"
 	// GroupTable is the table that holds the group relation/edge.
@@ -129,6 +133,20 @@ const (
 	AttachmentsInverseTable = "attachments"
 	// AttachmentsColumn is the table column denoting the attachments relation/edge.
 	AttachmentsColumn = "entity_attachments"
+	// LocationLayoutTable is the table that holds the location_layout relation/edge.
+	LocationLayoutTable = "location_layouts"
+	// LocationLayoutInverseTable is the table name for the LocationLayout entity.
+	// It exists in this package in order to avoid circular dependency with the "locationlayout" package.
+	LocationLayoutInverseTable = "location_layouts"
+	// LocationLayoutColumn is the table column denoting the location_layout relation/edge.
+	LocationLayoutColumn = "entity_location_layout"
+	// LayoutPlacementsTable is the table that holds the layout_placements relation/edge.
+	LayoutPlacementsTable = "location_layout_elements"
+	// LayoutPlacementsInverseTable is the table name for the LocationLayoutElement entity.
+	// It exists in this package in order to avoid circular dependency with the "locationlayoutelement" package.
+	LayoutPlacementsInverseTable = "location_layout_elements"
+	// LayoutPlacementsColumn is the table column denoting the layout_placements relation/edge.
+	LayoutPlacementsColumn = "entity_layout_placements"
 )
 
 // Columns holds all SQL columns for entity fields.
@@ -452,6 +470,27 @@ func ByAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAttachmentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByLocationLayoutField orders the results by location_layout field.
+func ByLocationLayoutField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLocationLayoutStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByLayoutPlacementsCount orders the results by layout_placements count.
+func ByLayoutPlacementsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLayoutPlacementsStep(), opts...)
+	}
+}
+
+// ByLayoutPlacements orders the results by layout_placements terms.
+func ByLayoutPlacements(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLayoutPlacementsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newGroupStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -506,5 +545,19 @@ func newAttachmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AttachmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AttachmentsTable, AttachmentsColumn),
+	)
+}
+func newLocationLayoutStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LocationLayoutInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, LocationLayoutTable, LocationLayoutColumn),
+	)
+}
+func newLayoutPlacementsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LayoutPlacementsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LayoutPlacementsTable, LayoutPlacementsColumn),
 	)
 }

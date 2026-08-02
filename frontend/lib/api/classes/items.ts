@@ -8,6 +8,8 @@ import type {
   EntitySummary,
   EntityUpdate,
   ItemAttachmentUpdate,
+  LocationLayoutOut,
+  LocationLayoutReplace,
   MaintenanceEntry,
   MaintenanceEntryCreate,
   MaintenanceEntryWithDetails,
@@ -225,5 +227,23 @@ export class ItemsApi extends BaseAPI {
 
   updateLocation(id: string, body: EntityUpdate) {
     return this.http.put<EntityUpdate, EntityOut>({ url: route(`/entities/${id}`), body });
+  }
+
+  // homebox-fork: overhead-location-layout
+  getLocationLayout(id: string) {
+    return this.http.get<LocationLayoutOut>({
+      url: route(`/entities/${id}/layout`),
+    });
+  }
+
+  replaceLocationLayout(id: string, body: LocationLayoutReplace) {
+    return this.http.put<LocationLayoutReplace, LocationLayoutOut>({
+      url: route(`/entities/${id}/layout`),
+      body,
+    });
+  }
+
+  deleteLocationLayout(id: string) {
+    return this.http.delete<void>({ url: route(`/entities/${id}/layout`) });
   }
 }

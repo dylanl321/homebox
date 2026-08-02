@@ -405,6 +405,91 @@ var (
 			},
 		},
 	}
+	// LocationLayoutsColumns holds the columns for the "location_layouts" table.
+	LocationLayoutsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "canvas_width", Type: field.TypeInt, Default: 1000},
+		{Name: "canvas_height", Type: field.TypeInt, Default: 700},
+		{Name: "revision", Type: field.TypeInt, Default: 1},
+		{Name: "entity_location_layout", Type: field.TypeUUID, Unique: true},
+	}
+	// LocationLayoutsTable holds the schema information for the "location_layouts" table.
+	LocationLayoutsTable = &schema.Table{
+		Name:       "location_layouts",
+		Columns:    LocationLayoutsColumns,
+		PrimaryKey: []*schema.Column{LocationLayoutsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "location_layouts_entities_location_layout",
+				Columns:    []*schema.Column{LocationLayoutsColumns[6]},
+				RefColumns: []*schema.Column{EntitiesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "locationlayout_entity_location_layout",
+				Unique:  true,
+				Columns: []*schema.Column{LocationLayoutsColumns[6]},
+			},
+		},
+	}
+	// LocationLayoutElementsColumns holds the columns for the "location_layout_elements" table.
+	LocationLayoutElementsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"wall", "location"}},
+		{Name: "x", Type: field.TypeFloat64},
+		{Name: "y", Type: field.TypeFloat64},
+		{Name: "width", Type: field.TypeFloat64, Default: 0},
+		{Name: "height", Type: field.TypeFloat64, Default: 0},
+		{Name: "end_x", Type: field.TypeFloat64, Default: 0},
+		{Name: "end_y", Type: field.TypeFloat64, Default: 0},
+		{Name: "rotation", Type: field.TypeFloat64, Default: 0},
+		{Name: "z_order", Type: field.TypeInt, Default: 0},
+		{Name: "entity_layout_placements", Type: field.TypeUUID, Nullable: true},
+		{Name: "location_layout_elements", Type: field.TypeUUID},
+	}
+	// LocationLayoutElementsTable holds the schema information for the "location_layout_elements" table.
+	LocationLayoutElementsTable = &schema.Table{
+		Name:       "location_layout_elements",
+		Columns:    LocationLayoutElementsColumns,
+		PrimaryKey: []*schema.Column{LocationLayoutElementsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "location_layout_elements_entities_layout_placements",
+				Columns:    []*schema.Column{LocationLayoutElementsColumns[12]},
+				RefColumns: []*schema.Column{EntitiesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "location_layout_elements_location_layouts_elements",
+				Columns:    []*schema.Column{LocationLayoutElementsColumns[13]},
+				RefColumns: []*schema.Column{LocationLayoutsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "locationlayoutelement_location_layout_elements_entity_layout_placements",
+				Unique:  true,
+				Columns: []*schema.Column{LocationLayoutElementsColumns[13], LocationLayoutElementsColumns[12]},
+			},
+			{
+				Name:    "locationlayoutelement_location_layout_elements",
+				Unique:  false,
+				Columns: []*schema.Column{LocationLayoutElementsColumns[13]},
+			},
+			{
+				Name:    "locationlayoutelement_entity_layout_placements",
+				Unique:  false,
+				Columns: []*schema.Column{LocationLayoutElementsColumns[12]},
+			},
+		},
+	}
 	// MaintenanceEntriesColumns holds the columns for the "maintenance_entries" table.
 	MaintenanceEntriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -704,6 +789,8 @@ var (
 		ExportsTable,
 		GroupsTable,
 		GroupInvitationTokensTable,
+		LocationLayoutsTable,
+		LocationLayoutElementsTable,
 		MaintenanceEntriesTable,
 		NotifiersTable,
 		PasswordResetTokensTable,
@@ -732,6 +819,21 @@ func init() {
 	EntityTypesTable.ForeignKeys[1].RefTable = GroupsTable
 	ExportsTable.ForeignKeys[0].RefTable = GroupsTable
 	GroupInvitationTokensTable.ForeignKeys[0].RefTable = GroupsTable
+	LocationLayoutsTable.ForeignKeys[0].RefTable = EntitiesTable
+	LocationLayoutsTable.Annotation = &entsql.Annotation{}
+	LocationLayoutsTable.Annotation.Checks = map[string]string{
+		"location_layout_fixed_canvas": "canvas_width = 1000 AND canvas_height = 700",
+		"location_layout_revision":     "revision > 0",
+	}
+	LocationLayoutElementsTable.ForeignKeys[0].RefTable = EntitiesTable
+	LocationLayoutElementsTable.ForeignKeys[1].RefTable = LocationLayoutsTable
+	LocationLayoutElementsTable.Annotation = &entsql.Annotation{}
+	LocationLayoutElementsTable.Annotation.Checks = map[string]string{
+		"location_layout_element_origin":   "x >= 0 AND x <= 1 AND y >= 0 AND y <= 1",
+		"location_layout_element_rotation": "rotation >= -180 AND rotation <= 180",
+		"location_layout_target_geometry":  "kind <> 'location' OR (width > 0 AND height > 0 AND x + width <= 1 AND y + height <= 1 AND entity_layout_placements IS NOT NULL)",
+		"location_layout_wall_geometry":    "kind <> 'wall' OR (end_x >= 0 AND end_x <= 1 AND end_y >= 0 AND end_y <= 1 AND entity_layout_placements IS NULL)",
+	}
 	MaintenanceEntriesTable.ForeignKeys[0].RefTable = EntitiesTable
 	NotifiersTable.ForeignKeys[0].RefTable = GroupsTable
 	NotifiersTable.ForeignKeys[1].RefTable = UsersTable

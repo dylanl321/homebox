@@ -142,6 +142,22 @@ var exportTables = []tableSpec{
 		fkCols:    map[string]string{"entity_type_entities": "entity_types"},
 		deferCols: map[string]string{"entity_children": entitiesTable},
 	},
+	// homebox-fork: overhead-location-layout
+	{
+		name:   "location_layouts",
+		scope:  "entity_location_layout IN (SELECT id FROM entities WHERE group_entities = ?)",
+		pkCol:  "id",
+		fkCols: map[string]string{"entity_location_layout": entitiesTable},
+	},
+	{
+		name:  "location_layout_elements",
+		scope: "location_layout_elements IN (SELECT ll.id FROM location_layouts ll JOIN entities e ON e.id = ll.entity_location_layout WHERE e.group_entities = ?)",
+		pkCol: "id",
+		fkCols: map[string]string{
+			"location_layout_elements": "location_layouts",
+			"entity_layout_placements": entitiesTable,
+		},
+	},
 	{
 		name:   "entity_fields",
 		scope:  "entity_fields IN (SELECT id FROM entities WHERE group_entities = ?)",

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/uuid"
@@ -57,9 +58,17 @@ func MainNoExit(m *testing.M) int {
 	}
 
 	tClient = client
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("failed resolving test working directory: %v", err)
+	}
+	relativeTemp, err := filepath.Rel(cwd, os.TempDir())
+	if err != nil {
+		log.Fatalf("failed resolving test storage: %v", err)
+	}
 	tRepos = New(tClient, tbus, config.Storage{
 		PrefixPath: "/",
-		ConnString: "file://" + os.TempDir(),
+		ConnString: "file:///./" + filepath.ToSlash(relativeTemp),
 	}, "mem://{{ .Topic }}", config.Thumbnail{
 		Enabled: false,
 		Width:   0,

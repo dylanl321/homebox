@@ -1605,6 +1605,52 @@ func HasAttachmentsWith(preds ...predicate.Attachment) predicate.Entity {
 	})
 }
 
+// HasLocationLayout applies the HasEdge predicate on the "location_layout" edge.
+func HasLocationLayout() predicate.Entity {
+	return predicate.Entity(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, LocationLayoutTable, LocationLayoutColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLocationLayoutWith applies the HasEdge predicate on the "location_layout" edge with a given conditions (other predicates).
+func HasLocationLayoutWith(preds ...predicate.LocationLayout) predicate.Entity {
+	return predicate.Entity(func(s *sql.Selector) {
+		step := newLocationLayoutStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLayoutPlacements applies the HasEdge predicate on the "layout_placements" edge.
+func HasLayoutPlacements() predicate.Entity {
+	return predicate.Entity(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, LayoutPlacementsTable, LayoutPlacementsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLayoutPlacementsWith applies the HasEdge predicate on the "layout_placements" edge with a given conditions (other predicates).
+func HasLayoutPlacementsWith(preds ...predicate.LocationLayoutElement) predicate.Entity {
+	return predicate.Entity(func(s *sql.Selector) {
+		step := newLayoutPlacementsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Entity) predicate.Entity {
 	return predicate.Entity(sql.AndPredicates(predicates...))

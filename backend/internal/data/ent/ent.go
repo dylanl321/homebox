@@ -23,6 +23,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/export"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/groupinvitationtoken"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayout"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayoutelement"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
@@ -91,25 +93,27 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			apikey.Table:               apikey.ValidColumn,
-			attachment.Table:           attachment.ValidColumn,
-			authroles.Table:            authroles.ValidColumn,
-			authtokens.Table:           authtokens.ValidColumn,
-			entity.Table:               entity.ValidColumn,
-			entityfield.Table:          entityfield.ValidColumn,
-			entitytemplate.Table:       entitytemplate.ValidColumn,
-			entitytype.Table:           entitytype.ValidColumn,
-			export.Table:               export.ValidColumn,
-			group.Table:                group.ValidColumn,
-			groupinvitationtoken.Table: groupinvitationtoken.ValidColumn,
-			maintenanceentry.Table:     maintenanceentry.ValidColumn,
-			notifier.Table:             notifier.ValidColumn,
-			passwordresettokens.Table:  passwordresettokens.ValidColumn,
-			qrlogintokens.Table:        qrlogintokens.ValidColumn,
-			tag.Table:                  tag.ValidColumn,
-			templatefield.Table:        templatefield.ValidColumn,
-			user.Table:                 user.ValidColumn,
-			usergroup.Table:            usergroup.ValidColumn,
+			apikey.Table:                apikey.ValidColumn,
+			attachment.Table:            attachment.ValidColumn,
+			authroles.Table:             authroles.ValidColumn,
+			authtokens.Table:            authtokens.ValidColumn,
+			entity.Table:                entity.ValidColumn,
+			entityfield.Table:           entityfield.ValidColumn,
+			entitytemplate.Table:        entitytemplate.ValidColumn,
+			entitytype.Table:            entitytype.ValidColumn,
+			export.Table:                export.ValidColumn,
+			group.Table:                 group.ValidColumn,
+			groupinvitationtoken.Table:  groupinvitationtoken.ValidColumn,
+			locationlayout.Table:        locationlayout.ValidColumn,
+			locationlayoutelement.Table: locationlayoutelement.ValidColumn,
+			maintenanceentry.Table:      maintenanceentry.ValidColumn,
+			notifier.Table:              notifier.ValidColumn,
+			passwordresettokens.Table:   passwordresettokens.ValidColumn,
+			qrlogintokens.Table:         qrlogintokens.ValidColumn,
+			tag.Table:                   tag.ValidColumn,
+			templatefield.Table:         templatefield.ValidColumn,
+			user.Table:                  user.ValidColumn,
+			usergroup.Table:             usergroup.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

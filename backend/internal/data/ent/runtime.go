@@ -16,6 +16,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/export"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/groupinvitationtoken"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayout"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayoutelement"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/notifier"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/passwordresettokens"
@@ -526,6 +528,86 @@ func init() {
 	groupinvitationtokenDescID := groupinvitationtokenMixinFields0[0].Descriptor()
 	// groupinvitationtoken.DefaultID holds the default value on creation for the id field.
 	groupinvitationtoken.DefaultID = groupinvitationtokenDescID.Default.(func() uuid.UUID)
+	locationlayoutMixin := schema.LocationLayout{}.Mixin()
+	locationlayoutMixinFields0 := locationlayoutMixin[0].Fields()
+	_ = locationlayoutMixinFields0
+	locationlayoutFields := schema.LocationLayout{}.Fields()
+	_ = locationlayoutFields
+	// locationlayoutDescCreatedAt is the schema descriptor for created_at field.
+	locationlayoutDescCreatedAt := locationlayoutMixinFields0[1].Descriptor()
+	// locationlayout.DefaultCreatedAt holds the default value on creation for the created_at field.
+	locationlayout.DefaultCreatedAt = locationlayoutDescCreatedAt.Default.(func() time.Time)
+	// locationlayoutDescUpdatedAt is the schema descriptor for updated_at field.
+	locationlayoutDescUpdatedAt := locationlayoutMixinFields0[2].Descriptor()
+	// locationlayout.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	locationlayout.DefaultUpdatedAt = locationlayoutDescUpdatedAt.Default.(func() time.Time)
+	// locationlayout.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	locationlayout.UpdateDefaultUpdatedAt = locationlayoutDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// locationlayoutDescCanvasWidth is the schema descriptor for canvas_width field.
+	locationlayoutDescCanvasWidth := locationlayoutFields[0].Descriptor()
+	// locationlayout.DefaultCanvasWidth holds the default value on creation for the canvas_width field.
+	locationlayout.DefaultCanvasWidth = locationlayoutDescCanvasWidth.Default.(int)
+	// locationlayout.CanvasWidthValidator is a validator for the "canvas_width" field. It is called by the builders before save.
+	locationlayout.CanvasWidthValidator = locationlayoutDescCanvasWidth.Validators[0].(func(int) error)
+	// locationlayoutDescCanvasHeight is the schema descriptor for canvas_height field.
+	locationlayoutDescCanvasHeight := locationlayoutFields[1].Descriptor()
+	// locationlayout.DefaultCanvasHeight holds the default value on creation for the canvas_height field.
+	locationlayout.DefaultCanvasHeight = locationlayoutDescCanvasHeight.Default.(int)
+	// locationlayout.CanvasHeightValidator is a validator for the "canvas_height" field. It is called by the builders before save.
+	locationlayout.CanvasHeightValidator = locationlayoutDescCanvasHeight.Validators[0].(func(int) error)
+	// locationlayoutDescRevision is the schema descriptor for revision field.
+	locationlayoutDescRevision := locationlayoutFields[2].Descriptor()
+	// locationlayout.DefaultRevision holds the default value on creation for the revision field.
+	locationlayout.DefaultRevision = locationlayoutDescRevision.Default.(int)
+	// locationlayout.RevisionValidator is a validator for the "revision" field. It is called by the builders before save.
+	locationlayout.RevisionValidator = locationlayoutDescRevision.Validators[0].(func(int) error)
+	// locationlayoutDescID is the schema descriptor for id field.
+	locationlayoutDescID := locationlayoutMixinFields0[0].Descriptor()
+	// locationlayout.DefaultID holds the default value on creation for the id field.
+	locationlayout.DefaultID = locationlayoutDescID.Default.(func() uuid.UUID)
+	locationlayoutelementMixin := schema.LocationLayoutElement{}.Mixin()
+	locationlayoutelementMixinFields0 := locationlayoutelementMixin[0].Fields()
+	_ = locationlayoutelementMixinFields0
+	locationlayoutelementFields := schema.LocationLayoutElement{}.Fields()
+	_ = locationlayoutelementFields
+	// locationlayoutelementDescCreatedAt is the schema descriptor for created_at field.
+	locationlayoutelementDescCreatedAt := locationlayoutelementMixinFields0[1].Descriptor()
+	// locationlayoutelement.DefaultCreatedAt holds the default value on creation for the created_at field.
+	locationlayoutelement.DefaultCreatedAt = locationlayoutelementDescCreatedAt.Default.(func() time.Time)
+	// locationlayoutelementDescUpdatedAt is the schema descriptor for updated_at field.
+	locationlayoutelementDescUpdatedAt := locationlayoutelementMixinFields0[2].Descriptor()
+	// locationlayoutelement.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	locationlayoutelement.DefaultUpdatedAt = locationlayoutelementDescUpdatedAt.Default.(func() time.Time)
+	// locationlayoutelement.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	locationlayoutelement.UpdateDefaultUpdatedAt = locationlayoutelementDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// locationlayoutelementDescWidth is the schema descriptor for width field.
+	locationlayoutelementDescWidth := locationlayoutelementFields[3].Descriptor()
+	// locationlayoutelement.DefaultWidth holds the default value on creation for the width field.
+	locationlayoutelement.DefaultWidth = locationlayoutelementDescWidth.Default.(float64)
+	// locationlayoutelementDescHeight is the schema descriptor for height field.
+	locationlayoutelementDescHeight := locationlayoutelementFields[4].Descriptor()
+	// locationlayoutelement.DefaultHeight holds the default value on creation for the height field.
+	locationlayoutelement.DefaultHeight = locationlayoutelementDescHeight.Default.(float64)
+	// locationlayoutelementDescEndX is the schema descriptor for end_x field.
+	locationlayoutelementDescEndX := locationlayoutelementFields[5].Descriptor()
+	// locationlayoutelement.DefaultEndX holds the default value on creation for the end_x field.
+	locationlayoutelement.DefaultEndX = locationlayoutelementDescEndX.Default.(float64)
+	// locationlayoutelementDescEndY is the schema descriptor for end_y field.
+	locationlayoutelementDescEndY := locationlayoutelementFields[6].Descriptor()
+	// locationlayoutelement.DefaultEndY holds the default value on creation for the end_y field.
+	locationlayoutelement.DefaultEndY = locationlayoutelementDescEndY.Default.(float64)
+	// locationlayoutelementDescRotation is the schema descriptor for rotation field.
+	locationlayoutelementDescRotation := locationlayoutelementFields[7].Descriptor()
+	// locationlayoutelement.DefaultRotation holds the default value on creation for the rotation field.
+	locationlayoutelement.DefaultRotation = locationlayoutelementDescRotation.Default.(float64)
+	// locationlayoutelementDescZOrder is the schema descriptor for z_order field.
+	locationlayoutelementDescZOrder := locationlayoutelementFields[8].Descriptor()
+	// locationlayoutelement.DefaultZOrder holds the default value on creation for the z_order field.
+	locationlayoutelement.DefaultZOrder = locationlayoutelementDescZOrder.Default.(int)
+	// locationlayoutelementDescID is the schema descriptor for id field.
+	locationlayoutelementDescID := locationlayoutelementMixinFields0[0].Descriptor()
+	// locationlayoutelement.DefaultID holds the default value on creation for the id field.
+	locationlayoutelement.DefaultID = locationlayoutelementDescID.Default.(func() uuid.UUID)
 	maintenanceentryMixin := schema.MaintenanceEntry{}.Mixin()
 	maintenanceentryMixinFields0 := maintenanceentryMixin[0].Fields()
 	_ = maintenanceentryMixinFields0

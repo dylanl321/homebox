@@ -895,6 +895,113 @@
                 }
             }
         },
+        "/v1/entities/{id}/layout": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Locations"
+                ],
+                "summary": "Get a location overhead layout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Location ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.LocationLayoutOut"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Locations"
+                ],
+                "summary": "Replace a location overhead layout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Location ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Complete layout",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/repo.LocationLayoutReplace"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.LocationLayoutOut"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/validate.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "tags": [
+                    "Locations"
+                ],
+                "summary": "Delete a location overhead layout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Location ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
         "/v1/entities/{id}/maintenance": {
             "get": {
                 "security": [
@@ -3800,6 +3907,21 @@
                         }
                     ]
                 },
+                "layout_placements": {
+                    "description": "LayoutPlacements holds the value of the layout_placements edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.LocationLayoutElement"
+                    }
+                },
+                "location_layout": {
+                    "description": "LocationLayout holds the value of the location_layout edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.LocationLayout"
+                        }
+                    ]
+                },
                 "maintenance_entries": {
                     "description": "MaintenanceEntries holds the value of the maintenance_entries edge.",
                     "type": "array",
@@ -4302,6 +4424,149 @@
                     "allOf": [
                         {
                             "$ref": "#/definitions/ent.Group"
+                        }
+                    ]
+                }
+            }
+        },
+        "ent.LocationLayout": {
+            "type": "object",
+            "properties": {
+                "canvas_height": {
+                    "description": "CanvasHeight holds the value of the \"canvas_height\" field.",
+                    "type": "integer"
+                },
+                "canvas_width": {
+                    "description": "CanvasWidth holds the value of the \"canvas_width\" field.",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the LocationLayoutQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.LocationLayoutEdges"
+                        }
+                    ]
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "revision": {
+                    "description": "Revision holds the value of the \"revision\" field.",
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt holds the value of the \"updated_at\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "ent.LocationLayoutEdges": {
+            "type": "object",
+            "properties": {
+                "elements": {
+                    "description": "Elements holds the value of the elements edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.LocationLayoutElement"
+                    }
+                },
+                "owner": {
+                    "description": "Owner holds the value of the owner edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.Entity"
+                        }
+                    ]
+                }
+            }
+        },
+        "ent.LocationLayoutElement": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the LocationLayoutElementQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.LocationLayoutElementEdges"
+                        }
+                    ]
+                },
+                "end_x": {
+                    "description": "EndX holds the value of the \"end_x\" field.",
+                    "type": "number"
+                },
+                "end_y": {
+                    "description": "EndY holds the value of the \"end_y\" field.",
+                    "type": "number"
+                },
+                "height": {
+                    "description": "Height holds the value of the \"height\" field.",
+                    "type": "number"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "kind": {
+                    "description": "Kind holds the value of the \"kind\" field.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/locationlayoutelement.Kind"
+                        }
+                    ]
+                },
+                "rotation": {
+                    "description": "Rotation holds the value of the \"rotation\" field.",
+                    "type": "number"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt holds the value of the \"updated_at\" field.",
+                    "type": "string"
+                },
+                "width": {
+                    "description": "Width holds the value of the \"width\" field.",
+                    "type": "number"
+                },
+                "x": {
+                    "description": "X holds the value of the \"x\" field.",
+                    "type": "number"
+                },
+                "y": {
+                    "description": "Y holds the value of the \"y\" field.",
+                    "type": "number"
+                },
+                "z_order": {
+                    "description": "ZOrder holds the value of the \"z_order\" field.",
+                    "type": "integer"
+                }
+            }
+        },
+        "ent.LocationLayoutElementEdges": {
+            "type": "object",
+            "properties": {
+                "layout": {
+                    "description": "Layout holds the value of the layout edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.LocationLayout"
+                        }
+                    ]
+                },
+                "target": {
+                    "description": "Target holds the value of the target edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.Entity"
                         }
                     ]
                 }
@@ -4900,6 +5165,17 @@
                 "StatusRunning",
                 "StatusCompleted",
                 "StatusFailed"
+            ]
+        },
+        "locationlayoutelement.Kind": {
+            "type": "string",
+            "enum": [
+                "wall",
+                "location"
+            ],
+            "x-enum-varnames": [
+                "KindWall",
+                "KindLocation"
             ]
         },
         "repo.APIKeyCreate": {
@@ -6003,6 +6279,142 @@
                 },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "repo.LocationLayoutElementInput": {
+            "type": "object",
+            "properties": {
+                "endX": {
+                    "type": "number"
+                },
+                "endY": {
+                    "type": "number"
+                },
+                "height": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "rotation": {
+                    "type": "number"
+                },
+                "targetId": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "number"
+                },
+                "x": {
+                    "type": "number"
+                },
+                "y": {
+                    "type": "number"
+                },
+                "zOrder": {
+                    "type": "integer"
+                }
+            }
+        },
+        "repo.LocationLayoutOut": {
+            "type": "object",
+            "properties": {
+                "canvasHeight": {
+                    "type": "integer"
+                },
+                "canvasWidth": {
+                    "type": "integer"
+                },
+                "locations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.LocationLayoutPlacement"
+                    }
+                },
+                "revision": {
+                    "type": "integer"
+                },
+                "walls": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.LocationLayoutWall"
+                    }
+                }
+            }
+        },
+        "repo.LocationLayoutPlacement": {
+            "type": "object",
+            "properties": {
+                "height": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "itemCount": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rotation": {
+                    "type": "number"
+                },
+                "targetId": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "number"
+                },
+                "x": {
+                    "type": "number"
+                },
+                "y": {
+                    "type": "number"
+                },
+                "zOrder": {
+                    "type": "integer"
+                }
+            }
+        },
+        "repo.LocationLayoutReplace": {
+            "type": "object",
+            "properties": {
+                "elements": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.LocationLayoutElementInput"
+                    }
+                },
+                "expectedRevision": {
+                    "type": "integer"
+                }
+            }
+        },
+        "repo.LocationLayoutWall": {
+            "type": "object",
+            "properties": {
+                "endX": {
+                    "type": "number"
+                },
+                "endY": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "x": {
+                    "type": "number"
+                },
+                "y": {
+                    "type": "number"
+                },
+                "zOrder": {
+                    "type": "integer"
                 }
             }
         },
