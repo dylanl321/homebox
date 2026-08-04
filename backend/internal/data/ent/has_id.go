@@ -28,6 +28,14 @@ func (_m *EntityField) GetID() uuid.UUID {
 	return _m.ID
 }
 
+func (_m *EntityStockAllocation) GetID() uuid.UUID {
+	return _m.ID
+}
+
+func (_m *EntityStockTransaction) GetID() uuid.UUID {
+	return _m.ID
+}
+
 func (_m *EntityTemplate) GetID() uuid.UUID {
 	return _m.ID
 }

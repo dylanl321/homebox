@@ -27,14 +27,23 @@
         />
         <div class="absolute inset-x-1 bottom-1">
           <Badge class="text-wrap bg-secondary text-secondary-foreground hover:bg-secondary/70 hover:underline">
-            <NuxtLink v-if="item.parent" :to="`/location/${item.parent.id}`">
+            <NuxtLink v-if="locationRef" :to="`/location/${locationRef.id}`">
               {{ locationString }}
             </NuxtLink>
+            <span v-if="stockItem.locationCount && stockItem.locationCount > 1" class="ml-1">
+              ({{
+                $t("stock.location_count_short", {
+                  count: stockItem.locationCount,
+                })
+              }})
+            </span>
           </Badge>
         </div>
       </div>
       <div class="col-span-4 flex grow flex-col gap-y-1 p-4 pt-2">
-        <h2 class="line-clamp-2 text-ellipsis text-wrap text-lg font-bold">{{ item.name }}</h2>
+        <h2 class="line-clamp-2 text-ellipsis text-wrap text-lg font-bold">
+          {{ item.name }}
+        </h2>
         <Separator class="mb-1" />
         <TooltipProvider :delay-duration="0">
           <div class="flex items-center gap-2">
@@ -58,7 +67,7 @@
             <Tooltip>
               <TooltipTrigger>
                 <Badge>
-                  {{ item.quantity }}
+                  {{ stockItem.allocatedQuantity ?? item.quantity }}
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
@@ -78,6 +87,7 @@
 
 <script setup lang="ts">
   import type { EntityOut, EntitySummary } from "~~/lib/api/types/data-contracts";
+  import type { StockEntitySummary } from "~~/lib/api/types/stock";
   import MdiShieldCheck from "~icons/mdi/shield-check";
   import MdiArchive from "~icons/mdi/archive";
   import { Badge } from "@/components/ui/badge";
@@ -125,10 +135,12 @@
   });
 
   const objectContain = computed(() => imageUrl.value !== "/no-image.jpg" && !preferences.value.legacyImageFit);
+  const stockItem = computed(() => props.item as StockEntitySummary);
 
   const locationString = computed(
-    () => props.locationFlatTree.find(l => l.id === props.item.parent?.id)?.treeString || props.item.parent?.name
+    () => props.locationFlatTree.find(l => l.id === locationRef.value?.id)?.treeString || locationRef.value?.name
   );
+  const locationRef = computed(() => stockItem.value.location || props.item.parent);
 </script>
 
 <style lang="css"></style>

@@ -18,7 +18,10 @@
   } from "@/components/ui/dialog";
   import { useDialog } from "@/components/ui/dialog-provider";
   import { Button, ButtonGroup } from "@/components/ui/button";
+  import { Label } from "@/components/ui/label";
+  import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
   import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+  import type { StockAllocation } from "~~/lib/api/types/stock";
 
   const { t } = useI18n();
   const { openDialog, closeDialog } = useDialog();
@@ -26,9 +29,12 @@
   const props = defineProps<{
     type: string;
     id: string;
+    locationId?: string;
+    allocations?: StockAllocation[];
   }>();
 
   const pubApi = usePublicApi();
+  const selectedLocationId = ref(props.locationId || "__generic");
 
   const { data: status } = useAsyncData(async () => {
     const { data, error } = await pubApi.status();
@@ -39,6 +45,7 @@
 
     return data;
   });
+  const labelPrintingEnabled = computed(() => status.value?.labelPrinting ?? false);
 
   const serverPrinting = ref(false);
 
@@ -84,6 +91,9 @@
     if (selectedId.value) {
       params.tenant = selectedId.value;
     }
+    if (selectedLocationId.value !== "__generic") {
+      params.locationId = selectedLocationId.value;
+    }
 
     if (props.type === "item" || props.type === "entity") {
       return route(`/labelmaker/entity/${props.id}`, params);
@@ -109,10 +119,30 @@
             {{ $t("components.global.label_maker.confirm_description") }}
           </DialogDescription>
         </DialogHeader>
+        <div v-if="allocations && allocations.length > 1" class="space-y-1">
+          <Label for="label-location">{{ $t("stock.label.stock_location") }}</Label>
+          <Select id="label-location" v-model="selectedLocationId">
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__generic">
+                {{ $t("stock.label.all_locations") }}
+              </SelectItem>
+              <SelectItem
+                v-for="allocation in allocations.filter(entry => entry.locationId)"
+                :key="allocation.id"
+                :value="allocation.locationId!"
+              >
+                {{ allocation.location?.name || $t("global.location") }} ({{ allocation.quantity }})
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <img :src="getLabelUrl(false)" />
         <DialogFooter>
           <ButtonGroup>
-            <Button v-if="status?.labelPrinting || false" type="submit" :disabled="serverPrinting" @click="serverPrint">
+            <Button v-if="labelPrintingEnabled" type="submit" :disabled="serverPrinting" @click="serverPrint">
               <MdiLoading v-if="serverPrinting" class="animate-spin" />
               {{ $t("components.global.label_maker.server_print") }}
             </Button>

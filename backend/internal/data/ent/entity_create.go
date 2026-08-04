@@ -14,6 +14,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entity"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entityfield"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystockallocation"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystocktransaction"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayout"
@@ -487,6 +489,51 @@ func (_c *EntityCreate) AddAttachments(v ...*Attachment) *EntityCreate {
 	return _c.AddAttachmentIDs(ids...)
 }
 
+// AddStockAllocationIDs adds the "stock_allocations" edge to the EntityStockAllocation entity by IDs.
+func (_c *EntityCreate) AddStockAllocationIDs(ids ...uuid.UUID) *EntityCreate {
+	_c.mutation.AddStockAllocationIDs(ids...)
+	return _c
+}
+
+// AddStockAllocations adds the "stock_allocations" edges to the EntityStockAllocation entity.
+func (_c *EntityCreate) AddStockAllocations(v ...*EntityStockAllocation) *EntityCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddStockAllocationIDs(ids...)
+}
+
+// AddStockTransactionIDs adds the "stock_transactions" edge to the EntityStockTransaction entity by IDs.
+func (_c *EntityCreate) AddStockTransactionIDs(ids ...uuid.UUID) *EntityCreate {
+	_c.mutation.AddStockTransactionIDs(ids...)
+	return _c
+}
+
+// AddStockTransactions adds the "stock_transactions" edges to the EntityStockTransaction entity.
+func (_c *EntityCreate) AddStockTransactions(v ...*EntityStockTransaction) *EntityCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddStockTransactionIDs(ids...)
+}
+
+// AddStockLocationAllocationIDs adds the "stock_location_allocations" edge to the EntityStockAllocation entity by IDs.
+func (_c *EntityCreate) AddStockLocationAllocationIDs(ids ...uuid.UUID) *EntityCreate {
+	_c.mutation.AddStockLocationAllocationIDs(ids...)
+	return _c
+}
+
+// AddStockLocationAllocations adds the "stock_location_allocations" edges to the EntityStockAllocation entity.
+func (_c *EntityCreate) AddStockLocationAllocations(v ...*EntityStockAllocation) *EntityCreate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddStockLocationAllocationIDs(ids...)
+}
+
 // SetLocationLayoutID sets the "location_layout" edge to the LocationLayout entity by ID.
 func (_c *EntityCreate) SetLocationLayoutID(id uuid.UUID) *EntityCreate {
 	_c.mutation.SetLocationLayoutID(id)
@@ -943,6 +990,54 @@ func (_c *EntityCreate) createSpec() (*Entity, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.StockAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockAllocationsTable,
+			Columns: []string{entity.StockAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.StockTransactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockTransactionsTable,
+			Columns: []string{entity.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.StockLocationAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockLocationAllocationsTable,
+			Columns: []string{entity.StockLocationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

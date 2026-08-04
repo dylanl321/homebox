@@ -246,6 +246,123 @@ var (
 			},
 		},
 	}
+	// EntityStockAllocationsColumns holds the columns for the "entity_stock_allocations" table.
+	EntityStockAllocationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "quantity", Type: field.TypeFloat64},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
+		{Name: "entity_id", Type: field.TypeUUID},
+		{Name: "location_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// EntityStockAllocationsTable holds the schema information for the "entity_stock_allocations" table.
+	EntityStockAllocationsTable = &schema.Table{
+		Name:       "entity_stock_allocations",
+		Columns:    EntityStockAllocationsColumns,
+		PrimaryKey: []*schema.Column{EntityStockAllocationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "entity_stock_allocations_entities_stock_allocations",
+				Columns:    []*schema.Column{EntityStockAllocationsColumns[5]},
+				RefColumns: []*schema.Column{EntitiesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "entity_stock_allocations_entities_stock_location_allocations",
+				Columns:    []*schema.Column{EntityStockAllocationsColumns[6]},
+				RefColumns: []*schema.Column{EntitiesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "entitystockallocation_entity_id_location_id",
+				Unique:  true,
+				Columns: []*schema.Column{EntityStockAllocationsColumns[5], EntityStockAllocationsColumns[6]},
+			},
+			{
+				Name:    "entitystockallocation_location_id",
+				Unique:  false,
+				Columns: []*schema.Column{EntityStockAllocationsColumns[6]},
+			},
+			{
+				Name:    "entitystockallocation_entity_id_is_default",
+				Unique:  false,
+				Columns: []*schema.Column{EntityStockAllocationsColumns[5], EntityStockAllocationsColumns[4]},
+			},
+		},
+	}
+	// EntityStockTransactionsColumns holds the columns for the "entity_stock_transactions" table.
+	EntityStockTransactionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "actor_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "operation", Type: field.TypeEnum, Enums: []string{"adjust", "set", "transfer", "resolve_transfer", "resolve_remove", "legacy"}},
+		{Name: "workflow", Type: field.TypeString, Nullable: true, Size: 100},
+		{Name: "source_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "destination_location_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "quantity", Type: field.TypeFloat64},
+		{Name: "before_total", Type: field.TypeFloat64},
+		{Name: "after_total", Type: field.TypeFloat64},
+		{Name: "source_before", Type: field.TypeFloat64, Nullable: true},
+		{Name: "source_after", Type: field.TypeFloat64, Nullable: true},
+		{Name: "destination_before", Type: field.TypeFloat64, Nullable: true},
+		{Name: "destination_after", Type: field.TypeFloat64, Nullable: true},
+		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 1000},
+		{Name: "idempotency_key", Type: field.TypeString, Size: 255},
+		{Name: "request_hash", Type: field.TypeString, Size: 64},
+		{Name: "entity_id", Type: field.TypeUUID},
+		{Name: "group_id", Type: field.TypeUUID},
+	}
+	// EntityStockTransactionsTable holds the schema information for the "entity_stock_transactions" table.
+	EntityStockTransactionsTable = &schema.Table{
+		Name:       "entity_stock_transactions",
+		Columns:    EntityStockTransactionsColumns,
+		PrimaryKey: []*schema.Column{EntityStockTransactionsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "entity_stock_transactions_entities_stock_transactions",
+				Columns:    []*schema.Column{EntityStockTransactionsColumns[18]},
+				RefColumns: []*schema.Column{EntitiesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "entity_stock_transactions_groups_stock_transactions",
+				Columns:    []*schema.Column{EntityStockTransactionsColumns[19]},
+				RefColumns: []*schema.Column{GroupsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "entitystocktransaction_group_id_idempotency_key",
+				Unique:  true,
+				Columns: []*schema.Column{EntityStockTransactionsColumns[19], EntityStockTransactionsColumns[16]},
+			},
+			{
+				Name:    "entitystocktransaction_group_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{EntityStockTransactionsColumns[19], EntityStockTransactionsColumns[1]},
+			},
+			{
+				Name:    "entitystocktransaction_entity_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{EntityStockTransactionsColumns[18], EntityStockTransactionsColumns[1]},
+			},
+			{
+				Name:    "entitystocktransaction_source_location_id",
+				Unique:  false,
+				Columns: []*schema.Column{EntityStockTransactionsColumns[6]},
+			},
+			{
+				Name:    "entitystocktransaction_destination_location_id",
+				Unique:  false,
+				Columns: []*schema.Column{EntityStockTransactionsColumns[7]},
+			},
+		},
+	}
 	// EntityTemplatesColumns holds the columns for the "entity_templates" table.
 	EntityTemplatesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -784,6 +901,8 @@ var (
 		AuthTokensTable,
 		EntitiesTable,
 		EntityFieldsTable,
+		EntityStockAllocationsTable,
+		EntityStockTransactionsTable,
 		EntityTemplatesTable,
 		EntityTypesTable,
 		ExportsTable,
@@ -813,6 +932,10 @@ func init() {
 	EntitiesTable.ForeignKeys[1].RefTable = EntityTypesTable
 	EntitiesTable.ForeignKeys[2].RefTable = GroupsTable
 	EntityFieldsTable.ForeignKeys[0].RefTable = EntitiesTable
+	EntityStockAllocationsTable.ForeignKeys[0].RefTable = EntitiesTable
+	EntityStockAllocationsTable.ForeignKeys[1].RefTable = EntitiesTable
+	EntityStockTransactionsTable.ForeignKeys[0].RefTable = EntitiesTable
+	EntityStockTransactionsTable.ForeignKeys[1].RefTable = GroupsTable
 	EntityTemplatesTable.ForeignKeys[0].RefTable = EntitiesTable
 	EntityTemplatesTable.ForeignKeys[1].RefTable = GroupsTable
 	EntityTypesTable.ForeignKeys[0].RefTable = EntityTemplatesTable

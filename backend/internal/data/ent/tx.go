@@ -24,6 +24,10 @@ type Tx struct {
 	Entity *EntityClient
 	// EntityField is the client for interacting with the EntityField builders.
 	EntityField *EntityFieldClient
+	// EntityStockAllocation is the client for interacting with the EntityStockAllocation builders.
+	EntityStockAllocation *EntityStockAllocationClient
+	// EntityStockTransaction is the client for interacting with the EntityStockTransaction builders.
+	EntityStockTransaction *EntityStockTransactionClient
 	// EntityTemplate is the client for interacting with the EntityTemplate builders.
 	EntityTemplate *EntityTemplateClient
 	// EntityType is the client for interacting with the EntityType builders.
@@ -191,6 +195,8 @@ func (tx *Tx) init() {
 	tx.AuthTokens = NewAuthTokensClient(tx.config)
 	tx.Entity = NewEntityClient(tx.config)
 	tx.EntityField = NewEntityFieldClient(tx.config)
+	tx.EntityStockAllocation = NewEntityStockAllocationClient(tx.config)
+	tx.EntityStockTransaction = NewEntityStockTransactionClient(tx.config)
 	tx.EntityTemplate = NewEntityTemplateClient(tx.config)
 	tx.EntityType = NewEntityTypeClient(tx.config)
 	tx.Export = NewExportClient(tx.config)

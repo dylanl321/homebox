@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gocloud.dev/blob"
@@ -348,6 +349,75 @@ func TestCSVImportRejectsSelfParentRef(t *testing.T) {
 	_, err = tSvc.Entities.CsvImport(ctx, dst.ID, strings.NewReader(csvData))
 	require.Error(t, err)
 	assert.ErrorContains(t, err, `entity "self-ref" cannot be its own parent`)
+}
+
+func TestCSVStockAllocationsRoundTrip(t *testing.T) {
+	ctx := context.Background()
+	src, err := tRepos.Groups.GroupCreate(ctx, "csv-stock-src-"+fk.Str(4), uuid.Nil)
+	require.NoError(t, err)
+	locationType, err := tRepos.EntityTypes.GetDefault(ctx, src.ID, true)
+	require.NoError(t, err)
+	itemType, err := tRepos.EntityTypes.GetDefault(ctx, src.ID, false)
+	require.NoError(t, err)
+	first, err := tRepos.Entities.Create(ctx, src.ID, repo.EntityCreate{
+		ImportRef: "stock-location-a", Name: "Stock A " + fk.Str(4), EntityTypeID: locationType.ID,
+	})
+	require.NoError(t, err)
+	second, err := tRepos.Entities.Create(ctx, src.ID, repo.EntityCreate{
+		ImportRef: "stock-location-b", Name: "Stock B " + fk.Str(4), EntityTypeID: locationType.ID,
+	})
+	require.NoError(t, err)
+	item, err := tRepos.Entities.Create(ctx, src.ID, repo.EntityCreate{
+		ImportRef: "stock-item", Name: "CSV stock item", EntityTypeID: itemType.ID,
+		ParentID: first.ID, Quantity: 5,
+	})
+	require.NoError(t, err)
+	add := func(locationID *uuid.UUID, quantity float64) {
+		t.Helper()
+		_, _, err := tRepos.Stock.Operate(ctx, src.ID, tUser.ID, item.ID, repo.StockOperationRequest{
+			Operation: "adjust", LocationID: locationID, Delta: &quantity,
+			IdempotencyKey: uuid.NewString(),
+		})
+		require.NoError(t, err)
+	}
+	add(&second.ID, 2)
+	add(nil, 1)
+
+	rows, err := tSvc.Entities.ExportCSV(ctx, src.ID, "https://homebox.example")
+	require.NoError(t, err)
+	importRefColumn := -1
+	for i, header := range rows[0] {
+		if header == "HB.import_ref" {
+			importRefColumn = i
+			break
+		}
+	}
+	require.NotEqual(t, -1, importRefColumn)
+	itemRows := [][]string{rows[0]}
+	for _, row := range rows[1:] {
+		if row[importRefColumn] == "stock-item" {
+			itemRows = append(itemRows, row)
+		}
+	}
+	var csvBuf bytes.Buffer
+	writer := csv.NewWriter(&csvBuf)
+	require.NoError(t, writer.WriteAll(itemRows))
+	require.NoError(t, writer.Error())
+
+	dst, err := tRepos.Groups.GroupCreate(ctx, "csv-stock-dst-"+fk.Str(4), uuid.Nil)
+	require.NoError(t, err)
+	_, err = tSvc.Entities.CsvImport(ctx, dst.ID, bytes.NewReader(csvBuf.Bytes()))
+	require.NoError(t, err)
+	imported, err := tRepos.Entities.GetByRef(ctx, dst.ID, "stock-item")
+	require.NoError(t, err)
+	state, err := tRepos.Stock.Get(ctx, dst.ID, imported.ID)
+	require.NoError(t, err)
+	assert.InDelta(t, 8.0, state.TotalQuantity, 0.000001)
+	require.Len(t, state.Allocations, 3)
+	assert.NotNil(t, state.DefaultLocationID)
+	assert.True(t, lo.SomeBy(state.Allocations, func(a repo.StockAllocation) bool {
+		return a.LocationID == nil && a.Quantity == 1
+	}))
 }
 
 // TestIsGroupReadyForImport_BlocksUserCreatedRows asserts that the import

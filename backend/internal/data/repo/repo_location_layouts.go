@@ -40,7 +40,7 @@ type LocationLayoutPlacement struct {
 	ID        uuid.UUID `json:"id"`
 	TargetID  uuid.UUID `json:"targetId"`
 	Name      string    `json:"name"`
-	ItemCount int       `json:"itemCount"`
+	ItemCount float64   `json:"itemCount"`
 	X         float64   `json:"x"`
 	Y         float64   `json:"y"`
 	Width     float64   `json:"width"`
@@ -160,14 +160,24 @@ func (r *LocationLayoutRepository) Get(ctx context.Context, gid, ownerID uuid.UU
 			if !isLocation {
 				continue
 			}
-			itemCount, err := target.QueryChildren().
-				Where(entity.HasEntityTypeWith(entitytype.IsLocation(false)), entity.Archived(false)).
-				Count(ctx)
+			var itemCount *float64
+			err = r.db.Sql().QueryRowContext(ctx, `
+				SELECT SUM(esa.quantity)
+				FROM entity_stock_allocations esa
+				JOIN entities e ON e.id = esa.entity_id
+				WHERE esa.location_id = $1
+				  AND e.group_entities = $2
+				  AND e.archived = false
+			`, target.ID, gid).Scan(&itemCount)
 			if err != nil {
 				return out, err
 			}
+			count := 0.0
+			if itemCount != nil {
+				count = *itemCount
+			}
 			out.Locations = append(out.Locations, LocationLayoutPlacement{
-				ID: element.ID, TargetID: target.ID, Name: target.Name, ItemCount: itemCount,
+				ID: element.ID, TargetID: target.ID, Name: target.Name, ItemCount: count,
 				X: element.X, Y: element.Y, Width: element.Width, Height: element.Height,
 				Rotation: element.Rotation, ZOrder: element.ZOrder,
 			})

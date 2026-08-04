@@ -18,6 +18,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/authtokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entity"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entityfield"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystockallocation"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystocktransaction"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytemplate"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/export"
@@ -45,27 +47,29 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAPIKey                = "APIKey"
-	TypeAttachment            = "Attachment"
-	TypeAuthRoles             = "AuthRoles"
-	TypeAuthTokens            = "AuthTokens"
-	TypeEntity                = "Entity"
-	TypeEntityField           = "EntityField"
-	TypeEntityTemplate        = "EntityTemplate"
-	TypeEntityType            = "EntityType"
-	TypeExport                = "Export"
-	TypeGroup                 = "Group"
-	TypeGroupInvitationToken  = "GroupInvitationToken"
-	TypeLocationLayout        = "LocationLayout"
-	TypeLocationLayoutElement = "LocationLayoutElement"
-	TypeMaintenanceEntry      = "MaintenanceEntry"
-	TypeNotifier              = "Notifier"
-	TypePasswordResetTokens   = "PasswordResetTokens"
-	TypeQRLoginTokens         = "QRLoginTokens"
-	TypeTag                   = "Tag"
-	TypeTemplateField         = "TemplateField"
-	TypeUser                  = "User"
-	TypeUserGroup             = "UserGroup"
+	TypeAPIKey                 = "APIKey"
+	TypeAttachment             = "Attachment"
+	TypeAuthRoles              = "AuthRoles"
+	TypeAuthTokens             = "AuthTokens"
+	TypeEntity                 = "Entity"
+	TypeEntityField            = "EntityField"
+	TypeEntityStockAllocation  = "EntityStockAllocation"
+	TypeEntityStockTransaction = "EntityStockTransaction"
+	TypeEntityTemplate         = "EntityTemplate"
+	TypeEntityType             = "EntityType"
+	TypeExport                 = "Export"
+	TypeGroup                  = "Group"
+	TypeGroupInvitationToken   = "GroupInvitationToken"
+	TypeLocationLayout         = "LocationLayout"
+	TypeLocationLayoutElement  = "LocationLayoutElement"
+	TypeMaintenanceEntry       = "MaintenanceEntry"
+	TypeNotifier               = "Notifier"
+	TypePasswordResetTokens    = "PasswordResetTokens"
+	TypeQRLoginTokens          = "QRLoginTokens"
+	TypeTag                    = "Tag"
+	TypeTemplateField          = "TemplateField"
+	TypeUser                   = "User"
+	TypeUserGroup              = "UserGroup"
 )
 
 // APIKeyMutation represents an operation that mutates the APIKey nodes in the graph.
@@ -2617,67 +2621,76 @@ func (m *AuthTokensMutation) ResetEdge(name string) error {
 // EntityMutation represents an operation that mutates the Entity nodes in the graph.
 type EntityMutation struct {
 	config
-	op                          Op
-	typ                         string
-	id                          *uuid.UUID
-	created_at                  *time.Time
-	updated_at                  *time.Time
-	name                        *string
-	description                 *string
-	import_ref                  *string
-	notes                       *string
-	quantity                    *float64
-	addquantity                 *float64
-	insured                     *bool
-	archived                    *bool
-	asset_id                    *int64
-	addasset_id                 *int64
-	sync_child_entity_locations *bool
-	serial_number               *string
-	model_number                *string
-	manufacturer                *string
-	lifetime_warranty           *bool
-	warranty_expires            *time.Time
-	warranty_details            *string
-	purchase_date               *time.Time
-	purchase_from               *string
-	purchase_price              *float64
-	addpurchase_price           *float64
-	sold_date                   *time.Time
-	sold_to                     *string
-	sold_price                  *float64
-	addsold_price               *float64
-	sold_notes                  *string
-	clearedFields               map[string]struct{}
-	group                       *uuid.UUID
-	clearedgroup                bool
-	parent                      *uuid.UUID
-	clearedparent               bool
-	children                    map[uuid.UUID]struct{}
-	removedchildren             map[uuid.UUID]struct{}
-	clearedchildren             bool
-	tag                         map[uuid.UUID]struct{}
-	removedtag                  map[uuid.UUID]struct{}
-	clearedtag                  bool
-	entity_type                 *uuid.UUID
-	clearedentity_type          bool
-	fields                      map[uuid.UUID]struct{}
-	removedfields               map[uuid.UUID]struct{}
-	clearedfields               bool
-	maintenance_entries         map[uuid.UUID]struct{}
-	removedmaintenance_entries  map[uuid.UUID]struct{}
-	clearedmaintenance_entries  bool
-	attachments                 map[uuid.UUID]struct{}
-	removedattachments          map[uuid.UUID]struct{}
-	clearedattachments          bool
-	location_layout             *uuid.UUID
-	clearedlocation_layout      bool
-	layout_placements           map[uuid.UUID]struct{}
-	removedlayout_placements    map[uuid.UUID]struct{}
-	clearedlayout_placements    bool
-	done                        bool
-	oldValue                    func(context.Context) (*Entity, error)
-	predicates                  []predicate.Entity
+	op                                Op
+	typ                               string
+	id                                *uuid.UUID
+	created_at                        *time.Time
+	updated_at                        *time.Time
+	name                              *string
+	description                       *string
+	import_ref                        *string
+	notes                             *string
+	quantity                          *float64
+	addquantity                       *float64
+	insured                           *bool
+	archived                          *bool
+	asset_id                          *int64
+	addasset_id                       *int64
+	sync_child_entity_locations       *bool
+	serial_number                     *string
+	model_number                      *string
+	manufacturer                      *string
+	lifetime_warranty                 *bool
+	warranty_expires                  *time.Time
+	warranty_details                  *string
+	purchase_date                     *time.Time
+	purchase_from                     *string
+	purchase_price                    *float64
+	addpurchase_price                 *float64
+	sold_date                         *time.Time
+	sold_to                           *string
+	sold_price                        *float64
+	addsold_price                     *float64
+	sold_notes                        *string
+	clearedFields                     map[string]struct{}
+	group                             *uuid.UUID
+	clearedgroup                      bool
+	parent                            *uuid.UUID
+	clearedparent                     bool
+	children                          map[uuid.UUID]struct{}
+	removedchildren                   map[uuid.UUID]struct{}
+	clearedchildren                   bool
+	tag                               map[uuid.UUID]struct{}
+	removedtag                        map[uuid.UUID]struct{}
+	clearedtag                        bool
+	entity_type                       *uuid.UUID
+	clearedentity_type                bool
+	fields                            map[uuid.UUID]struct{}
+	removedfields                     map[uuid.UUID]struct{}
+	clearedfields                     bool
+	maintenance_entries               map[uuid.UUID]struct{}
+	removedmaintenance_entries        map[uuid.UUID]struct{}
+	clearedmaintenance_entries        bool
+	attachments                       map[uuid.UUID]struct{}
+	removedattachments                map[uuid.UUID]struct{}
+	clearedattachments                bool
+	stock_allocations                 map[uuid.UUID]struct{}
+	removedstock_allocations          map[uuid.UUID]struct{}
+	clearedstock_allocations          bool
+	stock_transactions                map[uuid.UUID]struct{}
+	removedstock_transactions         map[uuid.UUID]struct{}
+	clearedstock_transactions         bool
+	stock_location_allocations        map[uuid.UUID]struct{}
+	removedstock_location_allocations map[uuid.UUID]struct{}
+	clearedstock_location_allocations bool
+	location_layout                   *uuid.UUID
+	clearedlocation_layout            bool
+	layout_placements                 map[uuid.UUID]struct{}
+	removedlayout_placements          map[uuid.UUID]struct{}
+	clearedlayout_placements          bool
+	done                              bool
+	oldValue                          func(context.Context) (*Entity, error)
+	predicates                        []predicate.Entity
 }
 
 var _ ent.Mutation = (*EntityMutation)(nil)
@@ -4284,6 +4297,168 @@ func (m *EntityMutation) ResetAttachments() {
 	m.removedattachments = nil
 }
 
+// AddStockAllocationIDs adds the "stock_allocations" edge to the EntityStockAllocation entity by ids.
+func (m *EntityMutation) AddStockAllocationIDs(ids ...uuid.UUID) {
+	if m.stock_allocations == nil {
+		m.stock_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.stock_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStockAllocations clears the "stock_allocations" edge to the EntityStockAllocation entity.
+func (m *EntityMutation) ClearStockAllocations() {
+	m.clearedstock_allocations = true
+}
+
+// StockAllocationsCleared reports if the "stock_allocations" edge to the EntityStockAllocation entity was cleared.
+func (m *EntityMutation) StockAllocationsCleared() bool {
+	return m.clearedstock_allocations
+}
+
+// RemoveStockAllocationIDs removes the "stock_allocations" edge to the EntityStockAllocation entity by IDs.
+func (m *EntityMutation) RemoveStockAllocationIDs(ids ...uuid.UUID) {
+	if m.removedstock_allocations == nil {
+		m.removedstock_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.stock_allocations, ids[i])
+		m.removedstock_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStockAllocations returns the removed IDs of the "stock_allocations" edge to the EntityStockAllocation entity.
+func (m *EntityMutation) RemovedStockAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedstock_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StockAllocationsIDs returns the "stock_allocations" edge IDs in the mutation.
+func (m *EntityMutation) StockAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.stock_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStockAllocations resets all changes to the "stock_allocations" edge.
+func (m *EntityMutation) ResetStockAllocations() {
+	m.stock_allocations = nil
+	m.clearedstock_allocations = false
+	m.removedstock_allocations = nil
+}
+
+// AddStockTransactionIDs adds the "stock_transactions" edge to the EntityStockTransaction entity by ids.
+func (m *EntityMutation) AddStockTransactionIDs(ids ...uuid.UUID) {
+	if m.stock_transactions == nil {
+		m.stock_transactions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.stock_transactions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStockTransactions clears the "stock_transactions" edge to the EntityStockTransaction entity.
+func (m *EntityMutation) ClearStockTransactions() {
+	m.clearedstock_transactions = true
+}
+
+// StockTransactionsCleared reports if the "stock_transactions" edge to the EntityStockTransaction entity was cleared.
+func (m *EntityMutation) StockTransactionsCleared() bool {
+	return m.clearedstock_transactions
+}
+
+// RemoveStockTransactionIDs removes the "stock_transactions" edge to the EntityStockTransaction entity by IDs.
+func (m *EntityMutation) RemoveStockTransactionIDs(ids ...uuid.UUID) {
+	if m.removedstock_transactions == nil {
+		m.removedstock_transactions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.stock_transactions, ids[i])
+		m.removedstock_transactions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStockTransactions returns the removed IDs of the "stock_transactions" edge to the EntityStockTransaction entity.
+func (m *EntityMutation) RemovedStockTransactionsIDs() (ids []uuid.UUID) {
+	for id := range m.removedstock_transactions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StockTransactionsIDs returns the "stock_transactions" edge IDs in the mutation.
+func (m *EntityMutation) StockTransactionsIDs() (ids []uuid.UUID) {
+	for id := range m.stock_transactions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStockTransactions resets all changes to the "stock_transactions" edge.
+func (m *EntityMutation) ResetStockTransactions() {
+	m.stock_transactions = nil
+	m.clearedstock_transactions = false
+	m.removedstock_transactions = nil
+}
+
+// AddStockLocationAllocationIDs adds the "stock_location_allocations" edge to the EntityStockAllocation entity by ids.
+func (m *EntityMutation) AddStockLocationAllocationIDs(ids ...uuid.UUID) {
+	if m.stock_location_allocations == nil {
+		m.stock_location_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.stock_location_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStockLocationAllocations clears the "stock_location_allocations" edge to the EntityStockAllocation entity.
+func (m *EntityMutation) ClearStockLocationAllocations() {
+	m.clearedstock_location_allocations = true
+}
+
+// StockLocationAllocationsCleared reports if the "stock_location_allocations" edge to the EntityStockAllocation entity was cleared.
+func (m *EntityMutation) StockLocationAllocationsCleared() bool {
+	return m.clearedstock_location_allocations
+}
+
+// RemoveStockLocationAllocationIDs removes the "stock_location_allocations" edge to the EntityStockAllocation entity by IDs.
+func (m *EntityMutation) RemoveStockLocationAllocationIDs(ids ...uuid.UUID) {
+	if m.removedstock_location_allocations == nil {
+		m.removedstock_location_allocations = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.stock_location_allocations, ids[i])
+		m.removedstock_location_allocations[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStockLocationAllocations returns the removed IDs of the "stock_location_allocations" edge to the EntityStockAllocation entity.
+func (m *EntityMutation) RemovedStockLocationAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.removedstock_location_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StockLocationAllocationsIDs returns the "stock_location_allocations" edge IDs in the mutation.
+func (m *EntityMutation) StockLocationAllocationsIDs() (ids []uuid.UUID) {
+	for id := range m.stock_location_allocations {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStockLocationAllocations resets all changes to the "stock_location_allocations" edge.
+func (m *EntityMutation) ResetStockLocationAllocations() {
+	m.stock_location_allocations = nil
+	m.clearedstock_location_allocations = false
+	m.removedstock_location_allocations = nil
+}
+
 // SetLocationLayoutID sets the "location_layout" edge to the LocationLayout entity by id.
 func (m *EntityMutation) SetLocationLayoutID(id uuid.UUID) {
 	m.location_layout = &id
@@ -5033,7 +5208,7 @@ func (m *EntityMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EntityMutation) AddedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 13)
 	if m.group != nil {
 		edges = append(edges, entity.EdgeGroup)
 	}
@@ -5057,6 +5232,15 @@ func (m *EntityMutation) AddedEdges() []string {
 	}
 	if m.attachments != nil {
 		edges = append(edges, entity.EdgeAttachments)
+	}
+	if m.stock_allocations != nil {
+		edges = append(edges, entity.EdgeStockAllocations)
+	}
+	if m.stock_transactions != nil {
+		edges = append(edges, entity.EdgeStockTransactions)
+	}
+	if m.stock_location_allocations != nil {
+		edges = append(edges, entity.EdgeStockLocationAllocations)
 	}
 	if m.location_layout != nil {
 		edges = append(edges, entity.EdgeLocationLayout)
@@ -5113,6 +5297,24 @@ func (m *EntityMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case entity.EdgeStockAllocations:
+		ids := make([]ent.Value, 0, len(m.stock_allocations))
+		for id := range m.stock_allocations {
+			ids = append(ids, id)
+		}
+		return ids
+	case entity.EdgeStockTransactions:
+		ids := make([]ent.Value, 0, len(m.stock_transactions))
+		for id := range m.stock_transactions {
+			ids = append(ids, id)
+		}
+		return ids
+	case entity.EdgeStockLocationAllocations:
+		ids := make([]ent.Value, 0, len(m.stock_location_allocations))
+		for id := range m.stock_location_allocations {
+			ids = append(ids, id)
+		}
+		return ids
 	case entity.EdgeLocationLayout:
 		if id := m.location_layout; id != nil {
 			return []ent.Value{*id}
@@ -5129,7 +5331,7 @@ func (m *EntityMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EntityMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 13)
 	if m.removedchildren != nil {
 		edges = append(edges, entity.EdgeChildren)
 	}
@@ -5144,6 +5346,15 @@ func (m *EntityMutation) RemovedEdges() []string {
 	}
 	if m.removedattachments != nil {
 		edges = append(edges, entity.EdgeAttachments)
+	}
+	if m.removedstock_allocations != nil {
+		edges = append(edges, entity.EdgeStockAllocations)
+	}
+	if m.removedstock_transactions != nil {
+		edges = append(edges, entity.EdgeStockTransactions)
+	}
+	if m.removedstock_location_allocations != nil {
+		edges = append(edges, entity.EdgeStockLocationAllocations)
 	}
 	if m.removedlayout_placements != nil {
 		edges = append(edges, entity.EdgeLayoutPlacements)
@@ -5185,6 +5396,24 @@ func (m *EntityMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case entity.EdgeStockAllocations:
+		ids := make([]ent.Value, 0, len(m.removedstock_allocations))
+		for id := range m.removedstock_allocations {
+			ids = append(ids, id)
+		}
+		return ids
+	case entity.EdgeStockTransactions:
+		ids := make([]ent.Value, 0, len(m.removedstock_transactions))
+		for id := range m.removedstock_transactions {
+			ids = append(ids, id)
+		}
+		return ids
+	case entity.EdgeStockLocationAllocations:
+		ids := make([]ent.Value, 0, len(m.removedstock_location_allocations))
+		for id := range m.removedstock_location_allocations {
+			ids = append(ids, id)
+		}
+		return ids
 	case entity.EdgeLayoutPlacements:
 		ids := make([]ent.Value, 0, len(m.removedlayout_placements))
 		for id := range m.removedlayout_placements {
@@ -5197,7 +5426,7 @@ func (m *EntityMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EntityMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 10)
+	edges := make([]string, 0, 13)
 	if m.clearedgroup {
 		edges = append(edges, entity.EdgeGroup)
 	}
@@ -5221,6 +5450,15 @@ func (m *EntityMutation) ClearedEdges() []string {
 	}
 	if m.clearedattachments {
 		edges = append(edges, entity.EdgeAttachments)
+	}
+	if m.clearedstock_allocations {
+		edges = append(edges, entity.EdgeStockAllocations)
+	}
+	if m.clearedstock_transactions {
+		edges = append(edges, entity.EdgeStockTransactions)
+	}
+	if m.clearedstock_location_allocations {
+		edges = append(edges, entity.EdgeStockLocationAllocations)
 	}
 	if m.clearedlocation_layout {
 		edges = append(edges, entity.EdgeLocationLayout)
@@ -5251,6 +5489,12 @@ func (m *EntityMutation) EdgeCleared(name string) bool {
 		return m.clearedmaintenance_entries
 	case entity.EdgeAttachments:
 		return m.clearedattachments
+	case entity.EdgeStockAllocations:
+		return m.clearedstock_allocations
+	case entity.EdgeStockTransactions:
+		return m.clearedstock_transactions
+	case entity.EdgeStockLocationAllocations:
+		return m.clearedstock_location_allocations
 	case entity.EdgeLocationLayout:
 		return m.clearedlocation_layout
 	case entity.EdgeLayoutPlacements:
@@ -5306,6 +5550,15 @@ func (m *EntityMutation) ResetEdge(name string) error {
 		return nil
 	case entity.EdgeAttachments:
 		m.ResetAttachments()
+		return nil
+	case entity.EdgeStockAllocations:
+		m.ResetStockAllocations()
+		return nil
+	case entity.EdgeStockTransactions:
+		m.ResetStockTransactions()
+		return nil
+	case entity.EdgeStockLocationAllocations:
+		m.ResetStockLocationAllocations()
 		return nil
 	case entity.EdgeLocationLayout:
 		m.ResetLocationLayout()
@@ -6243,6 +6496,2582 @@ func (m *EntityFieldMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown EntityField edge %s", name)
+}
+
+// EntityStockAllocationMutation represents an operation that mutates the EntityStockAllocation nodes in the graph.
+type EntityStockAllocationMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	created_at      *time.Time
+	updated_at      *time.Time
+	quantity        *float64
+	addquantity     *float64
+	is_default      *bool
+	clearedFields   map[string]struct{}
+	entity          *uuid.UUID
+	clearedentity   bool
+	location        *uuid.UUID
+	clearedlocation bool
+	done            bool
+	oldValue        func(context.Context) (*EntityStockAllocation, error)
+	predicates      []predicate.EntityStockAllocation
+}
+
+var _ ent.Mutation = (*EntityStockAllocationMutation)(nil)
+
+// entitystockallocationOption allows management of the mutation configuration using functional options.
+type entitystockallocationOption func(*EntityStockAllocationMutation)
+
+// newEntityStockAllocationMutation creates new mutation for the EntityStockAllocation entity.
+func newEntityStockAllocationMutation(c config, op Op, opts ...entitystockallocationOption) *EntityStockAllocationMutation {
+	m := &EntityStockAllocationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEntityStockAllocation,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEntityStockAllocationID sets the ID field of the mutation.
+func withEntityStockAllocationID(id uuid.UUID) entitystockallocationOption {
+	return func(m *EntityStockAllocationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EntityStockAllocation
+		)
+		m.oldValue = func(ctx context.Context) (*EntityStockAllocation, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EntityStockAllocation.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEntityStockAllocation sets the old EntityStockAllocation of the mutation.
+func withEntityStockAllocation(node *EntityStockAllocation) entitystockallocationOption {
+	return func(m *EntityStockAllocationMutation) {
+		m.oldValue = func(context.Context) (*EntityStockAllocation, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EntityStockAllocationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EntityStockAllocationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EntityStockAllocation entities.
+func (m *EntityStockAllocationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EntityStockAllocationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EntityStockAllocationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EntityStockAllocation.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EntityStockAllocationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EntityStockAllocationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EntityStockAllocation entity.
+// If the EntityStockAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockAllocationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EntityStockAllocationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EntityStockAllocationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EntityStockAllocationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EntityStockAllocation entity.
+// If the EntityStockAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockAllocationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EntityStockAllocationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetEntityID sets the "entity_id" field.
+func (m *EntityStockAllocationMutation) SetEntityID(u uuid.UUID) {
+	m.entity = &u
+}
+
+// EntityID returns the value of the "entity_id" field in the mutation.
+func (m *EntityStockAllocationMutation) EntityID() (r uuid.UUID, exists bool) {
+	v := m.entity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEntityID returns the old "entity_id" field's value of the EntityStockAllocation entity.
+// If the EntityStockAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockAllocationMutation) OldEntityID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEntityID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEntityID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEntityID: %w", err)
+	}
+	return oldValue.EntityID, nil
+}
+
+// ResetEntityID resets all changes to the "entity_id" field.
+func (m *EntityStockAllocationMutation) ResetEntityID() {
+	m.entity = nil
+}
+
+// SetLocationID sets the "location_id" field.
+func (m *EntityStockAllocationMutation) SetLocationID(u uuid.UUID) {
+	m.location = &u
+}
+
+// LocationID returns the value of the "location_id" field in the mutation.
+func (m *EntityStockAllocationMutation) LocationID() (r uuid.UUID, exists bool) {
+	v := m.location
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocationID returns the old "location_id" field's value of the EntityStockAllocation entity.
+// If the EntityStockAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockAllocationMutation) OldLocationID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocationID: %w", err)
+	}
+	return oldValue.LocationID, nil
+}
+
+// ClearLocationID clears the value of the "location_id" field.
+func (m *EntityStockAllocationMutation) ClearLocationID() {
+	m.location = nil
+	m.clearedFields[entitystockallocation.FieldLocationID] = struct{}{}
+}
+
+// LocationIDCleared returns if the "location_id" field was cleared in this mutation.
+func (m *EntityStockAllocationMutation) LocationIDCleared() bool {
+	_, ok := m.clearedFields[entitystockallocation.FieldLocationID]
+	return ok
+}
+
+// ResetLocationID resets all changes to the "location_id" field.
+func (m *EntityStockAllocationMutation) ResetLocationID() {
+	m.location = nil
+	delete(m.clearedFields, entitystockallocation.FieldLocationID)
+}
+
+// SetQuantity sets the "quantity" field.
+func (m *EntityStockAllocationMutation) SetQuantity(f float64) {
+	m.quantity = &f
+	m.addquantity = nil
+}
+
+// Quantity returns the value of the "quantity" field in the mutation.
+func (m *EntityStockAllocationMutation) Quantity() (r float64, exists bool) {
+	v := m.quantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantity returns the old "quantity" field's value of the EntityStockAllocation entity.
+// If the EntityStockAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockAllocationMutation) OldQuantity(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+	}
+	return oldValue.Quantity, nil
+}
+
+// AddQuantity adds f to the "quantity" field.
+func (m *EntityStockAllocationMutation) AddQuantity(f float64) {
+	if m.addquantity != nil {
+		*m.addquantity += f
+	} else {
+		m.addquantity = &f
+	}
+}
+
+// AddedQuantity returns the value that was added to the "quantity" field in this mutation.
+func (m *EntityStockAllocationMutation) AddedQuantity() (r float64, exists bool) {
+	v := m.addquantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetQuantity resets all changes to the "quantity" field.
+func (m *EntityStockAllocationMutation) ResetQuantity() {
+	m.quantity = nil
+	m.addquantity = nil
+}
+
+// SetIsDefault sets the "is_default" field.
+func (m *EntityStockAllocationMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *EntityStockAllocationMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the EntityStockAllocation entity.
+// If the EntityStockAllocation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockAllocationMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *EntityStockAllocationMutation) ResetIsDefault() {
+	m.is_default = nil
+}
+
+// ClearEntity clears the "entity" edge to the Entity entity.
+func (m *EntityStockAllocationMutation) ClearEntity() {
+	m.clearedentity = true
+	m.clearedFields[entitystockallocation.FieldEntityID] = struct{}{}
+}
+
+// EntityCleared reports if the "entity" edge to the Entity entity was cleared.
+func (m *EntityStockAllocationMutation) EntityCleared() bool {
+	return m.clearedentity
+}
+
+// EntityIDs returns the "entity" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EntityID instead. It exists only for internal usage by the builders.
+func (m *EntityStockAllocationMutation) EntityIDs() (ids []uuid.UUID) {
+	if id := m.entity; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEntity resets all changes to the "entity" edge.
+func (m *EntityStockAllocationMutation) ResetEntity() {
+	m.entity = nil
+	m.clearedentity = false
+}
+
+// ClearLocation clears the "location" edge to the Entity entity.
+func (m *EntityStockAllocationMutation) ClearLocation() {
+	m.clearedlocation = true
+	m.clearedFields[entitystockallocation.FieldLocationID] = struct{}{}
+}
+
+// LocationCleared reports if the "location" edge to the Entity entity was cleared.
+func (m *EntityStockAllocationMutation) LocationCleared() bool {
+	return m.LocationIDCleared() || m.clearedlocation
+}
+
+// LocationIDs returns the "location" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LocationID instead. It exists only for internal usage by the builders.
+func (m *EntityStockAllocationMutation) LocationIDs() (ids []uuid.UUID) {
+	if id := m.location; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLocation resets all changes to the "location" edge.
+func (m *EntityStockAllocationMutation) ResetLocation() {
+	m.location = nil
+	m.clearedlocation = false
+}
+
+// Where appends a list predicates to the EntityStockAllocationMutation builder.
+func (m *EntityStockAllocationMutation) Where(ps ...predicate.EntityStockAllocation) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EntityStockAllocationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EntityStockAllocationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EntityStockAllocation, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EntityStockAllocationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EntityStockAllocationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EntityStockAllocation).
+func (m *EntityStockAllocationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EntityStockAllocationMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, entitystockallocation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, entitystockallocation.FieldUpdatedAt)
+	}
+	if m.entity != nil {
+		fields = append(fields, entitystockallocation.FieldEntityID)
+	}
+	if m.location != nil {
+		fields = append(fields, entitystockallocation.FieldLocationID)
+	}
+	if m.quantity != nil {
+		fields = append(fields, entitystockallocation.FieldQuantity)
+	}
+	if m.is_default != nil {
+		fields = append(fields, entitystockallocation.FieldIsDefault)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EntityStockAllocationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case entitystockallocation.FieldCreatedAt:
+		return m.CreatedAt()
+	case entitystockallocation.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case entitystockallocation.FieldEntityID:
+		return m.EntityID()
+	case entitystockallocation.FieldLocationID:
+		return m.LocationID()
+	case entitystockallocation.FieldQuantity:
+		return m.Quantity()
+	case entitystockallocation.FieldIsDefault:
+		return m.IsDefault()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EntityStockAllocationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case entitystockallocation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case entitystockallocation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case entitystockallocation.FieldEntityID:
+		return m.OldEntityID(ctx)
+	case entitystockallocation.FieldLocationID:
+		return m.OldLocationID(ctx)
+	case entitystockallocation.FieldQuantity:
+		return m.OldQuantity(ctx)
+	case entitystockallocation.FieldIsDefault:
+		return m.OldIsDefault(ctx)
+	}
+	return nil, fmt.Errorf("unknown EntityStockAllocation field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EntityStockAllocationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case entitystockallocation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case entitystockallocation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case entitystockallocation.FieldEntityID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEntityID(v)
+		return nil
+	case entitystockallocation.FieldLocationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocationID(v)
+		return nil
+	case entitystockallocation.FieldQuantity:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantity(v)
+		return nil
+	case entitystockallocation.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockAllocation field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EntityStockAllocationMutation) AddedFields() []string {
+	var fields []string
+	if m.addquantity != nil {
+		fields = append(fields, entitystockallocation.FieldQuantity)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EntityStockAllocationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case entitystockallocation.FieldQuantity:
+		return m.AddedQuantity()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EntityStockAllocationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case entitystockallocation.FieldQuantity:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddQuantity(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockAllocation numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EntityStockAllocationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(entitystockallocation.FieldLocationID) {
+		fields = append(fields, entitystockallocation.FieldLocationID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EntityStockAllocationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EntityStockAllocationMutation) ClearField(name string) error {
+	switch name {
+	case entitystockallocation.FieldLocationID:
+		m.ClearLocationID()
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockAllocation nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EntityStockAllocationMutation) ResetField(name string) error {
+	switch name {
+	case entitystockallocation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case entitystockallocation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case entitystockallocation.FieldEntityID:
+		m.ResetEntityID()
+		return nil
+	case entitystockallocation.FieldLocationID:
+		m.ResetLocationID()
+		return nil
+	case entitystockallocation.FieldQuantity:
+		m.ResetQuantity()
+		return nil
+	case entitystockallocation.FieldIsDefault:
+		m.ResetIsDefault()
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockAllocation field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EntityStockAllocationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.entity != nil {
+		edges = append(edges, entitystockallocation.EdgeEntity)
+	}
+	if m.location != nil {
+		edges = append(edges, entitystockallocation.EdgeLocation)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EntityStockAllocationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case entitystockallocation.EdgeEntity:
+		if id := m.entity; id != nil {
+			return []ent.Value{*id}
+		}
+	case entitystockallocation.EdgeLocation:
+		if id := m.location; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EntityStockAllocationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EntityStockAllocationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EntityStockAllocationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedentity {
+		edges = append(edges, entitystockallocation.EdgeEntity)
+	}
+	if m.clearedlocation {
+		edges = append(edges, entitystockallocation.EdgeLocation)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EntityStockAllocationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case entitystockallocation.EdgeEntity:
+		return m.clearedentity
+	case entitystockallocation.EdgeLocation:
+		return m.clearedlocation
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EntityStockAllocationMutation) ClearEdge(name string) error {
+	switch name {
+	case entitystockallocation.EdgeEntity:
+		m.ClearEntity()
+		return nil
+	case entitystockallocation.EdgeLocation:
+		m.ClearLocation()
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockAllocation unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EntityStockAllocationMutation) ResetEdge(name string) error {
+	switch name {
+	case entitystockallocation.EdgeEntity:
+		m.ResetEntity()
+		return nil
+	case entitystockallocation.EdgeLocation:
+		m.ResetLocation()
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockAllocation edge %s", name)
+}
+
+// EntityStockTransactionMutation represents an operation that mutates the EntityStockTransaction nodes in the graph.
+type EntityStockTransactionMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *uuid.UUID
+	created_at              *time.Time
+	updated_at              *time.Time
+	actor_id                *uuid.UUID
+	operation               *entitystocktransaction.Operation
+	workflow                *string
+	source_location_id      *uuid.UUID
+	destination_location_id *uuid.UUID
+	quantity                *float64
+	addquantity             *float64
+	before_total            *float64
+	addbefore_total         *float64
+	after_total             *float64
+	addafter_total          *float64
+	source_before           *float64
+	addsource_before        *float64
+	source_after            *float64
+	addsource_after         *float64
+	destination_before      *float64
+	adddestination_before   *float64
+	destination_after       *float64
+	adddestination_after    *float64
+	reason                  *string
+	idempotency_key         *string
+	request_hash            *string
+	clearedFields           map[string]struct{}
+	group                   *uuid.UUID
+	clearedgroup            bool
+	entity                  *uuid.UUID
+	clearedentity           bool
+	done                    bool
+	oldValue                func(context.Context) (*EntityStockTransaction, error)
+	predicates              []predicate.EntityStockTransaction
+}
+
+var _ ent.Mutation = (*EntityStockTransactionMutation)(nil)
+
+// entitystocktransactionOption allows management of the mutation configuration using functional options.
+type entitystocktransactionOption func(*EntityStockTransactionMutation)
+
+// newEntityStockTransactionMutation creates new mutation for the EntityStockTransaction entity.
+func newEntityStockTransactionMutation(c config, op Op, opts ...entitystocktransactionOption) *EntityStockTransactionMutation {
+	m := &EntityStockTransactionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeEntityStockTransaction,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withEntityStockTransactionID sets the ID field of the mutation.
+func withEntityStockTransactionID(id uuid.UUID) entitystocktransactionOption {
+	return func(m *EntityStockTransactionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *EntityStockTransaction
+		)
+		m.oldValue = func(ctx context.Context) (*EntityStockTransaction, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().EntityStockTransaction.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withEntityStockTransaction sets the old EntityStockTransaction of the mutation.
+func withEntityStockTransaction(node *EntityStockTransaction) entitystocktransactionOption {
+	return func(m *EntityStockTransactionMutation) {
+		m.oldValue = func(context.Context) (*EntityStockTransaction, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m EntityStockTransactionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m EntityStockTransactionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EntityStockTransaction entities.
+func (m *EntityStockTransactionMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *EntityStockTransactionMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *EntityStockTransactionMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().EntityStockTransaction.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *EntityStockTransactionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *EntityStockTransactionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *EntityStockTransactionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *EntityStockTransactionMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *EntityStockTransactionMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *EntityStockTransactionMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetGroupID sets the "group_id" field.
+func (m *EntityStockTransactionMutation) SetGroupID(u uuid.UUID) {
+	m.group = &u
+}
+
+// GroupID returns the value of the "group_id" field in the mutation.
+func (m *EntityStockTransactionMutation) GroupID() (r uuid.UUID, exists bool) {
+	v := m.group
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupID returns the old "group_id" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldGroupID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupID: %w", err)
+	}
+	return oldValue.GroupID, nil
+}
+
+// ResetGroupID resets all changes to the "group_id" field.
+func (m *EntityStockTransactionMutation) ResetGroupID() {
+	m.group = nil
+}
+
+// SetEntityID sets the "entity_id" field.
+func (m *EntityStockTransactionMutation) SetEntityID(u uuid.UUID) {
+	m.entity = &u
+}
+
+// EntityID returns the value of the "entity_id" field in the mutation.
+func (m *EntityStockTransactionMutation) EntityID() (r uuid.UUID, exists bool) {
+	v := m.entity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEntityID returns the old "entity_id" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldEntityID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEntityID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEntityID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEntityID: %w", err)
+	}
+	return oldValue.EntityID, nil
+}
+
+// ResetEntityID resets all changes to the "entity_id" field.
+func (m *EntityStockTransactionMutation) ResetEntityID() {
+	m.entity = nil
+}
+
+// SetActorID sets the "actor_id" field.
+func (m *EntityStockTransactionMutation) SetActorID(u uuid.UUID) {
+	m.actor_id = &u
+}
+
+// ActorID returns the value of the "actor_id" field in the mutation.
+func (m *EntityStockTransactionMutation) ActorID() (r uuid.UUID, exists bool) {
+	v := m.actor_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActorID returns the old "actor_id" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldActorID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActorID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActorID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActorID: %w", err)
+	}
+	return oldValue.ActorID, nil
+}
+
+// ClearActorID clears the value of the "actor_id" field.
+func (m *EntityStockTransactionMutation) ClearActorID() {
+	m.actor_id = nil
+	m.clearedFields[entitystocktransaction.FieldActorID] = struct{}{}
+}
+
+// ActorIDCleared returns if the "actor_id" field was cleared in this mutation.
+func (m *EntityStockTransactionMutation) ActorIDCleared() bool {
+	_, ok := m.clearedFields[entitystocktransaction.FieldActorID]
+	return ok
+}
+
+// ResetActorID resets all changes to the "actor_id" field.
+func (m *EntityStockTransactionMutation) ResetActorID() {
+	m.actor_id = nil
+	delete(m.clearedFields, entitystocktransaction.FieldActorID)
+}
+
+// SetOperation sets the "operation" field.
+func (m *EntityStockTransactionMutation) SetOperation(e entitystocktransaction.Operation) {
+	m.operation = &e
+}
+
+// Operation returns the value of the "operation" field in the mutation.
+func (m *EntityStockTransactionMutation) Operation() (r entitystocktransaction.Operation, exists bool) {
+	v := m.operation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOperation returns the old "operation" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldOperation(ctx context.Context) (v entitystocktransaction.Operation, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOperation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOperation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOperation: %w", err)
+	}
+	return oldValue.Operation, nil
+}
+
+// ResetOperation resets all changes to the "operation" field.
+func (m *EntityStockTransactionMutation) ResetOperation() {
+	m.operation = nil
+}
+
+// SetWorkflow sets the "workflow" field.
+func (m *EntityStockTransactionMutation) SetWorkflow(s string) {
+	m.workflow = &s
+}
+
+// Workflow returns the value of the "workflow" field in the mutation.
+func (m *EntityStockTransactionMutation) Workflow() (r string, exists bool) {
+	v := m.workflow
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorkflow returns the old "workflow" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldWorkflow(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkflow is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkflow requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkflow: %w", err)
+	}
+	return oldValue.Workflow, nil
+}
+
+// ClearWorkflow clears the value of the "workflow" field.
+func (m *EntityStockTransactionMutation) ClearWorkflow() {
+	m.workflow = nil
+	m.clearedFields[entitystocktransaction.FieldWorkflow] = struct{}{}
+}
+
+// WorkflowCleared returns if the "workflow" field was cleared in this mutation.
+func (m *EntityStockTransactionMutation) WorkflowCleared() bool {
+	_, ok := m.clearedFields[entitystocktransaction.FieldWorkflow]
+	return ok
+}
+
+// ResetWorkflow resets all changes to the "workflow" field.
+func (m *EntityStockTransactionMutation) ResetWorkflow() {
+	m.workflow = nil
+	delete(m.clearedFields, entitystocktransaction.FieldWorkflow)
+}
+
+// SetSourceLocationID sets the "source_location_id" field.
+func (m *EntityStockTransactionMutation) SetSourceLocationID(u uuid.UUID) {
+	m.source_location_id = &u
+}
+
+// SourceLocationID returns the value of the "source_location_id" field in the mutation.
+func (m *EntityStockTransactionMutation) SourceLocationID() (r uuid.UUID, exists bool) {
+	v := m.source_location_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceLocationID returns the old "source_location_id" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldSourceLocationID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceLocationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceLocationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceLocationID: %w", err)
+	}
+	return oldValue.SourceLocationID, nil
+}
+
+// ClearSourceLocationID clears the value of the "source_location_id" field.
+func (m *EntityStockTransactionMutation) ClearSourceLocationID() {
+	m.source_location_id = nil
+	m.clearedFields[entitystocktransaction.FieldSourceLocationID] = struct{}{}
+}
+
+// SourceLocationIDCleared returns if the "source_location_id" field was cleared in this mutation.
+func (m *EntityStockTransactionMutation) SourceLocationIDCleared() bool {
+	_, ok := m.clearedFields[entitystocktransaction.FieldSourceLocationID]
+	return ok
+}
+
+// ResetSourceLocationID resets all changes to the "source_location_id" field.
+func (m *EntityStockTransactionMutation) ResetSourceLocationID() {
+	m.source_location_id = nil
+	delete(m.clearedFields, entitystocktransaction.FieldSourceLocationID)
+}
+
+// SetDestinationLocationID sets the "destination_location_id" field.
+func (m *EntityStockTransactionMutation) SetDestinationLocationID(u uuid.UUID) {
+	m.destination_location_id = &u
+}
+
+// DestinationLocationID returns the value of the "destination_location_id" field in the mutation.
+func (m *EntityStockTransactionMutation) DestinationLocationID() (r uuid.UUID, exists bool) {
+	v := m.destination_location_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDestinationLocationID returns the old "destination_location_id" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldDestinationLocationID(ctx context.Context) (v *uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDestinationLocationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDestinationLocationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDestinationLocationID: %w", err)
+	}
+	return oldValue.DestinationLocationID, nil
+}
+
+// ClearDestinationLocationID clears the value of the "destination_location_id" field.
+func (m *EntityStockTransactionMutation) ClearDestinationLocationID() {
+	m.destination_location_id = nil
+	m.clearedFields[entitystocktransaction.FieldDestinationLocationID] = struct{}{}
+}
+
+// DestinationLocationIDCleared returns if the "destination_location_id" field was cleared in this mutation.
+func (m *EntityStockTransactionMutation) DestinationLocationIDCleared() bool {
+	_, ok := m.clearedFields[entitystocktransaction.FieldDestinationLocationID]
+	return ok
+}
+
+// ResetDestinationLocationID resets all changes to the "destination_location_id" field.
+func (m *EntityStockTransactionMutation) ResetDestinationLocationID() {
+	m.destination_location_id = nil
+	delete(m.clearedFields, entitystocktransaction.FieldDestinationLocationID)
+}
+
+// SetQuantity sets the "quantity" field.
+func (m *EntityStockTransactionMutation) SetQuantity(f float64) {
+	m.quantity = &f
+	m.addquantity = nil
+}
+
+// Quantity returns the value of the "quantity" field in the mutation.
+func (m *EntityStockTransactionMutation) Quantity() (r float64, exists bool) {
+	v := m.quantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuantity returns the old "quantity" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldQuantity(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuantity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuantity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuantity: %w", err)
+	}
+	return oldValue.Quantity, nil
+}
+
+// AddQuantity adds f to the "quantity" field.
+func (m *EntityStockTransactionMutation) AddQuantity(f float64) {
+	if m.addquantity != nil {
+		*m.addquantity += f
+	} else {
+		m.addquantity = &f
+	}
+}
+
+// AddedQuantity returns the value that was added to the "quantity" field in this mutation.
+func (m *EntityStockTransactionMutation) AddedQuantity() (r float64, exists bool) {
+	v := m.addquantity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetQuantity resets all changes to the "quantity" field.
+func (m *EntityStockTransactionMutation) ResetQuantity() {
+	m.quantity = nil
+	m.addquantity = nil
+}
+
+// SetBeforeTotal sets the "before_total" field.
+func (m *EntityStockTransactionMutation) SetBeforeTotal(f float64) {
+	m.before_total = &f
+	m.addbefore_total = nil
+}
+
+// BeforeTotal returns the value of the "before_total" field in the mutation.
+func (m *EntityStockTransactionMutation) BeforeTotal() (r float64, exists bool) {
+	v := m.before_total
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBeforeTotal returns the old "before_total" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldBeforeTotal(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBeforeTotal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBeforeTotal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBeforeTotal: %w", err)
+	}
+	return oldValue.BeforeTotal, nil
+}
+
+// AddBeforeTotal adds f to the "before_total" field.
+func (m *EntityStockTransactionMutation) AddBeforeTotal(f float64) {
+	if m.addbefore_total != nil {
+		*m.addbefore_total += f
+	} else {
+		m.addbefore_total = &f
+	}
+}
+
+// AddedBeforeTotal returns the value that was added to the "before_total" field in this mutation.
+func (m *EntityStockTransactionMutation) AddedBeforeTotal() (r float64, exists bool) {
+	v := m.addbefore_total
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBeforeTotal resets all changes to the "before_total" field.
+func (m *EntityStockTransactionMutation) ResetBeforeTotal() {
+	m.before_total = nil
+	m.addbefore_total = nil
+}
+
+// SetAfterTotal sets the "after_total" field.
+func (m *EntityStockTransactionMutation) SetAfterTotal(f float64) {
+	m.after_total = &f
+	m.addafter_total = nil
+}
+
+// AfterTotal returns the value of the "after_total" field in the mutation.
+func (m *EntityStockTransactionMutation) AfterTotal() (r float64, exists bool) {
+	v := m.after_total
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAfterTotal returns the old "after_total" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldAfterTotal(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAfterTotal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAfterTotal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAfterTotal: %w", err)
+	}
+	return oldValue.AfterTotal, nil
+}
+
+// AddAfterTotal adds f to the "after_total" field.
+func (m *EntityStockTransactionMutation) AddAfterTotal(f float64) {
+	if m.addafter_total != nil {
+		*m.addafter_total += f
+	} else {
+		m.addafter_total = &f
+	}
+}
+
+// AddedAfterTotal returns the value that was added to the "after_total" field in this mutation.
+func (m *EntityStockTransactionMutation) AddedAfterTotal() (r float64, exists bool) {
+	v := m.addafter_total
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAfterTotal resets all changes to the "after_total" field.
+func (m *EntityStockTransactionMutation) ResetAfterTotal() {
+	m.after_total = nil
+	m.addafter_total = nil
+}
+
+// SetSourceBefore sets the "source_before" field.
+func (m *EntityStockTransactionMutation) SetSourceBefore(f float64) {
+	m.source_before = &f
+	m.addsource_before = nil
+}
+
+// SourceBefore returns the value of the "source_before" field in the mutation.
+func (m *EntityStockTransactionMutation) SourceBefore() (r float64, exists bool) {
+	v := m.source_before
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceBefore returns the old "source_before" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldSourceBefore(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceBefore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceBefore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceBefore: %w", err)
+	}
+	return oldValue.SourceBefore, nil
+}
+
+// AddSourceBefore adds f to the "source_before" field.
+func (m *EntityStockTransactionMutation) AddSourceBefore(f float64) {
+	if m.addsource_before != nil {
+		*m.addsource_before += f
+	} else {
+		m.addsource_before = &f
+	}
+}
+
+// AddedSourceBefore returns the value that was added to the "source_before" field in this mutation.
+func (m *EntityStockTransactionMutation) AddedSourceBefore() (r float64, exists bool) {
+	v := m.addsource_before
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearSourceBefore clears the value of the "source_before" field.
+func (m *EntityStockTransactionMutation) ClearSourceBefore() {
+	m.source_before = nil
+	m.addsource_before = nil
+	m.clearedFields[entitystocktransaction.FieldSourceBefore] = struct{}{}
+}
+
+// SourceBeforeCleared returns if the "source_before" field was cleared in this mutation.
+func (m *EntityStockTransactionMutation) SourceBeforeCleared() bool {
+	_, ok := m.clearedFields[entitystocktransaction.FieldSourceBefore]
+	return ok
+}
+
+// ResetSourceBefore resets all changes to the "source_before" field.
+func (m *EntityStockTransactionMutation) ResetSourceBefore() {
+	m.source_before = nil
+	m.addsource_before = nil
+	delete(m.clearedFields, entitystocktransaction.FieldSourceBefore)
+}
+
+// SetSourceAfter sets the "source_after" field.
+func (m *EntityStockTransactionMutation) SetSourceAfter(f float64) {
+	m.source_after = &f
+	m.addsource_after = nil
+}
+
+// SourceAfter returns the value of the "source_after" field in the mutation.
+func (m *EntityStockTransactionMutation) SourceAfter() (r float64, exists bool) {
+	v := m.source_after
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceAfter returns the old "source_after" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldSourceAfter(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceAfter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceAfter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceAfter: %w", err)
+	}
+	return oldValue.SourceAfter, nil
+}
+
+// AddSourceAfter adds f to the "source_after" field.
+func (m *EntityStockTransactionMutation) AddSourceAfter(f float64) {
+	if m.addsource_after != nil {
+		*m.addsource_after += f
+	} else {
+		m.addsource_after = &f
+	}
+}
+
+// AddedSourceAfter returns the value that was added to the "source_after" field in this mutation.
+func (m *EntityStockTransactionMutation) AddedSourceAfter() (r float64, exists bool) {
+	v := m.addsource_after
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearSourceAfter clears the value of the "source_after" field.
+func (m *EntityStockTransactionMutation) ClearSourceAfter() {
+	m.source_after = nil
+	m.addsource_after = nil
+	m.clearedFields[entitystocktransaction.FieldSourceAfter] = struct{}{}
+}
+
+// SourceAfterCleared returns if the "source_after" field was cleared in this mutation.
+func (m *EntityStockTransactionMutation) SourceAfterCleared() bool {
+	_, ok := m.clearedFields[entitystocktransaction.FieldSourceAfter]
+	return ok
+}
+
+// ResetSourceAfter resets all changes to the "source_after" field.
+func (m *EntityStockTransactionMutation) ResetSourceAfter() {
+	m.source_after = nil
+	m.addsource_after = nil
+	delete(m.clearedFields, entitystocktransaction.FieldSourceAfter)
+}
+
+// SetDestinationBefore sets the "destination_before" field.
+func (m *EntityStockTransactionMutation) SetDestinationBefore(f float64) {
+	m.destination_before = &f
+	m.adddestination_before = nil
+}
+
+// DestinationBefore returns the value of the "destination_before" field in the mutation.
+func (m *EntityStockTransactionMutation) DestinationBefore() (r float64, exists bool) {
+	v := m.destination_before
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDestinationBefore returns the old "destination_before" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldDestinationBefore(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDestinationBefore is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDestinationBefore requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDestinationBefore: %w", err)
+	}
+	return oldValue.DestinationBefore, nil
+}
+
+// AddDestinationBefore adds f to the "destination_before" field.
+func (m *EntityStockTransactionMutation) AddDestinationBefore(f float64) {
+	if m.adddestination_before != nil {
+		*m.adddestination_before += f
+	} else {
+		m.adddestination_before = &f
+	}
+}
+
+// AddedDestinationBefore returns the value that was added to the "destination_before" field in this mutation.
+func (m *EntityStockTransactionMutation) AddedDestinationBefore() (r float64, exists bool) {
+	v := m.adddestination_before
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDestinationBefore clears the value of the "destination_before" field.
+func (m *EntityStockTransactionMutation) ClearDestinationBefore() {
+	m.destination_before = nil
+	m.adddestination_before = nil
+	m.clearedFields[entitystocktransaction.FieldDestinationBefore] = struct{}{}
+}
+
+// DestinationBeforeCleared returns if the "destination_before" field was cleared in this mutation.
+func (m *EntityStockTransactionMutation) DestinationBeforeCleared() bool {
+	_, ok := m.clearedFields[entitystocktransaction.FieldDestinationBefore]
+	return ok
+}
+
+// ResetDestinationBefore resets all changes to the "destination_before" field.
+func (m *EntityStockTransactionMutation) ResetDestinationBefore() {
+	m.destination_before = nil
+	m.adddestination_before = nil
+	delete(m.clearedFields, entitystocktransaction.FieldDestinationBefore)
+}
+
+// SetDestinationAfter sets the "destination_after" field.
+func (m *EntityStockTransactionMutation) SetDestinationAfter(f float64) {
+	m.destination_after = &f
+	m.adddestination_after = nil
+}
+
+// DestinationAfter returns the value of the "destination_after" field in the mutation.
+func (m *EntityStockTransactionMutation) DestinationAfter() (r float64, exists bool) {
+	v := m.destination_after
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDestinationAfter returns the old "destination_after" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldDestinationAfter(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDestinationAfter is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDestinationAfter requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDestinationAfter: %w", err)
+	}
+	return oldValue.DestinationAfter, nil
+}
+
+// AddDestinationAfter adds f to the "destination_after" field.
+func (m *EntityStockTransactionMutation) AddDestinationAfter(f float64) {
+	if m.adddestination_after != nil {
+		*m.adddestination_after += f
+	} else {
+		m.adddestination_after = &f
+	}
+}
+
+// AddedDestinationAfter returns the value that was added to the "destination_after" field in this mutation.
+func (m *EntityStockTransactionMutation) AddedDestinationAfter() (r float64, exists bool) {
+	v := m.adddestination_after
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDestinationAfter clears the value of the "destination_after" field.
+func (m *EntityStockTransactionMutation) ClearDestinationAfter() {
+	m.destination_after = nil
+	m.adddestination_after = nil
+	m.clearedFields[entitystocktransaction.FieldDestinationAfter] = struct{}{}
+}
+
+// DestinationAfterCleared returns if the "destination_after" field was cleared in this mutation.
+func (m *EntityStockTransactionMutation) DestinationAfterCleared() bool {
+	_, ok := m.clearedFields[entitystocktransaction.FieldDestinationAfter]
+	return ok
+}
+
+// ResetDestinationAfter resets all changes to the "destination_after" field.
+func (m *EntityStockTransactionMutation) ResetDestinationAfter() {
+	m.destination_after = nil
+	m.adddestination_after = nil
+	delete(m.clearedFields, entitystocktransaction.FieldDestinationAfter)
+}
+
+// SetReason sets the "reason" field.
+func (m *EntityStockTransactionMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *EntityStockTransactionMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ClearReason clears the value of the "reason" field.
+func (m *EntityStockTransactionMutation) ClearReason() {
+	m.reason = nil
+	m.clearedFields[entitystocktransaction.FieldReason] = struct{}{}
+}
+
+// ReasonCleared returns if the "reason" field was cleared in this mutation.
+func (m *EntityStockTransactionMutation) ReasonCleared() bool {
+	_, ok := m.clearedFields[entitystocktransaction.FieldReason]
+	return ok
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *EntityStockTransactionMutation) ResetReason() {
+	m.reason = nil
+	delete(m.clearedFields, entitystocktransaction.FieldReason)
+}
+
+// SetIdempotencyKey sets the "idempotency_key" field.
+func (m *EntityStockTransactionMutation) SetIdempotencyKey(s string) {
+	m.idempotency_key = &s
+}
+
+// IdempotencyKey returns the value of the "idempotency_key" field in the mutation.
+func (m *EntityStockTransactionMutation) IdempotencyKey() (r string, exists bool) {
+	v := m.idempotency_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIdempotencyKey returns the old "idempotency_key" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldIdempotencyKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIdempotencyKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIdempotencyKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIdempotencyKey: %w", err)
+	}
+	return oldValue.IdempotencyKey, nil
+}
+
+// ResetIdempotencyKey resets all changes to the "idempotency_key" field.
+func (m *EntityStockTransactionMutation) ResetIdempotencyKey() {
+	m.idempotency_key = nil
+}
+
+// SetRequestHash sets the "request_hash" field.
+func (m *EntityStockTransactionMutation) SetRequestHash(s string) {
+	m.request_hash = &s
+}
+
+// RequestHash returns the value of the "request_hash" field in the mutation.
+func (m *EntityStockTransactionMutation) RequestHash() (r string, exists bool) {
+	v := m.request_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestHash returns the old "request_hash" field's value of the EntityStockTransaction entity.
+// If the EntityStockTransaction object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *EntityStockTransactionMutation) OldRequestHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestHash: %w", err)
+	}
+	return oldValue.RequestHash, nil
+}
+
+// ResetRequestHash resets all changes to the "request_hash" field.
+func (m *EntityStockTransactionMutation) ResetRequestHash() {
+	m.request_hash = nil
+}
+
+// ClearGroup clears the "group" edge to the Group entity.
+func (m *EntityStockTransactionMutation) ClearGroup() {
+	m.clearedgroup = true
+	m.clearedFields[entitystocktransaction.FieldGroupID] = struct{}{}
+}
+
+// GroupCleared reports if the "group" edge to the Group entity was cleared.
+func (m *EntityStockTransactionMutation) GroupCleared() bool {
+	return m.clearedgroup
+}
+
+// GroupIDs returns the "group" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GroupID instead. It exists only for internal usage by the builders.
+func (m *EntityStockTransactionMutation) GroupIDs() (ids []uuid.UUID) {
+	if id := m.group; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGroup resets all changes to the "group" edge.
+func (m *EntityStockTransactionMutation) ResetGroup() {
+	m.group = nil
+	m.clearedgroup = false
+}
+
+// ClearEntity clears the "entity" edge to the Entity entity.
+func (m *EntityStockTransactionMutation) ClearEntity() {
+	m.clearedentity = true
+	m.clearedFields[entitystocktransaction.FieldEntityID] = struct{}{}
+}
+
+// EntityCleared reports if the "entity" edge to the Entity entity was cleared.
+func (m *EntityStockTransactionMutation) EntityCleared() bool {
+	return m.clearedentity
+}
+
+// EntityIDs returns the "entity" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EntityID instead. It exists only for internal usage by the builders.
+func (m *EntityStockTransactionMutation) EntityIDs() (ids []uuid.UUID) {
+	if id := m.entity; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEntity resets all changes to the "entity" edge.
+func (m *EntityStockTransactionMutation) ResetEntity() {
+	m.entity = nil
+	m.clearedentity = false
+}
+
+// Where appends a list predicates to the EntityStockTransactionMutation builder.
+func (m *EntityStockTransactionMutation) Where(ps ...predicate.EntityStockTransaction) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the EntityStockTransactionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *EntityStockTransactionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.EntityStockTransaction, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *EntityStockTransactionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *EntityStockTransactionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (EntityStockTransaction).
+func (m *EntityStockTransactionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *EntityStockTransactionMutation) Fields() []string {
+	fields := make([]string, 0, 19)
+	if m.created_at != nil {
+		fields = append(fields, entitystocktransaction.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, entitystocktransaction.FieldUpdatedAt)
+	}
+	if m.group != nil {
+		fields = append(fields, entitystocktransaction.FieldGroupID)
+	}
+	if m.entity != nil {
+		fields = append(fields, entitystocktransaction.FieldEntityID)
+	}
+	if m.actor_id != nil {
+		fields = append(fields, entitystocktransaction.FieldActorID)
+	}
+	if m.operation != nil {
+		fields = append(fields, entitystocktransaction.FieldOperation)
+	}
+	if m.workflow != nil {
+		fields = append(fields, entitystocktransaction.FieldWorkflow)
+	}
+	if m.source_location_id != nil {
+		fields = append(fields, entitystocktransaction.FieldSourceLocationID)
+	}
+	if m.destination_location_id != nil {
+		fields = append(fields, entitystocktransaction.FieldDestinationLocationID)
+	}
+	if m.quantity != nil {
+		fields = append(fields, entitystocktransaction.FieldQuantity)
+	}
+	if m.before_total != nil {
+		fields = append(fields, entitystocktransaction.FieldBeforeTotal)
+	}
+	if m.after_total != nil {
+		fields = append(fields, entitystocktransaction.FieldAfterTotal)
+	}
+	if m.source_before != nil {
+		fields = append(fields, entitystocktransaction.FieldSourceBefore)
+	}
+	if m.source_after != nil {
+		fields = append(fields, entitystocktransaction.FieldSourceAfter)
+	}
+	if m.destination_before != nil {
+		fields = append(fields, entitystocktransaction.FieldDestinationBefore)
+	}
+	if m.destination_after != nil {
+		fields = append(fields, entitystocktransaction.FieldDestinationAfter)
+	}
+	if m.reason != nil {
+		fields = append(fields, entitystocktransaction.FieldReason)
+	}
+	if m.idempotency_key != nil {
+		fields = append(fields, entitystocktransaction.FieldIdempotencyKey)
+	}
+	if m.request_hash != nil {
+		fields = append(fields, entitystocktransaction.FieldRequestHash)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *EntityStockTransactionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case entitystocktransaction.FieldCreatedAt:
+		return m.CreatedAt()
+	case entitystocktransaction.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case entitystocktransaction.FieldGroupID:
+		return m.GroupID()
+	case entitystocktransaction.FieldEntityID:
+		return m.EntityID()
+	case entitystocktransaction.FieldActorID:
+		return m.ActorID()
+	case entitystocktransaction.FieldOperation:
+		return m.Operation()
+	case entitystocktransaction.FieldWorkflow:
+		return m.Workflow()
+	case entitystocktransaction.FieldSourceLocationID:
+		return m.SourceLocationID()
+	case entitystocktransaction.FieldDestinationLocationID:
+		return m.DestinationLocationID()
+	case entitystocktransaction.FieldQuantity:
+		return m.Quantity()
+	case entitystocktransaction.FieldBeforeTotal:
+		return m.BeforeTotal()
+	case entitystocktransaction.FieldAfterTotal:
+		return m.AfterTotal()
+	case entitystocktransaction.FieldSourceBefore:
+		return m.SourceBefore()
+	case entitystocktransaction.FieldSourceAfter:
+		return m.SourceAfter()
+	case entitystocktransaction.FieldDestinationBefore:
+		return m.DestinationBefore()
+	case entitystocktransaction.FieldDestinationAfter:
+		return m.DestinationAfter()
+	case entitystocktransaction.FieldReason:
+		return m.Reason()
+	case entitystocktransaction.FieldIdempotencyKey:
+		return m.IdempotencyKey()
+	case entitystocktransaction.FieldRequestHash:
+		return m.RequestHash()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *EntityStockTransactionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case entitystocktransaction.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case entitystocktransaction.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case entitystocktransaction.FieldGroupID:
+		return m.OldGroupID(ctx)
+	case entitystocktransaction.FieldEntityID:
+		return m.OldEntityID(ctx)
+	case entitystocktransaction.FieldActorID:
+		return m.OldActorID(ctx)
+	case entitystocktransaction.FieldOperation:
+		return m.OldOperation(ctx)
+	case entitystocktransaction.FieldWorkflow:
+		return m.OldWorkflow(ctx)
+	case entitystocktransaction.FieldSourceLocationID:
+		return m.OldSourceLocationID(ctx)
+	case entitystocktransaction.FieldDestinationLocationID:
+		return m.OldDestinationLocationID(ctx)
+	case entitystocktransaction.FieldQuantity:
+		return m.OldQuantity(ctx)
+	case entitystocktransaction.FieldBeforeTotal:
+		return m.OldBeforeTotal(ctx)
+	case entitystocktransaction.FieldAfterTotal:
+		return m.OldAfterTotal(ctx)
+	case entitystocktransaction.FieldSourceBefore:
+		return m.OldSourceBefore(ctx)
+	case entitystocktransaction.FieldSourceAfter:
+		return m.OldSourceAfter(ctx)
+	case entitystocktransaction.FieldDestinationBefore:
+		return m.OldDestinationBefore(ctx)
+	case entitystocktransaction.FieldDestinationAfter:
+		return m.OldDestinationAfter(ctx)
+	case entitystocktransaction.FieldReason:
+		return m.OldReason(ctx)
+	case entitystocktransaction.FieldIdempotencyKey:
+		return m.OldIdempotencyKey(ctx)
+	case entitystocktransaction.FieldRequestHash:
+		return m.OldRequestHash(ctx)
+	}
+	return nil, fmt.Errorf("unknown EntityStockTransaction field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EntityStockTransactionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case entitystocktransaction.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case entitystocktransaction.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case entitystocktransaction.FieldGroupID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupID(v)
+		return nil
+	case entitystocktransaction.FieldEntityID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEntityID(v)
+		return nil
+	case entitystocktransaction.FieldActorID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActorID(v)
+		return nil
+	case entitystocktransaction.FieldOperation:
+		v, ok := value.(entitystocktransaction.Operation)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOperation(v)
+		return nil
+	case entitystocktransaction.FieldWorkflow:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkflow(v)
+		return nil
+	case entitystocktransaction.FieldSourceLocationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceLocationID(v)
+		return nil
+	case entitystocktransaction.FieldDestinationLocationID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDestinationLocationID(v)
+		return nil
+	case entitystocktransaction.FieldQuantity:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuantity(v)
+		return nil
+	case entitystocktransaction.FieldBeforeTotal:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBeforeTotal(v)
+		return nil
+	case entitystocktransaction.FieldAfterTotal:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAfterTotal(v)
+		return nil
+	case entitystocktransaction.FieldSourceBefore:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceBefore(v)
+		return nil
+	case entitystocktransaction.FieldSourceAfter:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceAfter(v)
+		return nil
+	case entitystocktransaction.FieldDestinationBefore:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDestinationBefore(v)
+		return nil
+	case entitystocktransaction.FieldDestinationAfter:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDestinationAfter(v)
+		return nil
+	case entitystocktransaction.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case entitystocktransaction.FieldIdempotencyKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIdempotencyKey(v)
+		return nil
+	case entitystocktransaction.FieldRequestHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestHash(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockTransaction field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *EntityStockTransactionMutation) AddedFields() []string {
+	var fields []string
+	if m.addquantity != nil {
+		fields = append(fields, entitystocktransaction.FieldQuantity)
+	}
+	if m.addbefore_total != nil {
+		fields = append(fields, entitystocktransaction.FieldBeforeTotal)
+	}
+	if m.addafter_total != nil {
+		fields = append(fields, entitystocktransaction.FieldAfterTotal)
+	}
+	if m.addsource_before != nil {
+		fields = append(fields, entitystocktransaction.FieldSourceBefore)
+	}
+	if m.addsource_after != nil {
+		fields = append(fields, entitystocktransaction.FieldSourceAfter)
+	}
+	if m.adddestination_before != nil {
+		fields = append(fields, entitystocktransaction.FieldDestinationBefore)
+	}
+	if m.adddestination_after != nil {
+		fields = append(fields, entitystocktransaction.FieldDestinationAfter)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *EntityStockTransactionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case entitystocktransaction.FieldQuantity:
+		return m.AddedQuantity()
+	case entitystocktransaction.FieldBeforeTotal:
+		return m.AddedBeforeTotal()
+	case entitystocktransaction.FieldAfterTotal:
+		return m.AddedAfterTotal()
+	case entitystocktransaction.FieldSourceBefore:
+		return m.AddedSourceBefore()
+	case entitystocktransaction.FieldSourceAfter:
+		return m.AddedSourceAfter()
+	case entitystocktransaction.FieldDestinationBefore:
+		return m.AddedDestinationBefore()
+	case entitystocktransaction.FieldDestinationAfter:
+		return m.AddedDestinationAfter()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *EntityStockTransactionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case entitystocktransaction.FieldQuantity:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddQuantity(v)
+		return nil
+	case entitystocktransaction.FieldBeforeTotal:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBeforeTotal(v)
+		return nil
+	case entitystocktransaction.FieldAfterTotal:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAfterTotal(v)
+		return nil
+	case entitystocktransaction.FieldSourceBefore:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSourceBefore(v)
+		return nil
+	case entitystocktransaction.FieldSourceAfter:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSourceAfter(v)
+		return nil
+	case entitystocktransaction.FieldDestinationBefore:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDestinationBefore(v)
+		return nil
+	case entitystocktransaction.FieldDestinationAfter:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDestinationAfter(v)
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockTransaction numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *EntityStockTransactionMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(entitystocktransaction.FieldActorID) {
+		fields = append(fields, entitystocktransaction.FieldActorID)
+	}
+	if m.FieldCleared(entitystocktransaction.FieldWorkflow) {
+		fields = append(fields, entitystocktransaction.FieldWorkflow)
+	}
+	if m.FieldCleared(entitystocktransaction.FieldSourceLocationID) {
+		fields = append(fields, entitystocktransaction.FieldSourceLocationID)
+	}
+	if m.FieldCleared(entitystocktransaction.FieldDestinationLocationID) {
+		fields = append(fields, entitystocktransaction.FieldDestinationLocationID)
+	}
+	if m.FieldCleared(entitystocktransaction.FieldSourceBefore) {
+		fields = append(fields, entitystocktransaction.FieldSourceBefore)
+	}
+	if m.FieldCleared(entitystocktransaction.FieldSourceAfter) {
+		fields = append(fields, entitystocktransaction.FieldSourceAfter)
+	}
+	if m.FieldCleared(entitystocktransaction.FieldDestinationBefore) {
+		fields = append(fields, entitystocktransaction.FieldDestinationBefore)
+	}
+	if m.FieldCleared(entitystocktransaction.FieldDestinationAfter) {
+		fields = append(fields, entitystocktransaction.FieldDestinationAfter)
+	}
+	if m.FieldCleared(entitystocktransaction.FieldReason) {
+		fields = append(fields, entitystocktransaction.FieldReason)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *EntityStockTransactionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *EntityStockTransactionMutation) ClearField(name string) error {
+	switch name {
+	case entitystocktransaction.FieldActorID:
+		m.ClearActorID()
+		return nil
+	case entitystocktransaction.FieldWorkflow:
+		m.ClearWorkflow()
+		return nil
+	case entitystocktransaction.FieldSourceLocationID:
+		m.ClearSourceLocationID()
+		return nil
+	case entitystocktransaction.FieldDestinationLocationID:
+		m.ClearDestinationLocationID()
+		return nil
+	case entitystocktransaction.FieldSourceBefore:
+		m.ClearSourceBefore()
+		return nil
+	case entitystocktransaction.FieldSourceAfter:
+		m.ClearSourceAfter()
+		return nil
+	case entitystocktransaction.FieldDestinationBefore:
+		m.ClearDestinationBefore()
+		return nil
+	case entitystocktransaction.FieldDestinationAfter:
+		m.ClearDestinationAfter()
+		return nil
+	case entitystocktransaction.FieldReason:
+		m.ClearReason()
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockTransaction nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *EntityStockTransactionMutation) ResetField(name string) error {
+	switch name {
+	case entitystocktransaction.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case entitystocktransaction.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case entitystocktransaction.FieldGroupID:
+		m.ResetGroupID()
+		return nil
+	case entitystocktransaction.FieldEntityID:
+		m.ResetEntityID()
+		return nil
+	case entitystocktransaction.FieldActorID:
+		m.ResetActorID()
+		return nil
+	case entitystocktransaction.FieldOperation:
+		m.ResetOperation()
+		return nil
+	case entitystocktransaction.FieldWorkflow:
+		m.ResetWorkflow()
+		return nil
+	case entitystocktransaction.FieldSourceLocationID:
+		m.ResetSourceLocationID()
+		return nil
+	case entitystocktransaction.FieldDestinationLocationID:
+		m.ResetDestinationLocationID()
+		return nil
+	case entitystocktransaction.FieldQuantity:
+		m.ResetQuantity()
+		return nil
+	case entitystocktransaction.FieldBeforeTotal:
+		m.ResetBeforeTotal()
+		return nil
+	case entitystocktransaction.FieldAfterTotal:
+		m.ResetAfterTotal()
+		return nil
+	case entitystocktransaction.FieldSourceBefore:
+		m.ResetSourceBefore()
+		return nil
+	case entitystocktransaction.FieldSourceAfter:
+		m.ResetSourceAfter()
+		return nil
+	case entitystocktransaction.FieldDestinationBefore:
+		m.ResetDestinationBefore()
+		return nil
+	case entitystocktransaction.FieldDestinationAfter:
+		m.ResetDestinationAfter()
+		return nil
+	case entitystocktransaction.FieldReason:
+		m.ResetReason()
+		return nil
+	case entitystocktransaction.FieldIdempotencyKey:
+		m.ResetIdempotencyKey()
+		return nil
+	case entitystocktransaction.FieldRequestHash:
+		m.ResetRequestHash()
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockTransaction field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *EntityStockTransactionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.group != nil {
+		edges = append(edges, entitystocktransaction.EdgeGroup)
+	}
+	if m.entity != nil {
+		edges = append(edges, entitystocktransaction.EdgeEntity)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *EntityStockTransactionMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case entitystocktransaction.EdgeGroup:
+		if id := m.group; id != nil {
+			return []ent.Value{*id}
+		}
+	case entitystocktransaction.EdgeEntity:
+		if id := m.entity; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *EntityStockTransactionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *EntityStockTransactionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *EntityStockTransactionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedgroup {
+		edges = append(edges, entitystocktransaction.EdgeGroup)
+	}
+	if m.clearedentity {
+		edges = append(edges, entitystocktransaction.EdgeEntity)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *EntityStockTransactionMutation) EdgeCleared(name string) bool {
+	switch name {
+	case entitystocktransaction.EdgeGroup:
+		return m.clearedgroup
+	case entitystocktransaction.EdgeEntity:
+		return m.clearedentity
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *EntityStockTransactionMutation) ClearEdge(name string) error {
+	switch name {
+	case entitystocktransaction.EdgeGroup:
+		m.ClearGroup()
+		return nil
+	case entitystocktransaction.EdgeEntity:
+		m.ClearEntity()
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockTransaction unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *EntityStockTransactionMutation) ResetEdge(name string) error {
+	switch name {
+	case entitystocktransaction.EdgeGroup:
+		m.ResetGroup()
+		return nil
+	case entitystocktransaction.EdgeEntity:
+		m.ResetEntity()
+		return nil
+	}
+	return fmt.Errorf("unknown EntityStockTransaction edge %s", name)
 }
 
 // EntityTemplateMutation represents an operation that mutates the EntityTemplate nodes in the graph.
@@ -9645,41 +12474,44 @@ func (m *ExportMutation) ResetEdge(name string) error {
 // GroupMutation represents an operation that mutates the Group nodes in the graph.
 type GroupMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *uuid.UUID
-	created_at               *time.Time
-	updated_at               *time.Time
-	name                     *string
-	currency                 *string
-	clearedFields            map[string]struct{}
-	users                    map[uuid.UUID]struct{}
-	removedusers             map[uuid.UUID]struct{}
-	clearedusers             bool
-	entity_types             map[uuid.UUID]struct{}
-	removedentity_types      map[uuid.UUID]struct{}
-	clearedentity_types      bool
-	entities                 map[uuid.UUID]struct{}
-	removedentities          map[uuid.UUID]struct{}
-	clearedentities          bool
-	tags                     map[uuid.UUID]struct{}
-	removedtags              map[uuid.UUID]struct{}
-	clearedtags              bool
-	invitation_tokens        map[uuid.UUID]struct{}
-	removedinvitation_tokens map[uuid.UUID]struct{}
-	clearedinvitation_tokens bool
-	notifiers                map[uuid.UUID]struct{}
-	removednotifiers         map[uuid.UUID]struct{}
-	clearednotifiers         bool
-	entity_templates         map[uuid.UUID]struct{}
-	removedentity_templates  map[uuid.UUID]struct{}
-	clearedentity_templates  bool
-	exports                  map[uuid.UUID]struct{}
-	removedexports           map[uuid.UUID]struct{}
-	clearedexports           bool
-	done                     bool
-	oldValue                 func(context.Context) (*Group, error)
-	predicates               []predicate.Group
+	op                        Op
+	typ                       string
+	id                        *uuid.UUID
+	created_at                *time.Time
+	updated_at                *time.Time
+	name                      *string
+	currency                  *string
+	clearedFields             map[string]struct{}
+	users                     map[uuid.UUID]struct{}
+	removedusers              map[uuid.UUID]struct{}
+	clearedusers              bool
+	entity_types              map[uuid.UUID]struct{}
+	removedentity_types       map[uuid.UUID]struct{}
+	clearedentity_types       bool
+	entities                  map[uuid.UUID]struct{}
+	removedentities           map[uuid.UUID]struct{}
+	clearedentities           bool
+	tags                      map[uuid.UUID]struct{}
+	removedtags               map[uuid.UUID]struct{}
+	clearedtags               bool
+	invitation_tokens         map[uuid.UUID]struct{}
+	removedinvitation_tokens  map[uuid.UUID]struct{}
+	clearedinvitation_tokens  bool
+	notifiers                 map[uuid.UUID]struct{}
+	removednotifiers          map[uuid.UUID]struct{}
+	clearednotifiers          bool
+	entity_templates          map[uuid.UUID]struct{}
+	removedentity_templates   map[uuid.UUID]struct{}
+	clearedentity_templates   bool
+	exports                   map[uuid.UUID]struct{}
+	removedexports            map[uuid.UUID]struct{}
+	clearedexports            bool
+	stock_transactions        map[uuid.UUID]struct{}
+	removedstock_transactions map[uuid.UUID]struct{}
+	clearedstock_transactions bool
+	done                      bool
+	oldValue                  func(context.Context) (*Group, error)
+	predicates                []predicate.Group
 }
 
 var _ ent.Mutation = (*GroupMutation)(nil)
@@ -10362,6 +13194,60 @@ func (m *GroupMutation) ResetExports() {
 	m.removedexports = nil
 }
 
+// AddStockTransactionIDs adds the "stock_transactions" edge to the EntityStockTransaction entity by ids.
+func (m *GroupMutation) AddStockTransactionIDs(ids ...uuid.UUID) {
+	if m.stock_transactions == nil {
+		m.stock_transactions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.stock_transactions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearStockTransactions clears the "stock_transactions" edge to the EntityStockTransaction entity.
+func (m *GroupMutation) ClearStockTransactions() {
+	m.clearedstock_transactions = true
+}
+
+// StockTransactionsCleared reports if the "stock_transactions" edge to the EntityStockTransaction entity was cleared.
+func (m *GroupMutation) StockTransactionsCleared() bool {
+	return m.clearedstock_transactions
+}
+
+// RemoveStockTransactionIDs removes the "stock_transactions" edge to the EntityStockTransaction entity by IDs.
+func (m *GroupMutation) RemoveStockTransactionIDs(ids ...uuid.UUID) {
+	if m.removedstock_transactions == nil {
+		m.removedstock_transactions = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.stock_transactions, ids[i])
+		m.removedstock_transactions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedStockTransactions returns the removed IDs of the "stock_transactions" edge to the EntityStockTransaction entity.
+func (m *GroupMutation) RemovedStockTransactionsIDs() (ids []uuid.UUID) {
+	for id := range m.removedstock_transactions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// StockTransactionsIDs returns the "stock_transactions" edge IDs in the mutation.
+func (m *GroupMutation) StockTransactionsIDs() (ids []uuid.UUID) {
+	for id := range m.stock_transactions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetStockTransactions resets all changes to the "stock_transactions" edge.
+func (m *GroupMutation) ResetStockTransactions() {
+	m.stock_transactions = nil
+	m.clearedstock_transactions = false
+	m.removedstock_transactions = nil
+}
+
 // Where appends a list predicates to the GroupMutation builder.
 func (m *GroupMutation) Where(ps ...predicate.Group) {
 	m.predicates = append(m.predicates, ps...)
@@ -10546,7 +13432,7 @@ func (m *GroupMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GroupMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.users != nil {
 		edges = append(edges, group.EdgeUsers)
 	}
@@ -10570,6 +13456,9 @@ func (m *GroupMutation) AddedEdges() []string {
 	}
 	if m.exports != nil {
 		edges = append(edges, group.EdgeExports)
+	}
+	if m.stock_transactions != nil {
+		edges = append(edges, group.EdgeStockTransactions)
 	}
 	return edges
 }
@@ -10626,13 +13515,19 @@ func (m *GroupMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case group.EdgeStockTransactions:
+		ids := make([]ent.Value, 0, len(m.stock_transactions))
+		for id := range m.stock_transactions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GroupMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.removedusers != nil {
 		edges = append(edges, group.EdgeUsers)
 	}
@@ -10656,6 +13551,9 @@ func (m *GroupMutation) RemovedEdges() []string {
 	}
 	if m.removedexports != nil {
 		edges = append(edges, group.EdgeExports)
+	}
+	if m.removedstock_transactions != nil {
+		edges = append(edges, group.EdgeStockTransactions)
 	}
 	return edges
 }
@@ -10712,13 +13610,19 @@ func (m *GroupMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case group.EdgeStockTransactions:
+		ids := make([]ent.Value, 0, len(m.removedstock_transactions))
+		for id := range m.removedstock_transactions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GroupMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.clearedusers {
 		edges = append(edges, group.EdgeUsers)
 	}
@@ -10743,6 +13647,9 @@ func (m *GroupMutation) ClearedEdges() []string {
 	if m.clearedexports {
 		edges = append(edges, group.EdgeExports)
 	}
+	if m.clearedstock_transactions {
+		edges = append(edges, group.EdgeStockTransactions)
+	}
 	return edges
 }
 
@@ -10766,6 +13673,8 @@ func (m *GroupMutation) EdgeCleared(name string) bool {
 		return m.clearedentity_templates
 	case group.EdgeExports:
 		return m.clearedexports
+	case group.EdgeStockTransactions:
+		return m.clearedstock_transactions
 	}
 	return false
 }
@@ -10805,6 +13714,9 @@ func (m *GroupMutation) ResetEdge(name string) error {
 		return nil
 	case group.EdgeExports:
 		m.ResetExports()
+		return nil
+	case group.EdgeStockTransactions:
+		m.ResetStockTransactions()
 		return nil
 	}
 	return fmt.Errorf("unknown Group edge %s", name)

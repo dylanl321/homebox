@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -179,6 +180,8 @@ func serializeLocation[T ~[]string](location T) string {
 //  1. If the entity does not exist, it is created.
 //  2. If the entity has an ImportRef and it exists it is skipped
 //  3. Locations and Tags are created if they do not exist.
+//
+//nolint:gocyclo // Import coordinates legacy and allocation-aware CSV formats in one row workflow.
 func (svc *EntityService) CsvImport(ctx context.Context, gid uuid.UUID, data io.Reader) (int, error) {
 	ctx, span := entityServiceTracer().Start(ctx, "service.EntityService.CsvImport",
 		trace.WithAttributes(attribute.String("group.id", gid.String())))
@@ -256,6 +259,40 @@ func (svc *EntityService) CsvImport(ctx context.Context, gid uuid.UUID, data io.
 		locsSpan.End()
 	}
 
+	ensureLocationPath := func(ctx context.Context, path reporting.LocationString) (uuid.UUID, error) {
+		if len(path) == 0 {
+			return uuid.Nil, nil
+		}
+		fullPath := serializeLocation(path)
+		if id, ok := locationMap[fullPath]; ok {
+			return id, nil
+		}
+		parts := make([]string, 0, len(path))
+		var locationID uuid.UUID
+		for i, name := range path {
+			parts = append(parts, name)
+			currentPath := serializeLocation(parts)
+			if id, ok := locationMap[currentPath]; ok {
+				locationID = id
+				continue
+			}
+			parentID := uuid.Nil
+			if i > 0 {
+				parentID = locationMap[serializeLocation(path[:i])]
+			}
+			location, err := svc.repo.Entities.CreateContainer(ctx, gid, repo.EntityCreate{
+				ParentID: parentID,
+				Name:     name,
+			})
+			if err != nil {
+				return uuid.Nil, err
+			}
+			locationID = location.ID
+			locationMap[currentPath] = locationID
+		}
+		return locationID, nil
+	}
+
 	// ========================================
 	// Import entities
 
@@ -277,6 +314,12 @@ func (svc *EntityService) CsvImport(ctx context.Context, gid uuid.UUID, data io.
 
 	for i := range sheet.Rows {
 		row := sheet.Rows[i]
+		var allocationRows []reporting.LocationAllocationCSV
+		if row.LocationAllocations != "" {
+			if err := json.Unmarshal([]byte(row.LocationAllocations), &allocationRows); err != nil {
+				return 0, fmt.Errorf("invalid HB.location_allocations for row %d: %w", i+2, err)
+			}
+		}
 
 		rowCtx, rowSpan := entityServiceTracer().Start(importCtx, "service.EntityService.CsvImport.row",
 			trace.WithAttributes(
@@ -397,6 +440,17 @@ func (svc *EntityService) CsvImport(ctx context.Context, gid uuid.UUID, data io.
 			}
 		}
 
+		for _, allocation := range allocationRows {
+			if allocation.Path == "" {
+				continue
+			}
+			if _, err := ensureLocationPath(rowCtx, reporting.LocationString(strings.Split(allocation.Path, " / "))); err != nil {
+				recordServiceSpanError(rowSpan, err)
+				rowSpan.End()
+				return 0, err
+			}
+		}
+
 		var effAID repo.AssetID
 		if svc.autoIncrementAssetID && row.AssetID.Nil() {
 			effAID = highestAID + 1
@@ -496,6 +550,30 @@ func (svc *EntityService) CsvImport(ctx context.Context, gid uuid.UUID, data io.
 			recordServiceSpanError(importSpan, err)
 			recordServiceSpanError(span, err)
 			return 0, err
+		}
+
+		if row.LocationAllocations != "" {
+			importAllocations := make([]repo.StockImportAllocation, 0, len(allocationRows))
+			for _, allocation := range allocationRows {
+				var allocationLocationID *uuid.UUID
+				if allocation.Path != "" {
+					id, ok := locationMap[serializeLocation(reporting.LocationString(strings.Split(allocation.Path, " / ")))]
+					if !ok {
+						return 0, fmt.Errorf("allocation location %q was not resolved", allocation.Path)
+					}
+					allocationLocationID = &id
+				}
+				importAllocations = append(importAllocations, repo.StockImportAllocation{
+					LocationID: allocationLocationID,
+					Quantity:   allocation.Quantity,
+					IsDefault:  allocation.IsDefault,
+				})
+			}
+			if err := svc.repo.Stock.ReplaceForImport(ctx, gid, entity.ID, importAllocations); err != nil {
+				recordServiceSpanError(rowSpan, err)
+				rowSpan.End()
+				return 0, err
+			}
 		}
 
 		finished++

@@ -142,6 +142,27 @@ var exportTables = []tableSpec{
 		fkCols:    map[string]string{"entity_type_entities": "entity_types"},
 		deferCols: map[string]string{"entity_children": entitiesTable},
 	},
+	{
+		name:  "entity_stock_allocations",
+		scope: "entity_id IN (SELECT id FROM entities WHERE group_entities = ?)",
+		pkCol: "id",
+		fkCols: map[string]string{
+			"entity_id":   entitiesTable,
+			"location_id": entitiesTable,
+		},
+	},
+	{
+		name:      "entity_stock_transactions",
+		scope:     "group_id = ?",
+		pkCol:     "id",
+		groupCols: []string{"group_id"},
+		userCols:  []string{"actor_id"},
+		fkCols: map[string]string{
+			"entity_id":               entitiesTable,
+			"source_location_id":      entitiesTable,
+			"destination_location_id": entitiesTable,
+		},
+	},
 	// homebox-fork: overhead-location-layout
 	{
 		name:   "location_layouts",

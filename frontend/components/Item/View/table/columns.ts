@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUpDown, Check, X } from "lucide-vue-next";
 import Button from "~/components/ui/button/Button.vue";
 import Checkbox from "~/components/Form/Checkbox.vue";
 import type { EntitySummary } from "~/lib/api/types/data-contracts";
+import type { StockEntitySummary } from "~/lib/api/types/stock";
 
 import Currency from "~/components/global/Currency.vue";
 import DateTime from "~/components/global/DateTime.vue";
@@ -27,7 +28,12 @@ export function makeColumns({
     const sortState = column.getIsSorted(); // 'asc' | 'desc' | false
     if (!sortState) {
       // show the neutral up/down icon when not sorted
-      return [t(key), h(ArrowUpDown, { class: cn(["ml-2 h-4 w-4 opacity-40", disableSort && "opacity-0"]) })];
+      return [
+        t(key),
+        h(ArrowUpDown, {
+          class: cn(["ml-2 h-4 w-4 opacity-40", disableSort && "opacity-0"]),
+        }),
+      ];
     }
     // show a single arrow that points up for asc (rotate-180) and down for desc
     return [
@@ -103,7 +109,10 @@ export function makeColumns({
           },
           () => sortable(column, "items.quantity")
         ),
-      cell: ({ row }) => h("div", { class: "text-center" }, String(row.getValue("quantity") ?? "")),
+      cell: ({ row }) => {
+        const item = row.original as StockEntitySummary;
+        return h("div", { class: "text-center" }, String(item.allocatedQuantity ?? row.getValue("quantity") ?? ""));
+      },
     },
     {
       id: "insured",
@@ -154,10 +163,17 @@ export function makeColumns({
           () => sortable(column, "items.location")
         ),
       cell: ({ row }) => {
-        const item = row.original as EntitySummary;
-        const loc = (item.location || item.parent) as { id: string; name: string } | null;
+        const item = row.original as StockEntitySummary;
+        const loc = (item.location || item.parent) as {
+          id: string;
+          name: string;
+        } | null;
         if (loc) {
-          return h("a", { href: `/location/${loc.id}`, class: "hover:underline text-sm" }, loc.name);
+          const suffix =
+            item.locationCount && item.locationCount > 1
+              ? ` - ${item.locationCount} ${t("stock.location_count_label")}`
+              : "";
+          return h("a", { href: `/location/${loc.id}`, class: "hover:underline text-sm" }, `${loc.name}${suffix}`);
         }
         return h("div", { class: "text-sm text-muted-foreground" }, "");
       },
@@ -199,7 +215,10 @@ export function makeColumns({
         h(
           "div",
           { class: "text-center text-sm" },
-          h(DateTime, { date: row.getValue("createdAt") as Date, datetimeType: "date" })
+          h(DateTime, {
+            date: row.getValue("createdAt") as Date,
+            datetimeType: "date",
+          })
         ),
     },
     {
@@ -218,7 +237,10 @@ export function makeColumns({
         h(
           "div",
           { class: "text-center text-sm" },
-          h(DateTime, { date: row.getValue("updatedAt") as Date, datetimeType: "date" })
+          h(DateTime, {
+            date: row.getValue("updatedAt") as Date,
+            datetimeType: "date",
+          })
         ),
     },
     {

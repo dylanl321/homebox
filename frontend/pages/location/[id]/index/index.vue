@@ -3,7 +3,7 @@
   import { toast } from "@/components/ui/sonner";
   import type { AnyDetail, Details } from "~~/components/global/DetailsSection/types";
   import { filterZeroValues } from "~~/components/global/DetailsSection/types";
-  import type { ItemAttachment } from "~~/lib/api/types/data-contracts";
+  import type { ItemAttachment, EntitySummary } from "~~/lib/api/types/data-contracts";
   import MdiPackageVariant from "~icons/mdi/package-variant";
   import MdiPlus from "~icons/mdi/plus";
   import MdiPencil from "~icons/mdi/pencil";
@@ -19,6 +19,16 @@
   } from "@/components/ui/breadcrumb";
   import { Button } from "@/components/ui/button";
   import { Badge } from "@/components/ui/badge";
+  import { Checkbox } from "@/components/ui/checkbox";
+  import { Label } from "@/components/ui/label";
+  import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+  } from "@/components/ui/dialog";
   import { Separator } from "@/components/ui/separator";
   import { DialogID } from "~/components/ui/dialog-provider/utils";
   import BaseCard from "@/components/Base/Card.vue";
@@ -32,6 +42,8 @@
   import ItemImageDialog from "~/components/Item/ImageDialog.vue";
   import LocationLayoutSection from "~/components/Location/Layout/Section.vue";
   import TagChip from "~/components/Tag/Chip.vue";
+  import LocationSelector from "~/components/Location/Selector.vue";
+  import type { LocationStockResolution } from "~~/lib/api/types/stock";
 
   definePageMeta({
     middleware: ["auth"],
@@ -39,7 +51,7 @@
 
   const { t } = useI18n();
 
-  const { openDialog } = useDialog();
+  const { openDialog, closeDialog } = useDialog();
 
   const route = useRoute();
   const api = useUserApi();
@@ -59,6 +71,30 @@
   });
 
   const confirm = useConfirm();
+  const stockResolution = ref<LocationStockResolution>();
+  const resolutionDestination = ref<EntitySummary | null>(null);
+  const removeStock = ref(false);
+  const resolvingStock = ref(false);
+
+  async function deleteLocation() {
+    const response = await api.items.deleteLocation(locationId.value);
+    if (response.error) {
+      const conflictCode = String(response.data.code || response.data.error || "");
+      if (response.status === 409 && conflictCode.includes("location_has_stock")) {
+        const resolutionResponse = await api.items.getLocationStockResolution(locationId.value);
+        if (!resolutionResponse.error) {
+          stockResolution.value = resolutionResponse.data;
+          openDialog(DialogID.StockResolution);
+          return;
+        }
+      }
+      toast.error(t("locations.toast.failed_delete_location"));
+      return;
+    }
+
+    toast.success(t("locations.toast.location_deleted"));
+    navigateTo("/locations");
+  }
 
   async function confirmDelete() {
     const { isCanceled } = await confirm.open(t("locations.location_items_delete_confirm"));
@@ -66,14 +102,42 @@
       return;
     }
 
-    const { error } = await api.items.deleteLocation(locationId.value);
-    if (error) {
-      toast.error(t("locations.toast.failed_delete_location"));
+    await deleteLocation();
+  }
+
+  async function resolveStockAndDelete() {
+    if (!removeStock.value && !resolutionDestination.value) {
+      toast.error(t("stock.location_resolution.destination_required"));
       return;
     }
 
-    toast.success(t("locations.toast.location_deleted"));
-    navigateTo("/locations");
+    resolvingStock.value = true;
+    const response = await api.items.resolveLocationStock(
+      locationId.value,
+      removeStock.value
+        ? {
+            action: "remove",
+            confirmed: true,
+            idempotencyKey: crypto.randomUUID(),
+            workflow: "web-location-delete",
+            reason: t("stock.location_resolution.delete_reason"),
+          }
+        : {
+            action: "transfer",
+            destinationLocationId: resolutionDestination.value!.id,
+            idempotencyKey: crypto.randomUUID(),
+            workflow: "web-location-delete",
+            reason: t("stock.location_resolution.transfer_reason"),
+          }
+    );
+    resolvingStock.value = false;
+    if (response.error) {
+      toast.error(t("stock.location_resolution.failed"));
+      return;
+    }
+
+    closeDialog(DialogID.StockResolution);
+    await deleteLocation();
   }
 
   function openCreateItem() {
@@ -218,6 +282,53 @@
 <template>
   <div>
     <ItemImageDialog />
+    <Dialog :dialog-id="DialogID.StockResolution">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{{ $t("stock.location_resolution.title") }}</DialogTitle>
+          <DialogDescription>
+            {{
+              $t("stock.location_resolution.description", {
+                count: stockResolution?.itemCount ?? 0,
+                quantity: stockResolution?.totalQuantity ?? 0,
+              })
+            }}
+          </DialogDescription>
+        </DialogHeader>
+        <div v-if="stockResolution" class="max-h-48 divide-y overflow-y-auto rounded-md border">
+          <div
+            v-for="allocation in stockResolution.allocations"
+            :key="allocation.entityId"
+            class="flex justify-between gap-3 px-3 py-2 text-sm"
+          >
+            <NuxtLink :to="`/item/${allocation.entityId}`" class="font-medium hover:underline">
+              {{ allocation.entityName }}
+            </NuxtLink>
+            <span>{{ allocation.quantity }}</span>
+          </div>
+        </div>
+        <LocationSelector v-if="!removeStock" v-model="resolutionDestination" :current-location="location" />
+        <Label class="flex items-start gap-2">
+          <Checkbox v-model="removeStock" />
+          <span>
+            <strong>{{ $t("stock.location_resolution.remove_stock") }}</strong>
+            <span class="block font-normal text-muted-foreground">
+              {{ $t("stock.location_resolution.remove_stock_description") }}
+            </span>
+          </span>
+        </Label>
+        <DialogFooter>
+          <Button variant="outline" @click="closeDialog(DialogID.StockResolution)">{{ $t("global.cancel") }}</Button>
+          <Button
+            :variant="removeStock ? 'destructive' : 'default'"
+            :disabled="resolvingStock"
+            @click="resolveStockAndDelete"
+          >
+            {{ $t("stock.location_resolution.resolve_and_delete") }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
     <div v-if="location">
       <!-- set page title -->

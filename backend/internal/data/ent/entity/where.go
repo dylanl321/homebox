@@ -1605,6 +1605,75 @@ func HasAttachmentsWith(preds ...predicate.Attachment) predicate.Entity {
 	})
 }
 
+// HasStockAllocations applies the HasEdge predicate on the "stock_allocations" edge.
+func HasStockAllocations() predicate.Entity {
+	return predicate.Entity(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, StockAllocationsTable, StockAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStockAllocationsWith applies the HasEdge predicate on the "stock_allocations" edge with a given conditions (other predicates).
+func HasStockAllocationsWith(preds ...predicate.EntityStockAllocation) predicate.Entity {
+	return predicate.Entity(func(s *sql.Selector) {
+		step := newStockAllocationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasStockTransactions applies the HasEdge predicate on the "stock_transactions" edge.
+func HasStockTransactions() predicate.Entity {
+	return predicate.Entity(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, StockTransactionsTable, StockTransactionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStockTransactionsWith applies the HasEdge predicate on the "stock_transactions" edge with a given conditions (other predicates).
+func HasStockTransactionsWith(preds ...predicate.EntityStockTransaction) predicate.Entity {
+	return predicate.Entity(func(s *sql.Selector) {
+		step := newStockTransactionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasStockLocationAllocations applies the HasEdge predicate on the "stock_location_allocations" edge.
+func HasStockLocationAllocations() predicate.Entity {
+	return predicate.Entity(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, StockLocationAllocationsTable, StockLocationAllocationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStockLocationAllocationsWith applies the HasEdge predicate on the "stock_location_allocations" edge with a given conditions (other predicates).
+func HasStockLocationAllocationsWith(preds ...predicate.EntityStockAllocation) predicate.Entity {
+	return predicate.Entity(func(s *sql.Selector) {
+		step := newStockLocationAllocationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasLocationLayout applies the HasEdge predicate on the "location_layout" edge.
 func HasLocationLayout() predicate.Entity {
 	return predicate.Entity(func(s *sql.Selector) {

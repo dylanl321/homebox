@@ -2,6 +2,7 @@ package reporting
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"reflect"
@@ -250,10 +251,30 @@ func (s *IOSheet) ReadItems(ctx context.Context, entities []repo.EntityOut, gid 
 			}
 		})
 
+		allocationExport := make([]LocationAllocationCSV, 0, len(item.Stock.Allocations))
+		for _, allocation := range item.Stock.Allocations {
+			path := ""
+			if allocation.LocationID != nil {
+				paths, err := repos.Entities.PathForEntity(ctx, gid, *allocation.LocationID)
+				if err != nil {
+					return err
+				}
+				path = fromPathSlice(paths).String()
+			}
+			allocationExport = append(allocationExport, LocationAllocationCSV{
+				Path: path, Quantity: allocation.Quantity, IsDefault: allocation.IsDefault,
+			})
+		}
+		allocationJSON, err := json.Marshal(allocationExport)
+		if err != nil {
+			return err
+		}
+
 		s.Rows[i] = ExportCSVRow{
 			// fill struct
-			Location: locString,
-			TagStr:   tagString,
+			Location:            locString,
+			LocationAllocations: string(allocationJSON),
+			TagStr:              tagString,
 
 			ImportRef:       item.ImportRef,
 			ParentImportRef: parentImportRef,

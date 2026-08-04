@@ -189,5 +189,65 @@
         "details": "รายละเอียด",
         "drag_and_drop": "ลากและวางไฟล์ที่นี่ หรือคลิกเพื่อเลือกไฟล์",
         "edit_details": "แก้ไขรายละเอียด"
+    },
+    "stock": {
+        "actions": "Actions",
+        "add_allocation": "Add location",
+        "decrease": "Decrease quantity",
+        "default": "Default",
+        "exact_quantity": "Exact quantity",
+        "history": "Stock history",
+        "increase": "Increase quantity",
+        "location_count": "{count, plural, one {# location} other {# locations}}",
+        "location_count_label": "locations",
+        "location_count_short": "{count} locations",
+        "multi_location_edit_notice": "Quantity and location are managed separately because this item has stock in multiple locations.",
+        "no_history": "No stock changes recorded.",
+        "open_manager": "Open stock manager",
+        "operation": {
+            "adjust": "Adjusted",
+            "set": "Counted",
+            "transfer": "Transferred"
+        },
+        "reason": {
+            "add_allocation": "Added from the web stock manager"
+        },
+        "remove": "Remove allocation",
+        "set": "Set",
+        "set_default": "Set as default location",
+        "title": "Stock by location",
+        "toast": {
+            "conflict": "Stock changed or this item cannot be stored in multiple locations.",
+            "default_failed": "Failed to change the default location.",
+            "default_updated": "Default location updated.",
+            "history_failed": "Failed to load stock history.",
+            "invalid_quantity": "Enter a non-negative quantity.",
+            "load_failed": "Failed to load stock.",
+            "location_quantity_required": "Choose a location and enter a positive quantity.",
+            "transfer_invalid": "Choose a different destination and enter a positive quantity.",
+            "update_failed": "Failed to update stock.",
+            "updated": "Stock updated."
+        },
+        "quantity_change": "({before} to {after})",
+        "transfer_path": "{source} to {destination}",
+        "total_quantity": "Total quantity",
+        "transfer": "Transfer",
+        "transfer_destination": "Destination",
+        "unassigned": "Unassigned",
+        "label": {
+            "all_locations": "Generic label (all locations)",
+            "stock_location": "Stock location"
+        },
+        "location_resolution": {
+            "description": "This location contains {quantity} units across {count} items. Transfer or explicitly remove this stock before deleting the location.",
+            "delete_reason": "Removed stock while deleting its location",
+            "transfer_reason": "Transferred stock before deleting its location",
+            "destination_required": "Choose a destination location.",
+            "failed": "Failed to resolve stock in this location.",
+            "remove_stock": "Remove this stock",
+            "remove_stock_description": "This permanently removes the listed quantities and records the change in stock history.",
+            "resolve_and_delete": "Resolve stock and delete",
+            "title": "Location contains stock"
+        }
     }
 }

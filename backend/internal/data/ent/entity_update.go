@@ -15,6 +15,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entity"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entityfield"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystockallocation"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystocktransaction"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayout"
@@ -573,6 +575,51 @@ func (_u *EntityUpdate) AddAttachments(v ...*Attachment) *EntityUpdate {
 	return _u.AddAttachmentIDs(ids...)
 }
 
+// AddStockAllocationIDs adds the "stock_allocations" edge to the EntityStockAllocation entity by IDs.
+func (_u *EntityUpdate) AddStockAllocationIDs(ids ...uuid.UUID) *EntityUpdate {
+	_u.mutation.AddStockAllocationIDs(ids...)
+	return _u
+}
+
+// AddStockAllocations adds the "stock_allocations" edges to the EntityStockAllocation entity.
+func (_u *EntityUpdate) AddStockAllocations(v ...*EntityStockAllocation) *EntityUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStockAllocationIDs(ids...)
+}
+
+// AddStockTransactionIDs adds the "stock_transactions" edge to the EntityStockTransaction entity by IDs.
+func (_u *EntityUpdate) AddStockTransactionIDs(ids ...uuid.UUID) *EntityUpdate {
+	_u.mutation.AddStockTransactionIDs(ids...)
+	return _u
+}
+
+// AddStockTransactions adds the "stock_transactions" edges to the EntityStockTransaction entity.
+func (_u *EntityUpdate) AddStockTransactions(v ...*EntityStockTransaction) *EntityUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStockTransactionIDs(ids...)
+}
+
+// AddStockLocationAllocationIDs adds the "stock_location_allocations" edge to the EntityStockAllocation entity by IDs.
+func (_u *EntityUpdate) AddStockLocationAllocationIDs(ids ...uuid.UUID) *EntityUpdate {
+	_u.mutation.AddStockLocationAllocationIDs(ids...)
+	return _u
+}
+
+// AddStockLocationAllocations adds the "stock_location_allocations" edges to the EntityStockAllocation entity.
+func (_u *EntityUpdate) AddStockLocationAllocations(v ...*EntityStockAllocation) *EntityUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStockLocationAllocationIDs(ids...)
+}
+
 // SetLocationLayoutID sets the "location_layout" edge to the LocationLayout entity by ID.
 func (_u *EntityUpdate) SetLocationLayoutID(id uuid.UUID) *EntityUpdate {
 	_u.mutation.SetLocationLayoutID(id)
@@ -733,6 +780,69 @@ func (_u *EntityUpdate) RemoveAttachments(v ...*Attachment) *EntityUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAttachmentIDs(ids...)
+}
+
+// ClearStockAllocations clears all "stock_allocations" edges to the EntityStockAllocation entity.
+func (_u *EntityUpdate) ClearStockAllocations() *EntityUpdate {
+	_u.mutation.ClearStockAllocations()
+	return _u
+}
+
+// RemoveStockAllocationIDs removes the "stock_allocations" edge to EntityStockAllocation entities by IDs.
+func (_u *EntityUpdate) RemoveStockAllocationIDs(ids ...uuid.UUID) *EntityUpdate {
+	_u.mutation.RemoveStockAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveStockAllocations removes "stock_allocations" edges to EntityStockAllocation entities.
+func (_u *EntityUpdate) RemoveStockAllocations(v ...*EntityStockAllocation) *EntityUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStockAllocationIDs(ids...)
+}
+
+// ClearStockTransactions clears all "stock_transactions" edges to the EntityStockTransaction entity.
+func (_u *EntityUpdate) ClearStockTransactions() *EntityUpdate {
+	_u.mutation.ClearStockTransactions()
+	return _u
+}
+
+// RemoveStockTransactionIDs removes the "stock_transactions" edge to EntityStockTransaction entities by IDs.
+func (_u *EntityUpdate) RemoveStockTransactionIDs(ids ...uuid.UUID) *EntityUpdate {
+	_u.mutation.RemoveStockTransactionIDs(ids...)
+	return _u
+}
+
+// RemoveStockTransactions removes "stock_transactions" edges to EntityStockTransaction entities.
+func (_u *EntityUpdate) RemoveStockTransactions(v ...*EntityStockTransaction) *EntityUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStockTransactionIDs(ids...)
+}
+
+// ClearStockLocationAllocations clears all "stock_location_allocations" edges to the EntityStockAllocation entity.
+func (_u *EntityUpdate) ClearStockLocationAllocations() *EntityUpdate {
+	_u.mutation.ClearStockLocationAllocations()
+	return _u
+}
+
+// RemoveStockLocationAllocationIDs removes the "stock_location_allocations" edge to EntityStockAllocation entities by IDs.
+func (_u *EntityUpdate) RemoveStockLocationAllocationIDs(ids ...uuid.UUID) *EntityUpdate {
+	_u.mutation.RemoveStockLocationAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveStockLocationAllocations removes "stock_location_allocations" edges to EntityStockAllocation entities.
+func (_u *EntityUpdate) RemoveStockLocationAllocations(v ...*EntityStockAllocation) *EntityUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStockLocationAllocationIDs(ids...)
 }
 
 // ClearLocationLayout clears the "location_layout" edge to the LocationLayout entity.
@@ -1291,6 +1401,141 @@ func (_u *EntityUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StockAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockAllocationsTable,
+			Columns: []string{entity.StockAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStockAllocationsIDs(); len(nodes) > 0 && !_u.mutation.StockAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockAllocationsTable,
+			Columns: []string{entity.StockAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StockAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockAllocationsTable,
+			Columns: []string{entity.StockAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StockTransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockTransactionsTable,
+			Columns: []string{entity.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStockTransactionsIDs(); len(nodes) > 0 && !_u.mutation.StockTransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockTransactionsTable,
+			Columns: []string{entity.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StockTransactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockTransactionsTable,
+			Columns: []string{entity.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StockLocationAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockLocationAllocationsTable,
+			Columns: []string{entity.StockLocationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStockLocationAllocationsIDs(); len(nodes) > 0 && !_u.mutation.StockLocationAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockLocationAllocationsTable,
+			Columns: []string{entity.StockLocationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StockLocationAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockLocationAllocationsTable,
+			Columns: []string{entity.StockLocationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1928,6 +2173,51 @@ func (_u *EntityUpdateOne) AddAttachments(v ...*Attachment) *EntityUpdateOne {
 	return _u.AddAttachmentIDs(ids...)
 }
 
+// AddStockAllocationIDs adds the "stock_allocations" edge to the EntityStockAllocation entity by IDs.
+func (_u *EntityUpdateOne) AddStockAllocationIDs(ids ...uuid.UUID) *EntityUpdateOne {
+	_u.mutation.AddStockAllocationIDs(ids...)
+	return _u
+}
+
+// AddStockAllocations adds the "stock_allocations" edges to the EntityStockAllocation entity.
+func (_u *EntityUpdateOne) AddStockAllocations(v ...*EntityStockAllocation) *EntityUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStockAllocationIDs(ids...)
+}
+
+// AddStockTransactionIDs adds the "stock_transactions" edge to the EntityStockTransaction entity by IDs.
+func (_u *EntityUpdateOne) AddStockTransactionIDs(ids ...uuid.UUID) *EntityUpdateOne {
+	_u.mutation.AddStockTransactionIDs(ids...)
+	return _u
+}
+
+// AddStockTransactions adds the "stock_transactions" edges to the EntityStockTransaction entity.
+func (_u *EntityUpdateOne) AddStockTransactions(v ...*EntityStockTransaction) *EntityUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStockTransactionIDs(ids...)
+}
+
+// AddStockLocationAllocationIDs adds the "stock_location_allocations" edge to the EntityStockAllocation entity by IDs.
+func (_u *EntityUpdateOne) AddStockLocationAllocationIDs(ids ...uuid.UUID) *EntityUpdateOne {
+	_u.mutation.AddStockLocationAllocationIDs(ids...)
+	return _u
+}
+
+// AddStockLocationAllocations adds the "stock_location_allocations" edges to the EntityStockAllocation entity.
+func (_u *EntityUpdateOne) AddStockLocationAllocations(v ...*EntityStockAllocation) *EntityUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStockLocationAllocationIDs(ids...)
+}
+
 // SetLocationLayoutID sets the "location_layout" edge to the LocationLayout entity by ID.
 func (_u *EntityUpdateOne) SetLocationLayoutID(id uuid.UUID) *EntityUpdateOne {
 	_u.mutation.SetLocationLayoutID(id)
@@ -2088,6 +2378,69 @@ func (_u *EntityUpdateOne) RemoveAttachments(v ...*Attachment) *EntityUpdateOne 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveAttachmentIDs(ids...)
+}
+
+// ClearStockAllocations clears all "stock_allocations" edges to the EntityStockAllocation entity.
+func (_u *EntityUpdateOne) ClearStockAllocations() *EntityUpdateOne {
+	_u.mutation.ClearStockAllocations()
+	return _u
+}
+
+// RemoveStockAllocationIDs removes the "stock_allocations" edge to EntityStockAllocation entities by IDs.
+func (_u *EntityUpdateOne) RemoveStockAllocationIDs(ids ...uuid.UUID) *EntityUpdateOne {
+	_u.mutation.RemoveStockAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveStockAllocations removes "stock_allocations" edges to EntityStockAllocation entities.
+func (_u *EntityUpdateOne) RemoveStockAllocations(v ...*EntityStockAllocation) *EntityUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStockAllocationIDs(ids...)
+}
+
+// ClearStockTransactions clears all "stock_transactions" edges to the EntityStockTransaction entity.
+func (_u *EntityUpdateOne) ClearStockTransactions() *EntityUpdateOne {
+	_u.mutation.ClearStockTransactions()
+	return _u
+}
+
+// RemoveStockTransactionIDs removes the "stock_transactions" edge to EntityStockTransaction entities by IDs.
+func (_u *EntityUpdateOne) RemoveStockTransactionIDs(ids ...uuid.UUID) *EntityUpdateOne {
+	_u.mutation.RemoveStockTransactionIDs(ids...)
+	return _u
+}
+
+// RemoveStockTransactions removes "stock_transactions" edges to EntityStockTransaction entities.
+func (_u *EntityUpdateOne) RemoveStockTransactions(v ...*EntityStockTransaction) *EntityUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStockTransactionIDs(ids...)
+}
+
+// ClearStockLocationAllocations clears all "stock_location_allocations" edges to the EntityStockAllocation entity.
+func (_u *EntityUpdateOne) ClearStockLocationAllocations() *EntityUpdateOne {
+	_u.mutation.ClearStockLocationAllocations()
+	return _u
+}
+
+// RemoveStockLocationAllocationIDs removes the "stock_location_allocations" edge to EntityStockAllocation entities by IDs.
+func (_u *EntityUpdateOne) RemoveStockLocationAllocationIDs(ids ...uuid.UUID) *EntityUpdateOne {
+	_u.mutation.RemoveStockLocationAllocationIDs(ids...)
+	return _u
+}
+
+// RemoveStockLocationAllocations removes "stock_location_allocations" edges to EntityStockAllocation entities.
+func (_u *EntityUpdateOne) RemoveStockLocationAllocations(v ...*EntityStockAllocation) *EntityUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStockLocationAllocationIDs(ids...)
 }
 
 // ClearLocationLayout clears the "location_layout" edge to the LocationLayout entity.
@@ -2676,6 +3029,141 @@ func (_u *EntityUpdateOne) sqlSave(ctx context.Context) (_node *Entity, err erro
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(attachment.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StockAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockAllocationsTable,
+			Columns: []string{entity.StockAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStockAllocationsIDs(); len(nodes) > 0 && !_u.mutation.StockAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockAllocationsTable,
+			Columns: []string{entity.StockAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StockAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockAllocationsTable,
+			Columns: []string{entity.StockAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StockTransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockTransactionsTable,
+			Columns: []string{entity.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStockTransactionsIDs(); len(nodes) > 0 && !_u.mutation.StockTransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockTransactionsTable,
+			Columns: []string{entity.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StockTransactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockTransactionsTable,
+			Columns: []string{entity.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StockLocationAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockLocationAllocationsTable,
+			Columns: []string{entity.StockLocationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStockLocationAllocationsIDs(); len(nodes) > 0 && !_u.mutation.StockLocationAllocationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockLocationAllocationsTable,
+			Columns: []string{entity.StockLocationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StockLocationAllocationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   entity.StockLocationAllocationsTable,
+			Columns: []string{entity.StockLocationAllocationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystockallocation.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -16,6 +16,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entity"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entityfield"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystockallocation"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystocktransaction"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/locationlayout"
@@ -28,21 +30,24 @@ import (
 // EntityQuery is the builder for querying Entity entities.
 type EntityQuery struct {
 	config
-	ctx                    *QueryContext
-	order                  []entity.OrderOption
-	inters                 []Interceptor
-	predicates             []predicate.Entity
-	withGroup              *GroupQuery
-	withParent             *EntityQuery
-	withChildren           *EntityQuery
-	withTag                *TagQuery
-	withEntityType         *EntityTypeQuery
-	withFields             *EntityFieldQuery
-	withMaintenanceEntries *MaintenanceEntryQuery
-	withAttachments        *AttachmentQuery
-	withLocationLayout     *LocationLayoutQuery
-	withLayoutPlacements   *LocationLayoutElementQuery
-	withFKs                bool
+	ctx                          *QueryContext
+	order                        []entity.OrderOption
+	inters                       []Interceptor
+	predicates                   []predicate.Entity
+	withGroup                    *GroupQuery
+	withParent                   *EntityQuery
+	withChildren                 *EntityQuery
+	withTag                      *TagQuery
+	withEntityType               *EntityTypeQuery
+	withFields                   *EntityFieldQuery
+	withMaintenanceEntries       *MaintenanceEntryQuery
+	withAttachments              *AttachmentQuery
+	withStockAllocations         *EntityStockAllocationQuery
+	withStockTransactions        *EntityStockTransactionQuery
+	withStockLocationAllocations *EntityStockAllocationQuery
+	withLocationLayout           *LocationLayoutQuery
+	withLayoutPlacements         *LocationLayoutElementQuery
+	withFKs                      bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -248,6 +253,72 @@ func (_q *EntityQuery) QueryAttachments() *AttachmentQuery {
 			sqlgraph.From(entity.Table, entity.FieldID, selector),
 			sqlgraph.To(attachment.Table, attachment.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, entity.AttachmentsTable, entity.AttachmentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryStockAllocations chains the current query on the "stock_allocations" edge.
+func (_q *EntityQuery) QueryStockAllocations() *EntityStockAllocationQuery {
+	query := (&EntityStockAllocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entity.Table, entity.FieldID, selector),
+			sqlgraph.To(entitystockallocation.Table, entitystockallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, entity.StockAllocationsTable, entity.StockAllocationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryStockTransactions chains the current query on the "stock_transactions" edge.
+func (_q *EntityQuery) QueryStockTransactions() *EntityStockTransactionQuery {
+	query := (&EntityStockTransactionClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entity.Table, entity.FieldID, selector),
+			sqlgraph.To(entitystocktransaction.Table, entitystocktransaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, entity.StockTransactionsTable, entity.StockTransactionsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryStockLocationAllocations chains the current query on the "stock_location_allocations" edge.
+func (_q *EntityQuery) QueryStockLocationAllocations() *EntityStockAllocationQuery {
+	query := (&EntityStockAllocationClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entity.Table, entity.FieldID, selector),
+			sqlgraph.To(entitystockallocation.Table, entitystockallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, entity.StockLocationAllocationsTable, entity.StockLocationAllocationsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -486,21 +557,24 @@ func (_q *EntityQuery) Clone() *EntityQuery {
 		return nil
 	}
 	return &EntityQuery{
-		config:                 _q.config,
-		ctx:                    _q.ctx.Clone(),
-		order:                  append([]entity.OrderOption{}, _q.order...),
-		inters:                 append([]Interceptor{}, _q.inters...),
-		predicates:             append([]predicate.Entity{}, _q.predicates...),
-		withGroup:              _q.withGroup.Clone(),
-		withParent:             _q.withParent.Clone(),
-		withChildren:           _q.withChildren.Clone(),
-		withTag:                _q.withTag.Clone(),
-		withEntityType:         _q.withEntityType.Clone(),
-		withFields:             _q.withFields.Clone(),
-		withMaintenanceEntries: _q.withMaintenanceEntries.Clone(),
-		withAttachments:        _q.withAttachments.Clone(),
-		withLocationLayout:     _q.withLocationLayout.Clone(),
-		withLayoutPlacements:   _q.withLayoutPlacements.Clone(),
+		config:                       _q.config,
+		ctx:                          _q.ctx.Clone(),
+		order:                        append([]entity.OrderOption{}, _q.order...),
+		inters:                       append([]Interceptor{}, _q.inters...),
+		predicates:                   append([]predicate.Entity{}, _q.predicates...),
+		withGroup:                    _q.withGroup.Clone(),
+		withParent:                   _q.withParent.Clone(),
+		withChildren:                 _q.withChildren.Clone(),
+		withTag:                      _q.withTag.Clone(),
+		withEntityType:               _q.withEntityType.Clone(),
+		withFields:                   _q.withFields.Clone(),
+		withMaintenanceEntries:       _q.withMaintenanceEntries.Clone(),
+		withAttachments:              _q.withAttachments.Clone(),
+		withStockAllocations:         _q.withStockAllocations.Clone(),
+		withStockTransactions:        _q.withStockTransactions.Clone(),
+		withStockLocationAllocations: _q.withStockLocationAllocations.Clone(),
+		withLocationLayout:           _q.withLocationLayout.Clone(),
+		withLayoutPlacements:         _q.withLayoutPlacements.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -592,6 +666,39 @@ func (_q *EntityQuery) WithAttachments(opts ...func(*AttachmentQuery)) *EntityQu
 		opt(query)
 	}
 	_q.withAttachments = query
+	return _q
+}
+
+// WithStockAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "stock_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EntityQuery) WithStockAllocations(opts ...func(*EntityStockAllocationQuery)) *EntityQuery {
+	query := (&EntityStockAllocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withStockAllocations = query
+	return _q
+}
+
+// WithStockTransactions tells the query-builder to eager-load the nodes that are connected to
+// the "stock_transactions" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EntityQuery) WithStockTransactions(opts ...func(*EntityStockTransactionQuery)) *EntityQuery {
+	query := (&EntityStockTransactionClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withStockTransactions = query
+	return _q
+}
+
+// WithStockLocationAllocations tells the query-builder to eager-load the nodes that are connected to
+// the "stock_location_allocations" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *EntityQuery) WithStockLocationAllocations(opts ...func(*EntityStockAllocationQuery)) *EntityQuery {
+	query := (&EntityStockAllocationClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withStockLocationAllocations = query
 	return _q
 }
 
@@ -696,7 +803,7 @@ func (_q *EntityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Entit
 		nodes       = []*Entity{}
 		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
-		loadedTypes = [10]bool{
+		loadedTypes = [13]bool{
 			_q.withGroup != nil,
 			_q.withParent != nil,
 			_q.withChildren != nil,
@@ -705,6 +812,9 @@ func (_q *EntityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Entit
 			_q.withFields != nil,
 			_q.withMaintenanceEntries != nil,
 			_q.withAttachments != nil,
+			_q.withStockAllocations != nil,
+			_q.withStockTransactions != nil,
+			_q.withStockLocationAllocations != nil,
 			_q.withLocationLayout != nil,
 			_q.withLayoutPlacements != nil,
 		}
@@ -785,6 +895,33 @@ func (_q *EntityQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Entit
 		if err := _q.loadAttachments(ctx, query, nodes,
 			func(n *Entity) { n.Edges.Attachments = []*Attachment{} },
 			func(n *Entity, e *Attachment) { n.Edges.Attachments = append(n.Edges.Attachments, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withStockAllocations; query != nil {
+		if err := _q.loadStockAllocations(ctx, query, nodes,
+			func(n *Entity) { n.Edges.StockAllocations = []*EntityStockAllocation{} },
+			func(n *Entity, e *EntityStockAllocation) {
+				n.Edges.StockAllocations = append(n.Edges.StockAllocations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withStockTransactions; query != nil {
+		if err := _q.loadStockTransactions(ctx, query, nodes,
+			func(n *Entity) { n.Edges.StockTransactions = []*EntityStockTransaction{} },
+			func(n *Entity, e *EntityStockTransaction) {
+				n.Edges.StockTransactions = append(n.Edges.StockTransactions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withStockLocationAllocations; query != nil {
+		if err := _q.loadStockLocationAllocations(ctx, query, nodes,
+			func(n *Entity) { n.Edges.StockLocationAllocations = []*EntityStockAllocation{} },
+			func(n *Entity, e *EntityStockAllocation) {
+				n.Edges.StockLocationAllocations = append(n.Edges.StockLocationAllocations, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -1081,6 +1218,99 @@ func (_q *EntityQuery) loadAttachments(ctx context.Context, query *AttachmentQue
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "entity_attachments" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *EntityQuery) loadStockAllocations(ctx context.Context, query *EntityStockAllocationQuery, nodes []*Entity, init func(*Entity), assign func(*Entity, *EntityStockAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Entity)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(entitystockallocation.FieldEntityID)
+	}
+	query.Where(predicate.EntityStockAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(entity.StockAllocationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EntityID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "entity_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *EntityQuery) loadStockTransactions(ctx context.Context, query *EntityStockTransactionQuery, nodes []*Entity, init func(*Entity), assign func(*Entity, *EntityStockTransaction)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Entity)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(entitystocktransaction.FieldEntityID)
+	}
+	query.Where(predicate.EntityStockTransaction(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(entity.StockTransactionsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EntityID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "entity_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *EntityQuery) loadStockLocationAllocations(ctx context.Context, query *EntityStockAllocationQuery, nodes []*Entity, init func(*Entity), assign func(*Entity, *EntityStockAllocation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Entity)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(entitystockallocation.FieldLocationID)
+	}
+	query.Where(predicate.EntityStockAllocation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(entity.StockLocationAllocationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.LocationID
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "location_id" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "location_id" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

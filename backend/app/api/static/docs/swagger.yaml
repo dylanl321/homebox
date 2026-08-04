@@ -314,6 +314,22 @@ definitions:
         allOf:
         - $ref: '#/definitions/ent.Entity'
         description: Parent holds the value of the parent edge.
+      stock_allocations:
+        description: StockAllocations holds the value of the stock_allocations edge.
+        items:
+          $ref: '#/definitions/ent.EntityStockAllocation'
+        type: array
+      stock_location_allocations:
+        description: StockLocationAllocations holds the value of the stock_location_allocations
+          edge.
+        items:
+          $ref: '#/definitions/ent.EntityStockAllocation'
+        type: array
+      stock_transactions:
+        description: StockTransactions holds the value of the stock_transactions edge.
+        items:
+          $ref: '#/definitions/ent.EntityStockTransaction'
+        type: array
       tag:
         description: Tag holds the value of the tag edge.
         items:
@@ -366,6 +382,131 @@ definitions:
         allOf:
         - $ref: '#/definitions/ent.Entity'
         description: Entity holds the value of the entity edge.
+    type: object
+  ent.EntityStockAllocation:
+    properties:
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/ent.EntityStockAllocationEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the EntityStockAllocationQuery when eager-loading is set.
+      entity_id:
+        description: EntityID holds the value of the "entity_id" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      is_default:
+        description: IsDefault holds the value of the "is_default" field.
+        type: boolean
+      location_id:
+        description: LocationID holds the value of the "location_id" field.
+        type: string
+      quantity:
+        description: Quantity holds the value of the "quantity" field.
+        type: number
+      updated_at:
+        description: UpdatedAt holds the value of the "updated_at" field.
+        type: string
+    type: object
+  ent.EntityStockAllocationEdges:
+    properties:
+      entity:
+        allOf:
+        - $ref: '#/definitions/ent.Entity'
+        description: Entity holds the value of the entity edge.
+      location:
+        allOf:
+        - $ref: '#/definitions/ent.Entity'
+        description: Location holds the value of the location edge.
+    type: object
+  ent.EntityStockTransaction:
+    properties:
+      actor_id:
+        description: ActorID holds the value of the "actor_id" field.
+        type: string
+      after_total:
+        description: AfterTotal holds the value of the "after_total" field.
+        type: number
+      before_total:
+        description: BeforeTotal holds the value of the "before_total" field.
+        type: number
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      destination_after:
+        description: DestinationAfter holds the value of the "destination_after" field.
+        type: number
+      destination_before:
+        description: DestinationBefore holds the value of the "destination_before"
+          field.
+        type: number
+      destination_location_id:
+        description: DestinationLocationID holds the value of the "destination_location_id"
+          field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/ent.EntityStockTransactionEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the EntityStockTransactionQuery when eager-loading is set.
+      entity_id:
+        description: EntityID holds the value of the "entity_id" field.
+        type: string
+      group_id:
+        description: GroupID holds the value of the "group_id" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      idempotency_key:
+        description: IdempotencyKey holds the value of the "idempotency_key" field.
+        type: string
+      operation:
+        allOf:
+        - $ref: '#/definitions/entitystocktransaction.Operation'
+        description: Operation holds the value of the "operation" field.
+      quantity:
+        description: Quantity holds the value of the "quantity" field.
+        type: number
+      reason:
+        description: Reason holds the value of the "reason" field.
+        type: string
+      request_hash:
+        description: RequestHash holds the value of the "request_hash" field.
+        type: string
+      source_after:
+        description: SourceAfter holds the value of the "source_after" field.
+        type: number
+      source_before:
+        description: SourceBefore holds the value of the "source_before" field.
+        type: number
+      source_location_id:
+        description: SourceLocationID holds the value of the "source_location_id"
+          field.
+        type: string
+      updated_at:
+        description: UpdatedAt holds the value of the "updated_at" field.
+        type: string
+      workflow:
+        description: Workflow holds the value of the "workflow" field.
+        type: string
+    type: object
+  ent.EntityStockTransactionEdges:
+    properties:
+      entity:
+        allOf:
+        - $ref: '#/definitions/ent.Entity'
+        description: Entity holds the value of the entity edge.
+      group:
+        allOf:
+        - $ref: '#/definitions/ent.Group'
+        description: Group holds the value of the group edge.
     type: object
   ent.EntityTemplate:
     properties:
@@ -602,6 +743,11 @@ definitions:
         description: Notifiers holds the value of the notifiers edge.
         items:
           $ref: '#/definitions/ent.Notifier'
+        type: array
+      stock_transactions:
+        description: StockTransactions holds the value of the stock_transactions edge.
+        items:
+          $ref: '#/definitions/ent.EntityStockTransaction'
         type: array
       tags:
         description: Tags holds the value of the tags edge.
@@ -1138,6 +1284,22 @@ definitions:
     - TypeNumber
     - TypeBoolean
     - TypeTime
+  entitystocktransaction.Operation:
+    enum:
+    - adjust
+    - set
+    - transfer
+    - resolve_transfer
+    - resolve_remove
+    - legacy
+    type: string
+    x-enum-varnames:
+    - OperationAdjust
+    - OperationSet
+    - OperationTransfer
+    - OperationResolveTransfer
+    - OperationResolveRemove
+    - OperationLegacy
   export.Kind:
     enum:
     - export
@@ -1319,6 +1481,8 @@ definitions:
     type: object
   repo.EntityOut:
     properties:
+      allocatedQuantity:
+        type: number
       archived:
         type: boolean
       assetId:
@@ -1371,6 +1535,8 @@ definitions:
           items ultimately live in. Nil for top-level entities.
         x-nullable: true
         x-omitempty: true
+      locationCount:
+        type: integer
       manufacturer:
         type: string
       modelNumber:
@@ -1406,6 +1572,8 @@ definitions:
         type: number
       soldTo:
         type: string
+      stock:
+        $ref: '#/definitions/repo.StockState'
       syncChildEntityLocations:
         type: boolean
       tags:
@@ -1467,6 +1635,8 @@ definitions:
     - EntityPathTypeItem
   repo.EntitySummary:
     properties:
+      allocatedQuantity:
+        type: number
       archived:
         type: boolean
       assetId:
@@ -1492,6 +1662,8 @@ definitions:
       itemCount:
         description: Container-specific (populated when querying locations)
         type: number
+      locationCount:
+        type: integer
       name:
         type: string
       parent:
@@ -1988,7 +2160,7 @@ definitions:
       id:
         type: string
       itemCount:
-        type: integer
+        type: number
       name:
         type: string
       rotation:
@@ -2027,6 +2199,57 @@ definitions:
         type: number
       zOrder:
         type: integer
+    type: object
+  repo.LocationStockConflict:
+    properties:
+      entityId:
+        type: string
+      entityName:
+        type: string
+      isDefault:
+        type: boolean
+      quantity:
+        type: number
+    type: object
+  repo.LocationStockResolutionRequest:
+    properties:
+      action:
+        enum:
+        - transfer
+        - remove
+        type: string
+      confirmed:
+        type: boolean
+      destinationLocationId:
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      idempotencyKey:
+        maxLength: 255
+        minLength: 1
+        type: string
+      reason:
+        maxLength: 1000
+        type: string
+      workflow:
+        maxLength: 100
+        type: string
+    required:
+    - action
+    - idempotencyKey
+    type: object
+  repo.LocationStockResolutionResult:
+    properties:
+      allocations:
+        items:
+          $ref: '#/definitions/repo.LocationStockConflict'
+        type: array
+      itemCount:
+        type: integer
+      locationId:
+        type: string
+      totalQuantity:
+        type: number
     type: object
   repo.MaintenanceEntry:
     properties:
@@ -2163,6 +2386,175 @@ definitions:
         type: integer
       total:
         type: integer
+    type: object
+  repo.PaginationResult-repo_StockTransaction:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/repo.StockTransaction'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  repo.SetDefaultStockRequest:
+    properties:
+      locationId:
+        type: string
+        x-nullable: true
+        x-omitempty: true
+    type: object
+  repo.StockAllocation:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      isDefault:
+        type: boolean
+      itemId:
+        type: string
+      location:
+        allOf:
+        - $ref: '#/definitions/repo.EntitySummary'
+        x-nullable: true
+        x-omitempty: true
+      locationId:
+        type: string
+        x-nullable: true
+      quantity:
+        type: number
+      updatedAt:
+        type: string
+    type: object
+  repo.StockLocationSummary:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  repo.StockOperationRequest:
+    properties:
+      delta:
+        type: number
+        x-nullable: true
+        x-omitempty: true
+      fromLocationId:
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      idempotencyKey:
+        maxLength: 255
+        minLength: 1
+        type: string
+      locationId:
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      operation:
+        enum:
+        - adjust
+        - set
+        - transfer
+        type: string
+      quantity:
+        type: number
+        x-nullable: true
+        x-omitempty: true
+      reason:
+        maxLength: 1000
+        type: string
+      setDefault:
+        type: boolean
+      toLocationId:
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      workflow:
+        maxLength: 100
+        type: string
+    required:
+    - idempotencyKey
+    - operation
+    type: object
+  repo.StockState:
+    properties:
+      allocations:
+        items:
+          $ref: '#/definitions/repo.StockAllocation'
+        type: array
+      defaultLocationId:
+        type: string
+        x-nullable: true
+      totalQuantity:
+        type: number
+    type: object
+  repo.StockTransaction:
+    properties:
+      actorId:
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      actorName:
+        type: string
+      afterTotal:
+        type: number
+      beforeTotal:
+        type: number
+      createdAt:
+        type: string
+      destinationAfter:
+        type: number
+        x-nullable: true
+        x-omitempty: true
+      destinationBefore:
+        type: number
+        x-nullable: true
+        x-omitempty: true
+      destinationLocation:
+        allOf:
+        - $ref: '#/definitions/repo.StockLocationSummary'
+        x-nullable: true
+        x-omitempty: true
+      destinationLocationId:
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      entityId:
+        type: string
+      id:
+        type: string
+      idempotencyKey:
+        type: string
+      operation:
+        type: string
+      quantity:
+        type: number
+      reason:
+        type: string
+      sourceAfter:
+        type: number
+        x-nullable: true
+        x-omitempty: true
+      sourceBefore:
+        type: number
+        x-nullable: true
+        x-omitempty: true
+      sourceLocation:
+        allOf:
+        - $ref: '#/definitions/repo.StockLocationSummary'
+        x-nullable: true
+        x-omitempty: true
+      sourceLocationId:
+        type: string
+        x-nullable: true
+        x-omitempty: true
+      workflow:
+        type: string
     type: object
   repo.TagCreate:
     properties:
@@ -2416,6 +2808,8 @@ definitions:
         $ref: '#/definitions/v1.Build'
       demo:
         type: boolean
+      features:
+        $ref: '#/definitions/v1.FeatureStatus'
       health:
         type: boolean
       labelPrinting:
@@ -2488,6 +2882,11 @@ definitions:
     required:
     - name
     - parentId
+    type: object
+  v1.FeatureStatus:
+    properties:
+      stockAllocations:
+        type: boolean
     type: object
   v1.ForgotPasswordRequest:
     properties:
@@ -3253,6 +3652,128 @@ paths:
       summary: Get the full path of an entity
       tags:
       - Entities
+  /v1/entities/{id}/stock:
+    get:
+      parameters:
+      - description: Entity ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.StockState'
+      security:
+      - Bearer: []
+      summary: Get item stock allocations
+      tags:
+      - Stock
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Entity ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Stock operation
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/repo.StockOperationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.StockState'
+      security:
+      - Bearer: []
+      summary: Adjust, set, or transfer item stock
+      tags:
+      - Stock
+  /v1/entities/{id}/stock/default:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Entity ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Default allocation
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/repo.SetDefaultStockRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.StockState'
+      security:
+      - Bearer: []
+      summary: Set the compatibility default stock location
+      tags:
+      - Stock
+  /v1/entities/{locationId}/stock-resolution:
+    get:
+      parameters:
+      - description: Location ID
+        in: path
+        name: locationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.LocationStockResolutionResult'
+      security:
+      - Bearer: []
+      summary: List stock blocking location deletion
+      tags:
+      - Stock
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Location ID
+        in: path
+        name: locationId
+        required: true
+        type: string
+      - description: Resolution
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/repo.LocationStockResolutionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.LocationStockResolutionResult'
+      security:
+      - Bearer: []
+      summary: Resolve stock blocking location deletion
+      tags:
+      - Stock
   /v1/entities/export:
     get:
       responses:
@@ -3805,6 +4326,10 @@ paths:
         in: query
         name: print
         type: boolean
+      - description: Allocation location ID
+        in: query
+        name: locationId
+        type: string
       produces:
       - application/json
       responses:
@@ -3829,6 +4354,10 @@ paths:
         in: query
         name: print
         type: boolean
+      - description: Allocation location ID
+        in: query
+        name: locationId
+        type: string
       produces:
       - application/json
       responses:
@@ -4156,6 +4685,37 @@ paths:
       summary: Application Info
       tags:
       - Base
+  /v1/stock-transactions:
+    get:
+      parameters:
+      - description: Entity ID
+        in: query
+        name: entityId
+        type: string
+      - description: Location ID
+        in: query
+        name: locationId
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Page size
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repo.PaginationResult-repo_StockTransaction'
+      security:
+      - Bearer: []
+      summary: Get stock transaction history
+      tags:
+      - Stock
   /v1/tags:
     get:
       produces:

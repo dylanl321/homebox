@@ -39,6 +39,8 @@ const (
 	EdgeEntityTemplates = "entity_templates"
 	// EdgeExports holds the string denoting the exports edge name in mutations.
 	EdgeExports = "exports"
+	// EdgeStockTransactions holds the string denoting the stock_transactions edge name in mutations.
+	EdgeStockTransactions = "stock_transactions"
 	// EdgeUserGroups holds the string denoting the user_groups edge name in mutations.
 	EdgeUserGroups = "user_groups"
 	// Table holds the table name of the group in the database.
@@ -97,6 +99,13 @@ const (
 	ExportsInverseTable = "exports"
 	// ExportsColumn is the table column denoting the exports relation/edge.
 	ExportsColumn = "group_id"
+	// StockTransactionsTable is the table that holds the stock_transactions relation/edge.
+	StockTransactionsTable = "entity_stock_transactions"
+	// StockTransactionsInverseTable is the table name for the EntityStockTransaction entity.
+	// It exists in this package in order to avoid circular dependency with the "entitystocktransaction" package.
+	StockTransactionsInverseTable = "entity_stock_transactions"
+	// StockTransactionsColumn is the table column denoting the stock_transactions relation/edge.
+	StockTransactionsColumn = "group_id"
 	// UserGroupsTable is the table that holds the user_groups relation/edge.
 	UserGroupsTable = "user_groups"
 	// UserGroupsInverseTable is the table name for the UserGroup entity.
@@ -286,6 +295,20 @@ func ByExports(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByStockTransactionsCount orders the results by stock_transactions count.
+func ByStockTransactionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newStockTransactionsStep(), opts...)
+	}
+}
+
+// ByStockTransactions orders the results by stock_transactions terms.
+func ByStockTransactions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStockTransactionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByUserGroupsCount orders the results by user_groups count.
 func ByUserGroupsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -353,6 +376,13 @@ func newExportsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ExportsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ExportsTable, ExportsColumn),
+	)
+}
+func newStockTransactionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StockTransactionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, StockTransactionsTable, StockTransactionsColumn),
 	)
 }
 func newUserGroupsStep() *sqlgraph.Step {

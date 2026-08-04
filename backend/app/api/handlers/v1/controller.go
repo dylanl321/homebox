@@ -130,6 +130,7 @@ type (
 		LabelPrinting     bool            `json:"labelPrinting"`
 		OIDC              OIDCStatus      `json:"oidc"`
 		Telemetry         TelemetryStatus `json:"telemetry"`
+		Features          FeatureStatus   `json:"features"`
 	}
 
 	OIDCStatus struct {
@@ -141,6 +142,10 @@ type (
 
 	TelemetryStatus struct {
 		Enabled bool `json:"enabled"`
+	}
+
+	FeatureStatus struct {
+		StockAllocations bool `json:"stockAllocations"`
 	}
 )
 
@@ -201,6 +206,7 @@ func (ctrl *V1Controller) HandleBase(ready ReadyFunc, build Build) errchain.Hand
 			Telemetry: TelemetryStatus{
 				Enabled: ctrl.config.Otel.Enabled,
 			},
+			Features: FeatureStatus{StockAllocations: true},
 		})
 	}
 }

@@ -186,6 +186,12 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 
 		r.Get("/entities/{id}", chain.ToHandlerFunc(v1Ctrl.HandleEntityGet(), userMW...))
 		r.Get("/entities/{id}/path", chain.ToHandlerFunc(v1Ctrl.HandleEntityFullPath(), userMW...))
+		// homebox-fork: multi-location-stock
+		r.Get("/entities/{id}/stock", chain.ToHandlerFunc(v1Ctrl.HandleEntityStockGet(), userMW...))
+		r.Post("/entities/{id}/stock", chain.ToHandlerFunc(v1Ctrl.HandleEntityStockPost(), userMW...))
+		r.Post("/entities/{id}/stock/default", chain.ToHandlerFunc(v1Ctrl.HandleEntityStockDefaultPost(), userMW...))
+		r.Get("/entities/{locationId}/stock-resolution", chain.ToHandlerFunc(v1Ctrl.HandleLocationStockResolutionGet(), userMW...))
+		r.Post("/entities/{locationId}/stock-resolution", chain.ToHandlerFunc(v1Ctrl.HandleLocationStockResolutionPost(), userMW...))
 		// homebox-fork: overhead-location-layout
 		r.Get("/entities/{id}/layout", chain.ToHandlerFunc(v1Ctrl.HandleLocationLayoutGet(), userMW...))
 		r.Put("/entities/{id}/layout", chain.ToHandlerFunc(v1Ctrl.HandleLocationLayoutReplace(), userMW...))
@@ -194,6 +200,7 @@ func (a *app) mountRoutes(r *chi.Mux, chain *errchain.ErrChain, repos *repo.AllR
 		r.Patch("/entities/{id}", chain.ToHandlerFunc(v1Ctrl.HandleEntityPatch(), userMW...))
 		r.Delete("/entities/{id}", chain.ToHandlerFunc(v1Ctrl.HandleEntityDelete(), userMW...))
 		r.Post("/entities/{id}/duplicate", chain.ToHandlerFunc(v1Ctrl.HandleEntityDuplicate(), userMW...))
+		r.Get("/stock-transactions", chain.ToHandlerFunc(v1Ctrl.HandleStockTransactionsGet(), userMW...))
 
 		// Entity attachment endpoints
 		r.Post("/entities/{id}/attachments", chain.ToHandlerFunc(v1Ctrl.HandleEntityAttachmentCreate(), userMW...))

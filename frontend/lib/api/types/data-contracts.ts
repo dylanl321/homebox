@@ -35,6 +35,11 @@ export enum EntityPathType {
   EntityPathTypeItem = "item",
 }
 
+export enum LocationlayoutelementKind {
+  KindWall = "wall",
+  KindLocation = "location",
+}
+
 export enum ExportStatus {
   DefaultStatus = "pending",
   StatusPending = "pending",
@@ -47,6 +52,15 @@ export enum ExportKind {
   DefaultKind = "export",
   KindExport = "export",
   KindImport = "import",
+}
+
+export enum EntitystocktransactionOperation {
+  OperationAdjust = "adjust",
+  OperationSet = "set",
+  OperationTransfer = "transfer",
+  OperationResolveTransfer = "resolve_transfer",
+  OperationResolveRemove = "resolve_remove",
+  OperationLegacy = "legacy",
 }
 
 export enum EntityfieldType {
@@ -250,10 +264,20 @@ export interface EntEntityEdges {
   fields: EntEntityField[];
   /** Group holds the value of the group edge. */
   group: EntGroup;
+  /** LayoutPlacements holds the value of the layout_placements edge. */
+  layout_placements: EntLocationLayoutElement[];
+  /** LocationLayout holds the value of the location_layout edge. */
+  location_layout: EntLocationLayout;
   /** MaintenanceEntries holds the value of the maintenance_entries edge. */
   maintenance_entries: EntMaintenanceEntry[];
   /** Parent holds the value of the parent edge. */
   parent: EntEntity;
+  /** StockAllocations holds the value of the stock_allocations edge. */
+  stock_allocations: EntEntityStockAllocation[];
+  /** StockLocationAllocations holds the value of the stock_location_allocations edge. */
+  stock_location_allocations: EntEntityStockAllocation[];
+  /** StockTransactions holds the value of the stock_transactions edge. */
+  stock_transactions: EntEntityStockTransaction[];
   /** Tag holds the value of the tag edge. */
   tag: EntTag[];
 }
@@ -289,6 +313,90 @@ export interface EntEntityField {
 export interface EntEntityFieldEdges {
   /** Entity holds the value of the entity edge. */
   entity: EntEntity;
+}
+
+export interface EntEntityStockAllocation {
+  /** CreatedAt holds the value of the "created_at" field. */
+  created_at: string;
+  /**
+   * Edges holds the relations/edges for other nodes in the graph.
+   * The values are being populated by the EntityStockAllocationQuery when eager-loading is set.
+   */
+  edges: EntEntityStockAllocationEdges;
+  /** EntityID holds the value of the "entity_id" field. */
+  entity_id: string;
+  /** ID of the ent. */
+  id: string;
+  /** IsDefault holds the value of the "is_default" field. */
+  is_default: boolean;
+  /** LocationID holds the value of the "location_id" field. */
+  location_id: string;
+  /** Quantity holds the value of the "quantity" field. */
+  quantity: number;
+  /** UpdatedAt holds the value of the "updated_at" field. */
+  updated_at: string;
+}
+
+export interface EntEntityStockAllocationEdges {
+  /** Entity holds the value of the entity edge. */
+  entity: EntEntity;
+  /** Location holds the value of the location edge. */
+  location: EntEntity;
+}
+
+export interface EntEntityStockTransaction {
+  /** ActorID holds the value of the "actor_id" field. */
+  actor_id: string;
+  /** AfterTotal holds the value of the "after_total" field. */
+  after_total: number;
+  /** BeforeTotal holds the value of the "before_total" field. */
+  before_total: number;
+  /** CreatedAt holds the value of the "created_at" field. */
+  created_at: string;
+  /** DestinationAfter holds the value of the "destination_after" field. */
+  destination_after: number;
+  /** DestinationBefore holds the value of the "destination_before" field. */
+  destination_before: number;
+  /** DestinationLocationID holds the value of the "destination_location_id" field. */
+  destination_location_id: string;
+  /**
+   * Edges holds the relations/edges for other nodes in the graph.
+   * The values are being populated by the EntityStockTransactionQuery when eager-loading is set.
+   */
+  edges: EntEntityStockTransactionEdges;
+  /** EntityID holds the value of the "entity_id" field. */
+  entity_id: string;
+  /** GroupID holds the value of the "group_id" field. */
+  group_id: string;
+  /** ID of the ent. */
+  id: string;
+  /** IdempotencyKey holds the value of the "idempotency_key" field. */
+  idempotency_key: string;
+  /** Operation holds the value of the "operation" field. */
+  operation: EntitystocktransactionOperation;
+  /** Quantity holds the value of the "quantity" field. */
+  quantity: number;
+  /** Reason holds the value of the "reason" field. */
+  reason: string;
+  /** RequestHash holds the value of the "request_hash" field. */
+  request_hash: string;
+  /** SourceAfter holds the value of the "source_after" field. */
+  source_after: number;
+  /** SourceBefore holds the value of the "source_before" field. */
+  source_before: number;
+  /** SourceLocationID holds the value of the "source_location_id" field. */
+  source_location_id: string;
+  /** UpdatedAt holds the value of the "updated_at" field. */
+  updated_at: string;
+  /** Workflow holds the value of the "workflow" field. */
+  workflow: string;
+}
+
+export interface EntEntityStockTransactionEdges {
+  /** Entity holds the value of the entity edge. */
+  entity: EntEntity;
+  /** Group holds the value of the group edge. */
+  group: EntGroup;
 }
 
 export interface EntEntityTemplate {
@@ -439,6 +547,8 @@ export interface EntGroupEdges {
   invitation_tokens: EntGroupInvitationToken[];
   /** Notifiers holds the value of the notifiers edge. */
   notifiers: EntNotifier[];
+  /** StockTransactions holds the value of the stock_transactions edge. */
+  stock_transactions: EntEntityStockTransaction[];
   /** Tags holds the value of the tags edge. */
   tags: EntTag[];
   /** UserGroups holds the value of the user_groups edge. */
@@ -470,6 +580,72 @@ export interface EntGroupInvitationToken {
 export interface EntGroupInvitationTokenEdges {
   /** Group holds the value of the group edge. */
   group: EntGroup;
+}
+
+export interface EntLocationLayout {
+  /** CanvasHeight holds the value of the "canvas_height" field. */
+  canvas_height: number;
+  /** CanvasWidth holds the value of the "canvas_width" field. */
+  canvas_width: number;
+  /** CreatedAt holds the value of the "created_at" field. */
+  created_at: string;
+  /**
+   * Edges holds the relations/edges for other nodes in the graph.
+   * The values are being populated by the LocationLayoutQuery when eager-loading is set.
+   */
+  edges: EntLocationLayoutEdges;
+  /** ID of the ent. */
+  id: string;
+  /** Revision holds the value of the "revision" field. */
+  revision: number;
+  /** UpdatedAt holds the value of the "updated_at" field. */
+  updated_at: string;
+}
+
+export interface EntLocationLayoutEdges {
+  /** Elements holds the value of the elements edge. */
+  elements: EntLocationLayoutElement[];
+  /** Owner holds the value of the owner edge. */
+  owner: EntEntity;
+}
+
+export interface EntLocationLayoutElement {
+  /** CreatedAt holds the value of the "created_at" field. */
+  created_at: string;
+  /**
+   * Edges holds the relations/edges for other nodes in the graph.
+   * The values are being populated by the LocationLayoutElementQuery when eager-loading is set.
+   */
+  edges: EntLocationLayoutElementEdges;
+  /** EndX holds the value of the "end_x" field. */
+  end_x: number;
+  /** EndY holds the value of the "end_y" field. */
+  end_y: number;
+  /** Height holds the value of the "height" field. */
+  height: number;
+  /** ID of the ent. */
+  id: string;
+  /** Kind holds the value of the "kind" field. */
+  kind: LocationlayoutelementKind;
+  /** Rotation holds the value of the "rotation" field. */
+  rotation: number;
+  /** UpdatedAt holds the value of the "updated_at" field. */
+  updated_at: string;
+  /** Width holds the value of the "width" field. */
+  width: number;
+  /** X holds the value of the "x" field. */
+  x: number;
+  /** Y holds the value of the "y" field. */
+  y: number;
+  /** ZOrder holds the value of the "z_order" field. */
+  z_order: number;
+}
+
+export interface EntLocationLayoutElementEdges {
+  /** Layout holds the value of the layout edge. */
+  layout: EntLocationLayout;
+  /** Target holds the value of the target edge. */
+  target: EntEntity;
 }
 
 export interface EntMaintenanceEntry {
@@ -811,6 +987,7 @@ export interface EntityListResult {
 }
 
 export interface EntityOut {
+  allocatedQuantity: number;
   archived: boolean;
   /** @example "0" */
   assetId: string;
@@ -835,6 +1012,7 @@ export interface EntityOut {
    * items ultimately live in. Nil for top-level entities.
    */
   location?: EntitySummary | null;
+  locationCount: number;
   manufacturer: string;
   modelNumber: string;
   name: string;
@@ -853,6 +1031,7 @@ export interface EntityOut {
   soldNotes: string;
   soldPrice: number;
   soldTo: string;
+  stock: StockState;
   syncChildEntityLocations: boolean;
   tags: TagSummary[];
   thumbnailId?: string | null;
@@ -877,6 +1056,7 @@ export interface EntityPath {
 }
 
 export interface EntitySummary {
+  allocatedQuantity: number;
   archived: boolean;
   /** @example "0" */
   assetId: string;
@@ -888,6 +1068,7 @@ export interface EntitySummary {
   insured: boolean;
   /** Container-specific (populated when querying locations) */
   itemCount: number;
+  locationCount: number;
   name: string;
   /** Edges */
   parent?: EntitySummary | null;
@@ -1189,6 +1370,35 @@ export interface LocationLayoutWall {
   zOrder: number;
 }
 
+export interface LocationStockConflict {
+  entityId: string;
+  entityName: string;
+  isDefault: boolean;
+  quantity: number;
+}
+
+export interface LocationStockResolutionRequest {
+  action: "transfer" | "remove";
+  confirmed: boolean;
+  destinationLocationId?: string | null;
+  /**
+   * @minLength 1
+   * @maxLength 255
+   */
+  idempotencyKey: string;
+  /** @maxLength 1000 */
+  reason: string;
+  /** @maxLength 100 */
+  workflow: string;
+}
+
+export interface LocationStockResolutionResult {
+  allocations: LocationStockConflict[];
+  itemCount: number;
+  locationId: string;
+  totalQuantity: number;
+}
+
 export interface MaintenanceEntry {
   completedDate: Date | string;
   /** @example "0" */
@@ -1265,6 +1475,81 @@ export interface PaginationResultEntitySummary {
   page: number;
   pageSize: number;
   total: number;
+}
+
+export interface PaginationResultStockTransaction {
+  items: StockTransaction[];
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface SetDefaultStockRequest {
+  locationId?: string | null;
+}
+
+export interface StockAllocation {
+  createdAt: Date | string;
+  id: string;
+  isDefault: boolean;
+  itemId: string;
+  location?: EntitySummary | null;
+  locationId?: string | null;
+  quantity: number;
+  updatedAt: Date | string;
+}
+
+export interface StockLocationSummary {
+  id: string;
+  name: string;
+}
+
+export interface StockOperationRequest {
+  delta?: number | null;
+  fromLocationId?: string | null;
+  /**
+   * @minLength 1
+   * @maxLength 255
+   */
+  idempotencyKey: string;
+  locationId?: string | null;
+  operation: "adjust" | "set" | "transfer";
+  quantity?: number | null;
+  /** @maxLength 1000 */
+  reason: string;
+  setDefault: boolean;
+  toLocationId?: string | null;
+  /** @maxLength 100 */
+  workflow: string;
+}
+
+export interface StockState {
+  allocations: StockAllocation[];
+  defaultLocationId?: string | null;
+  totalQuantity: number;
+}
+
+export interface StockTransaction {
+  actorId?: string | null;
+  actorName: string;
+  afterTotal: number;
+  beforeTotal: number;
+  createdAt: Date | string;
+  destinationAfter?: number | null;
+  destinationBefore?: number | null;
+  destinationLocation?: StockLocationSummary | null;
+  destinationLocationId?: string | null;
+  entityId: string;
+  id: string;
+  idempotencyKey: string;
+  operation: string;
+  quantity: number;
+  reason: string;
+  sourceAfter?: number | null;
+  sourceBefore?: number | null;
+  sourceLocation?: StockLocationSummary | null;
+  sourceLocationId?: string | null;
+  workflow: string;
 }
 
 export interface TagCreate {
@@ -1405,6 +1690,7 @@ export interface APISummary {
   allowRegistration: boolean;
   build: Build;
   demo: boolean;
+  features: FeatureStatus;
   health: boolean;
   labelPrinting: boolean;
   latest: Latest;
@@ -1450,6 +1736,10 @@ export interface EntityTemplateCreateItemRequest {
   parentId: string;
   quantity: number;
   tagIds: string[];
+}
+
+export interface FeatureStatus {
+  stockAllocations: boolean;
 }
 
 export interface ForgotPasswordRequest {

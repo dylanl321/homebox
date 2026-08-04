@@ -1132,6 +1132,203 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/entities/{id}/stock": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stock"
+                ],
+                "summary": "Get item stock allocations",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Entity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.StockState"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stock"
+                ],
+                "summary": "Adjust, set, or transfer item stock",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Entity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Stock operation",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/repo.StockOperationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.StockState"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/entities/{id}/stock/default": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stock"
+                ],
+                "summary": "Set the compatibility default stock location",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Entity ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Default allocation",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/repo.SetDefaultStockRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.StockState"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/entities/{locationId}/stock-resolution": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stock"
+                ],
+                "summary": "List stock blocking location deletion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Location ID",
+                        "name": "locationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.LocationStockResolutionResult"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stock"
+                ],
+                "summary": "Resolve stock blocking location deletion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Location ID",
+                        "name": "locationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Resolution",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/repo.LocationStockResolutionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.LocationStockResolutionResult"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/entity-types": {
             "get": {
                 "security": [
@@ -1898,6 +2095,12 @@ const docTemplate = `{
                         "description": "Print this label, defaults to false",
                         "name": "print",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Allocation location ID",
+                        "name": "locationId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1936,6 +2139,12 @@ const docTemplate = `{
                         "type": "boolean",
                         "description": "Print this label, defaults to false",
                         "name": "print",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Allocation location ID",
+                        "name": "locationId",
                         "in": "query"
                     }
                 ],
@@ -2462,6 +2671,56 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/v1.APISummary"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/stock-transactions": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stock"
+                ],
+                "summary": "Get stock transaction history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Entity ID",
+                        "name": "entityId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Location ID",
+                        "name": "locationId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size",
+                        "name": "pageSize",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/repo.PaginationResult-repo_StockTransaction"
                         }
                     }
                 }
@@ -3940,6 +4199,27 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "stock_allocations": {
+                    "description": "StockAllocations holds the value of the stock_allocations edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.EntityStockAllocation"
+                    }
+                },
+                "stock_location_allocations": {
+                    "description": "StockLocationAllocations holds the value of the stock_location_allocations edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.EntityStockAllocation"
+                    }
+                },
+                "stock_transactions": {
+                    "description": "StockTransactions holds the value of the stock_transactions edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.EntityStockTransaction"
+                    }
+                },
                 "tag": {
                     "description": "Tag holds the value of the tag edge.",
                     "type": "array",
@@ -4014,6 +4294,186 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/ent.Entity"
+                        }
+                    ]
+                }
+            }
+        },
+        "ent.EntityStockAllocation": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the EntityStockAllocationQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.EntityStockAllocationEdges"
+                        }
+                    ]
+                },
+                "entity_id": {
+                    "description": "EntityID holds the value of the \"entity_id\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "is_default": {
+                    "description": "IsDefault holds the value of the \"is_default\" field.",
+                    "type": "boolean"
+                },
+                "location_id": {
+                    "description": "LocationID holds the value of the \"location_id\" field.",
+                    "type": "string"
+                },
+                "quantity": {
+                    "description": "Quantity holds the value of the \"quantity\" field.",
+                    "type": "number"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt holds the value of the \"updated_at\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "ent.EntityStockAllocationEdges": {
+            "type": "object",
+            "properties": {
+                "entity": {
+                    "description": "Entity holds the value of the entity edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.Entity"
+                        }
+                    ]
+                },
+                "location": {
+                    "description": "Location holds the value of the location edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.Entity"
+                        }
+                    ]
+                }
+            }
+        },
+        "ent.EntityStockTransaction": {
+            "type": "object",
+            "properties": {
+                "actor_id": {
+                    "description": "ActorID holds the value of the \"actor_id\" field.",
+                    "type": "string"
+                },
+                "after_total": {
+                    "description": "AfterTotal holds the value of the \"after_total\" field.",
+                    "type": "number"
+                },
+                "before_total": {
+                    "description": "BeforeTotal holds the value of the \"before_total\" field.",
+                    "type": "number"
+                },
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "destination_after": {
+                    "description": "DestinationAfter holds the value of the \"destination_after\" field.",
+                    "type": "number"
+                },
+                "destination_before": {
+                    "description": "DestinationBefore holds the value of the \"destination_before\" field.",
+                    "type": "number"
+                },
+                "destination_location_id": {
+                    "description": "DestinationLocationID holds the value of the \"destination_location_id\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the EntityStockTransactionQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.EntityStockTransactionEdges"
+                        }
+                    ]
+                },
+                "entity_id": {
+                    "description": "EntityID holds the value of the \"entity_id\" field.",
+                    "type": "string"
+                },
+                "group_id": {
+                    "description": "GroupID holds the value of the \"group_id\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "idempotency_key": {
+                    "description": "IdempotencyKey holds the value of the \"idempotency_key\" field.",
+                    "type": "string"
+                },
+                "operation": {
+                    "description": "Operation holds the value of the \"operation\" field.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entitystocktransaction.Operation"
+                        }
+                    ]
+                },
+                "quantity": {
+                    "description": "Quantity holds the value of the \"quantity\" field.",
+                    "type": "number"
+                },
+                "reason": {
+                    "description": "Reason holds the value of the \"reason\" field.",
+                    "type": "string"
+                },
+                "request_hash": {
+                    "description": "RequestHash holds the value of the \"request_hash\" field.",
+                    "type": "string"
+                },
+                "source_after": {
+                    "description": "SourceAfter holds the value of the \"source_after\" field.",
+                    "type": "number"
+                },
+                "source_before": {
+                    "description": "SourceBefore holds the value of the \"source_before\" field.",
+                    "type": "number"
+                },
+                "source_location_id": {
+                    "description": "SourceLocationID holds the value of the \"source_location_id\" field.",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt holds the value of the \"updated_at\" field.",
+                    "type": "string"
+                },
+                "workflow": {
+                    "description": "Workflow holds the value of the \"workflow\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "ent.EntityStockTransactionEdges": {
+            "type": "object",
+            "properties": {
+                "entity": {
+                    "description": "Entity holds the value of the entity edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.Entity"
+                        }
+                    ]
+                },
+                "group": {
+                    "description": "Group holds the value of the group edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/ent.Group"
                         }
                     ]
                 }
@@ -4354,6 +4814,13 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/ent.Notifier"
+                    }
+                },
+                "stock_transactions": {
+                    "description": "StockTransactions holds the value of the stock_transactions edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ent.EntityStockTransaction"
                     }
                 },
                 "tags": {
@@ -5140,6 +5607,25 @@ const docTemplate = `{
                 "TypeTime"
             ]
         },
+        "entitystocktransaction.Operation": {
+            "type": "string",
+            "enum": [
+                "adjust",
+                "set",
+                "transfer",
+                "resolve_transfer",
+                "resolve_remove",
+                "legacy"
+            ],
+            "x-enum-varnames": [
+                "OperationAdjust",
+                "OperationSet",
+                "OperationTransfer",
+                "OperationResolveTransfer",
+                "OperationResolveRemove",
+                "OperationLegacy"
+            ]
+        },
         "export.Kind": {
             "type": "string",
             "enum": [
@@ -5395,6 +5881,9 @@ const docTemplate = `{
         "repo.EntityOut": {
             "type": "object",
             "properties": {
+                "allocatedQuantity": {
+                    "type": "number"
+                },
                 "archived": {
                     "type": "boolean"
                 },
@@ -5465,6 +5954,9 @@ const docTemplate = `{
                     "x-nullable": true,
                     "x-omitempty": true
                 },
+                "locationCount": {
+                    "type": "integer"
+                },
                 "manufacturer": {
                     "type": "string"
                 },
@@ -5516,6 +6008,9 @@ const docTemplate = `{
                 },
                 "soldTo": {
                     "type": "string"
+                },
+                "stock": {
+                    "$ref": "#/definitions/repo.StockState"
                 },
                 "syncChildEntityLocations": {
                     "type": "boolean"
@@ -5604,6 +6099,9 @@ const docTemplate = `{
         "repo.EntitySummary": {
             "type": "object",
             "properties": {
+                "allocatedQuantity": {
+                    "type": "number"
+                },
                 "archived": {
                     "type": "boolean"
                 },
@@ -5640,6 +6138,9 @@ const docTemplate = `{
                 "itemCount": {
                     "description": "Container-specific (populated when querying locations)",
                     "type": "number"
+                },
+                "locationCount": {
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string"
@@ -6359,7 +6860,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "itemCount": {
-                    "type": "integer"
+                    "type": "number"
                 },
                 "name": {
                     "type": "string"
@@ -6418,6 +6919,80 @@ const docTemplate = `{
                 },
                 "zOrder": {
                     "type": "integer"
+                }
+            }
+        },
+        "repo.LocationStockConflict": {
+            "type": "object",
+            "properties": {
+                "entityId": {
+                    "type": "string"
+                },
+                "entityName": {
+                    "type": "string"
+                },
+                "isDefault": {
+                    "type": "boolean"
+                },
+                "quantity": {
+                    "type": "number"
+                }
+            }
+        },
+        "repo.LocationStockResolutionRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "idempotencyKey"
+            ],
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "transfer",
+                        "remove"
+                    ]
+                },
+                "confirmed": {
+                    "type": "boolean"
+                },
+                "destinationLocationId": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "idempotencyKey": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 1000
+                },
+                "workflow": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
+        "repo.LocationStockResolutionResult": {
+            "type": "object",
+            "properties": {
+                "allocations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.LocationStockConflict"
+                    }
+                },
+                "itemCount": {
+                    "type": "integer"
+                },
+                "locationId": {
+                    "type": "string"
+                },
+                "totalQuantity": {
+                    "type": "number"
                 }
             }
         },
@@ -6619,6 +7194,250 @@ const docTemplate = `{
                 },
                 "total": {
                     "type": "integer"
+                }
+            }
+        },
+        "repo.PaginationResult-repo_StockTransaction": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.StockTransaction"
+                    }
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "repo.SetDefaultStockRequest": {
+            "type": "object",
+            "properties": {
+                "locationId": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                }
+            }
+        },
+        "repo.StockAllocation": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isDefault": {
+                    "type": "boolean"
+                },
+                "itemId": {
+                    "type": "string"
+                },
+                "location": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/repo.EntitySummary"
+                        }
+                    ],
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "locationId": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "repo.StockLocationSummary": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "repo.StockOperationRequest": {
+            "type": "object",
+            "required": [
+                "idempotencyKey",
+                "operation"
+            ],
+            "properties": {
+                "delta": {
+                    "type": "number",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "fromLocationId": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "idempotencyKey": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1
+                },
+                "locationId": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "operation": {
+                    "type": "string",
+                    "enum": [
+                        "adjust",
+                        "set",
+                        "transfer"
+                    ]
+                },
+                "quantity": {
+                    "type": "number",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "reason": {
+                    "type": "string",
+                    "maxLength": 1000
+                },
+                "setDefault": {
+                    "type": "boolean"
+                },
+                "toLocationId": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "workflow": {
+                    "type": "string",
+                    "maxLength": 100
+                }
+            }
+        },
+        "repo.StockState": {
+            "type": "object",
+            "properties": {
+                "allocations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.StockAllocation"
+                    }
+                },
+                "defaultLocationId": {
+                    "type": "string",
+                    "x-nullable": true
+                },
+                "totalQuantity": {
+                    "type": "number"
+                }
+            }
+        },
+        "repo.StockTransaction": {
+            "type": "object",
+            "properties": {
+                "actorId": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "actorName": {
+                    "type": "string"
+                },
+                "afterTotal": {
+                    "type": "number"
+                },
+                "beforeTotal": {
+                    "type": "number"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "destinationAfter": {
+                    "type": "number",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "destinationBefore": {
+                    "type": "number",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "destinationLocation": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/repo.StockLocationSummary"
+                        }
+                    ],
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "destinationLocationId": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "entityId": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "idempotencyKey": {
+                    "type": "string"
+                },
+                "operation": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "number"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "sourceAfter": {
+                    "type": "number",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "sourceBefore": {
+                    "type": "number",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "sourceLocation": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/repo.StockLocationSummary"
+                        }
+                    ],
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "sourceLocationId": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "workflow": {
+                    "type": "string"
                 }
             }
         },
@@ -6999,6 +7818,9 @@ const docTemplate = `{
                 "demo": {
                     "type": "boolean"
                 },
+                "features": {
+                    "$ref": "#/definitions/v1.FeatureStatus"
+                },
                 "health": {
                     "type": "boolean"
                 },
@@ -7103,6 +7925,14 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "v1.FeatureStatus": {
+            "type": "object",
+            "properties": {
+                "stockAllocations": {
+                    "type": "boolean"
                 }
             }
         },

@@ -24,6 +24,12 @@ type Entity func(*sql.Selector)
 // EntityField is the predicate function for entityfield builders.
 type EntityField func(*sql.Selector)
 
+// EntityStockAllocation is the predicate function for entitystockallocation builders.
+type EntityStockAllocation func(*sql.Selector)
+
+// EntityStockTransaction is the predicate function for entitystocktransaction builders.
+type EntityStockTransaction func(*sql.Selector)
+
 // EntityTemplate is the predicate function for entitytemplate builders.
 type EntityTemplate func(*sql.Selector)
 

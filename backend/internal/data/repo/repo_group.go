@@ -126,14 +126,14 @@ func (r *GroupRepository) StatsLocationsByPurchasePrice(ctx context.Context, gid
 	// Query entities that are containers (is_location=true) and sum purchase prices of their children
 	q := `
 		SELECT parent.id, parent.name,
-			COALESCE(SUM(child.purchase_price), 0) AS total
+			COALESCE(SUM(child.purchase_price * esa.quantity), 0) AS total
 		FROM entities parent
 		JOIN entity_types et ON et.id = parent.entity_type_entities
-		LEFT JOIN entities child ON child.entity_children = parent.id
-			AND child.entity_type_entities IN (SELECT id FROM entity_types WHERE is_location = false)
+		LEFT JOIN entity_stock_allocations esa ON esa.location_id = parent.id
+		LEFT JOIN entities child ON child.id = esa.entity_id AND child.archived = false
 		WHERE parent.group_entities = $1 AND et.is_location = true
 		GROUP BY parent.id, parent.name
-		HAVING COALESCE(SUM(child.purchase_price), 0) > 0
+		HAVING COALESCE(SUM(child.purchase_price * esa.quantity), 0) > 0
 	`
 
 	rows, err := r.db.Sql().QueryContext(ctx, q, gid)
@@ -169,7 +169,7 @@ func (r *GroupRepository) StatsTagsByPurchasePrice(ctx context.Context, gid uuid
 			sq.Join(jt).On(sq.C(tag.FieldID), jt.C(tag.EntitiesPrimaryKey[0]))
 			sq.Join(entityTable).On(jt.C(tag.EntitiesPrimaryKey[1]), entityTable.C(entity.FieldID))
 
-			return sql.As(sql.Sum(entityTable.C(entity.FieldPurchasePrice)), "total")
+			return sql.As(fmt.Sprintf("SUM(%s * %s)", entityTable.C(entity.FieldPurchasePrice), entityTable.C(entity.FieldQuantity)), "total")
 		}).
 		Scan(ctx, &v)
 	if err != nil {
@@ -183,8 +183,8 @@ func (r *GroupRepository) StatsPurchasePrice(ctx context.Context, gid uuid.UUID,
 	// Get the Totals for the Start and End of the Given Time Period
 	q := `
 	SELECT
-		SUM(CASE WHEN e.created_at < $1 THEN e.purchase_price ELSE 0 END) AS price_at_start,
-		SUM(CASE WHEN e.created_at < $2 THEN e.purchase_price ELSE 0 END) AS price_at_end
+		SUM(CASE WHEN e.created_at < $1 THEN e.purchase_price * e.quantity ELSE 0 END) AS price_at_start,
+		SUM(CASE WHEN e.created_at < $2 THEN e.purchase_price * e.quantity ELSE 0 END) AS price_at_end
 	FROM entities e
 	JOIN entity_types et ON et.id = e.entity_type_entities
 	WHERE e.group_entities = $3 AND e.archived = false AND et.is_location = false
@@ -210,6 +210,7 @@ func (r *GroupRepository) StatsPurchasePrice(ctx context.Context, gid uuid.UUID,
 		Name          string    `json:"name"`
 		CreatedAt     time.Time `json:"created_at"`
 		PurchasePrice float64   `json:"purchase_price"`
+		Quantity      float64   `json:"quantity"`
 	}
 
 	var v []itemPriceEntry
@@ -227,6 +228,7 @@ func (r *GroupRepository) StatsPurchasePrice(ctx context.Context, gid uuid.UUID,
 			entity.FieldName,
 			entity.FieldCreatedAt,
 			entity.FieldPurchasePrice,
+			entity.FieldQuantity,
 		).
 		Scan(ctx, &v)
 
@@ -237,7 +239,7 @@ func (r *GroupRepository) StatsPurchasePrice(ctx context.Context, gid uuid.UUID,
 	stats.Entries = lo.Map(v, func(vv itemPriceEntry, _ int) ValueOverTimeEntry {
 		return ValueOverTimeEntry{
 			Date:  vv.CreatedAt,
-			Value: vv.PurchasePrice,
+			Value: vv.PurchasePrice * vv.Quantity,
 		}
 	})
 

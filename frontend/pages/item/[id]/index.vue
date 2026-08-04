@@ -45,6 +45,8 @@
   import DetailsSection from "~/components/global/DetailsSection/DetailsSection.vue";
   import ItemAttachmentsList from "~/components/Item/AttachmentsList.vue";
   import ItemViewSelectable from "~/components/Item/View/Selectable.vue";
+  import ItemStockManager from "~/components/Item/StockManager.vue";
+  import type { StockEntityOut, StockState } from "~~/lib/api/types/stock";
 
   const { t } = useI18n();
 
@@ -117,6 +119,17 @@
     if (resp.data) {
       item.value = resp.data;
     }
+  }
+
+  const itemStock = computed(() => (item.value as StockEntityOut | undefined)?.stock);
+  const isMultiLocation = computed(
+    () => (itemStock.value?.allocations.filter(allocation => allocation.quantity > 0).length ?? 0) > 1
+  );
+
+  function stockUpdated(stock: StockState) {
+    if (!item.value) return;
+    (item.value as StockEntityOut).stock = stock;
+    item.value.quantity = stock.totalQuantity;
   }
 
   type FilteredAttachments = {
@@ -221,7 +234,7 @@
     const ret: Details = [
       {
         name: "items.quantity",
-        text: item.value?.quantity,
+        text: itemStock.value?.totalQuantity ?? item.value?.quantity,
         slot: "quantity",
       },
       {
@@ -613,7 +626,11 @@
       return;
     }
 
-    toast.success(t("components.template.toast.saved_as_template", { name: templateData.name }));
+    toast.success(
+      t("components.template.toast.saved_as_template", {
+        name: templateData.name,
+      })
+    );
     navigateTo(`/template/${data.id}`);
   }
 
@@ -701,11 +718,11 @@
             </div>
             <div class="ml-auto mt-2 flex flex-wrap items-center justify-between gap-2">
               <LabelMaker
-                v-if="typeof item.assetId === 'string' && item.assetId != ''"
+                v-if="typeof item.assetId === 'string' && item.assetId != '' && !isMultiLocation"
                 :id="item.assetId"
                 type="asset"
               />
-              <LabelMaker v-else :id="item.id" type="item" />
+              <LabelMaker v-else :id="item.id" type="item" :allocations="itemStock?.allocations" />
               <Button class="w-9 md:w-auto" :aria-label="$t('global.create_subitem')" @click="createSubitem">
                 <MdiPlus />
                 <span class="hidden md:inline">{{ $t("global.create_subitem") }}</span>
@@ -786,16 +803,35 @@
                 <span
                   class="my-0 ml-4 inline-flex gap-2 opacity-10 transition-opacity duration-75 group-hover:opacity-100"
                 >
-                  <Button size="icon" variant="outline" class="size-8 rounded-full" @click="adjustQuantity(-1)">
+                  <Button
+                    v-if="!isMultiLocation"
+                    size="icon"
+                    variant="outline"
+                    class="size-8 rounded-full"
+                    @click="adjustQuantity(-1)"
+                  >
                     <MdiMinus class="size-3" />
                   </Button>
-                  <Button size="icon" variant="outline" class="size-8 rounded-full" @click="adjustQuantity(1)">
+                  <Button
+                    v-if="!isMultiLocation"
+                    size="icon"
+                    variant="outline"
+                    class="size-8 rounded-full"
+                    @click="adjustQuantity(1)"
+                  >
                     <MdiPlus class="size-3" />
                   </Button>
                 </span>
               </div>
             </template>
           </DetailsSection>
+        </BaseCard>
+
+        <BaseCard v-if="!hasNested" class="mt-4">
+          <template #title>{{ $t("stock.title") }}</template>
+          <div class="border-t p-4">
+            <ItemStockManager :item-id="item.id" :initial-stock="itemStock" @updated="stockUpdated" />
+          </div>
         </BaseCard>
 
         <!-- anything in this is not rendered if on another page -->
@@ -845,7 +881,9 @@
               </template>
             </DetailsSection>
             <div v-else>
-              <p class="px-6 pb-4 text-foreground/70">{{ $t("items.no_attachments") }}</p>
+              <p class="px-6 pb-4 text-foreground/70">
+                {{ $t("items.no_attachments") }}
+              </p>
             </div>
           </BaseCard>
 

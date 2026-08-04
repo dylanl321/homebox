@@ -11,6 +11,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/authtokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entity"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entityfield"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystockallocation"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystocktransaction"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytemplate"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/export"
@@ -287,6 +289,64 @@ func init() {
 	entityfieldDescID := entityfieldMixinFields0[0].Descriptor()
 	// entityfield.DefaultID holds the default value on creation for the id field.
 	entityfield.DefaultID = entityfieldDescID.Default.(func() uuid.UUID)
+	entitystockallocationMixin := schema.EntityStockAllocation{}.Mixin()
+	entitystockallocationMixinFields0 := entitystockallocationMixin[0].Fields()
+	_ = entitystockallocationMixinFields0
+	entitystockallocationFields := schema.EntityStockAllocation{}.Fields()
+	_ = entitystockallocationFields
+	// entitystockallocationDescCreatedAt is the schema descriptor for created_at field.
+	entitystockallocationDescCreatedAt := entitystockallocationMixinFields0[1].Descriptor()
+	// entitystockallocation.DefaultCreatedAt holds the default value on creation for the created_at field.
+	entitystockallocation.DefaultCreatedAt = entitystockallocationDescCreatedAt.Default.(func() time.Time)
+	// entitystockallocationDescUpdatedAt is the schema descriptor for updated_at field.
+	entitystockallocationDescUpdatedAt := entitystockallocationMixinFields0[2].Descriptor()
+	// entitystockallocation.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	entitystockallocation.DefaultUpdatedAt = entitystockallocationDescUpdatedAt.Default.(func() time.Time)
+	// entitystockallocation.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	entitystockallocation.UpdateDefaultUpdatedAt = entitystockallocationDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// entitystockallocationDescIsDefault is the schema descriptor for is_default field.
+	entitystockallocationDescIsDefault := entitystockallocationFields[3].Descriptor()
+	// entitystockallocation.DefaultIsDefault holds the default value on creation for the is_default field.
+	entitystockallocation.DefaultIsDefault = entitystockallocationDescIsDefault.Default.(bool)
+	// entitystockallocationDescID is the schema descriptor for id field.
+	entitystockallocationDescID := entitystockallocationMixinFields0[0].Descriptor()
+	// entitystockallocation.DefaultID holds the default value on creation for the id field.
+	entitystockallocation.DefaultID = entitystockallocationDescID.Default.(func() uuid.UUID)
+	entitystocktransactionMixin := schema.EntityStockTransaction{}.Mixin()
+	entitystocktransactionMixinFields0 := entitystocktransactionMixin[0].Fields()
+	_ = entitystocktransactionMixinFields0
+	entitystocktransactionFields := schema.EntityStockTransaction{}.Fields()
+	_ = entitystocktransactionFields
+	// entitystocktransactionDescCreatedAt is the schema descriptor for created_at field.
+	entitystocktransactionDescCreatedAt := entitystocktransactionMixinFields0[1].Descriptor()
+	// entitystocktransaction.DefaultCreatedAt holds the default value on creation for the created_at field.
+	entitystocktransaction.DefaultCreatedAt = entitystocktransactionDescCreatedAt.Default.(func() time.Time)
+	// entitystocktransactionDescUpdatedAt is the schema descriptor for updated_at field.
+	entitystocktransactionDescUpdatedAt := entitystocktransactionMixinFields0[2].Descriptor()
+	// entitystocktransaction.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	entitystocktransaction.DefaultUpdatedAt = entitystocktransactionDescUpdatedAt.Default.(func() time.Time)
+	// entitystocktransaction.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	entitystocktransaction.UpdateDefaultUpdatedAt = entitystocktransactionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// entitystocktransactionDescWorkflow is the schema descriptor for workflow field.
+	entitystocktransactionDescWorkflow := entitystocktransactionFields[4].Descriptor()
+	// entitystocktransaction.WorkflowValidator is a validator for the "workflow" field. It is called by the builders before save.
+	entitystocktransaction.WorkflowValidator = entitystocktransactionDescWorkflow.Validators[0].(func(string) error)
+	// entitystocktransactionDescReason is the schema descriptor for reason field.
+	entitystocktransactionDescReason := entitystocktransactionFields[14].Descriptor()
+	// entitystocktransaction.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
+	entitystocktransaction.ReasonValidator = entitystocktransactionDescReason.Validators[0].(func(string) error)
+	// entitystocktransactionDescIdempotencyKey is the schema descriptor for idempotency_key field.
+	entitystocktransactionDescIdempotencyKey := entitystocktransactionFields[15].Descriptor()
+	// entitystocktransaction.IdempotencyKeyValidator is a validator for the "idempotency_key" field. It is called by the builders before save.
+	entitystocktransaction.IdempotencyKeyValidator = entitystocktransactionDescIdempotencyKey.Validators[0].(func(string) error)
+	// entitystocktransactionDescRequestHash is the schema descriptor for request_hash field.
+	entitystocktransactionDescRequestHash := entitystocktransactionFields[16].Descriptor()
+	// entitystocktransaction.RequestHashValidator is a validator for the "request_hash" field. It is called by the builders before save.
+	entitystocktransaction.RequestHashValidator = entitystocktransactionDescRequestHash.Validators[0].(func(string) error)
+	// entitystocktransactionDescID is the schema descriptor for id field.
+	entitystocktransactionDescID := entitystocktransactionMixinFields0[0].Descriptor()
+	// entitystocktransaction.DefaultID holds the default value on creation for the id field.
+	entitystocktransaction.DefaultID = entitystocktransactionDescID.Default.(func() uuid.UUID)
 	entitytemplateMixin := schema.EntityTemplate{}.Mixin()
 	entitytemplateMixinFields0 := entitytemplateMixin[0].Fields()
 	_ = entitytemplateMixinFields0

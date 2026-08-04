@@ -22,6 +22,8 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/authtokens"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entity"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entityfield"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystockallocation"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystocktransaction"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytemplate"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/export"
@@ -56,6 +58,10 @@ type Client struct {
 	Entity *EntityClient
 	// EntityField is the client for interacting with the EntityField builders.
 	EntityField *EntityFieldClient
+	// EntityStockAllocation is the client for interacting with the EntityStockAllocation builders.
+	EntityStockAllocation *EntityStockAllocationClient
+	// EntityStockTransaction is the client for interacting with the EntityStockTransaction builders.
+	EntityStockTransaction *EntityStockTransactionClient
 	// EntityTemplate is the client for interacting with the EntityTemplate builders.
 	EntityTemplate *EntityTemplateClient
 	// EntityType is the client for interacting with the EntityType builders.
@@ -103,6 +109,8 @@ func (c *Client) init() {
 	c.AuthTokens = NewAuthTokensClient(c.config)
 	c.Entity = NewEntityClient(c.config)
 	c.EntityField = NewEntityFieldClient(c.config)
+	c.EntityStockAllocation = NewEntityStockAllocationClient(c.config)
+	c.EntityStockTransaction = NewEntityStockTransactionClient(c.config)
 	c.EntityTemplate = NewEntityTemplateClient(c.config)
 	c.EntityType = NewEntityTypeClient(c.config)
 	c.Export = NewExportClient(c.config)
@@ -208,29 +216,31 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                   ctx,
-		config:                cfg,
-		APIKey:                NewAPIKeyClient(cfg),
-		Attachment:            NewAttachmentClient(cfg),
-		AuthRoles:             NewAuthRolesClient(cfg),
-		AuthTokens:            NewAuthTokensClient(cfg),
-		Entity:                NewEntityClient(cfg),
-		EntityField:           NewEntityFieldClient(cfg),
-		EntityTemplate:        NewEntityTemplateClient(cfg),
-		EntityType:            NewEntityTypeClient(cfg),
-		Export:                NewExportClient(cfg),
-		Group:                 NewGroupClient(cfg),
-		GroupInvitationToken:  NewGroupInvitationTokenClient(cfg),
-		LocationLayout:        NewLocationLayoutClient(cfg),
-		LocationLayoutElement: NewLocationLayoutElementClient(cfg),
-		MaintenanceEntry:      NewMaintenanceEntryClient(cfg),
-		Notifier:              NewNotifierClient(cfg),
-		PasswordResetTokens:   NewPasswordResetTokensClient(cfg),
-		QRLoginTokens:         NewQRLoginTokensClient(cfg),
-		Tag:                   NewTagClient(cfg),
-		TemplateField:         NewTemplateFieldClient(cfg),
-		User:                  NewUserClient(cfg),
-		UserGroup:             NewUserGroupClient(cfg),
+		ctx:                    ctx,
+		config:                 cfg,
+		APIKey:                 NewAPIKeyClient(cfg),
+		Attachment:             NewAttachmentClient(cfg),
+		AuthRoles:              NewAuthRolesClient(cfg),
+		AuthTokens:             NewAuthTokensClient(cfg),
+		Entity:                 NewEntityClient(cfg),
+		EntityField:            NewEntityFieldClient(cfg),
+		EntityStockAllocation:  NewEntityStockAllocationClient(cfg),
+		EntityStockTransaction: NewEntityStockTransactionClient(cfg),
+		EntityTemplate:         NewEntityTemplateClient(cfg),
+		EntityType:             NewEntityTypeClient(cfg),
+		Export:                 NewExportClient(cfg),
+		Group:                  NewGroupClient(cfg),
+		GroupInvitationToken:   NewGroupInvitationTokenClient(cfg),
+		LocationLayout:         NewLocationLayoutClient(cfg),
+		LocationLayoutElement:  NewLocationLayoutElementClient(cfg),
+		MaintenanceEntry:       NewMaintenanceEntryClient(cfg),
+		Notifier:               NewNotifierClient(cfg),
+		PasswordResetTokens:    NewPasswordResetTokensClient(cfg),
+		QRLoginTokens:          NewQRLoginTokensClient(cfg),
+		Tag:                    NewTagClient(cfg),
+		TemplateField:          NewTemplateFieldClient(cfg),
+		User:                   NewUserClient(cfg),
+		UserGroup:              NewUserGroupClient(cfg),
 	}, nil
 }
 
@@ -248,29 +258,31 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                   ctx,
-		config:                cfg,
-		APIKey:                NewAPIKeyClient(cfg),
-		Attachment:            NewAttachmentClient(cfg),
-		AuthRoles:             NewAuthRolesClient(cfg),
-		AuthTokens:            NewAuthTokensClient(cfg),
-		Entity:                NewEntityClient(cfg),
-		EntityField:           NewEntityFieldClient(cfg),
-		EntityTemplate:        NewEntityTemplateClient(cfg),
-		EntityType:            NewEntityTypeClient(cfg),
-		Export:                NewExportClient(cfg),
-		Group:                 NewGroupClient(cfg),
-		GroupInvitationToken:  NewGroupInvitationTokenClient(cfg),
-		LocationLayout:        NewLocationLayoutClient(cfg),
-		LocationLayoutElement: NewLocationLayoutElementClient(cfg),
-		MaintenanceEntry:      NewMaintenanceEntryClient(cfg),
-		Notifier:              NewNotifierClient(cfg),
-		PasswordResetTokens:   NewPasswordResetTokensClient(cfg),
-		QRLoginTokens:         NewQRLoginTokensClient(cfg),
-		Tag:                   NewTagClient(cfg),
-		TemplateField:         NewTemplateFieldClient(cfg),
-		User:                  NewUserClient(cfg),
-		UserGroup:             NewUserGroupClient(cfg),
+		ctx:                    ctx,
+		config:                 cfg,
+		APIKey:                 NewAPIKeyClient(cfg),
+		Attachment:             NewAttachmentClient(cfg),
+		AuthRoles:              NewAuthRolesClient(cfg),
+		AuthTokens:             NewAuthTokensClient(cfg),
+		Entity:                 NewEntityClient(cfg),
+		EntityField:            NewEntityFieldClient(cfg),
+		EntityStockAllocation:  NewEntityStockAllocationClient(cfg),
+		EntityStockTransaction: NewEntityStockTransactionClient(cfg),
+		EntityTemplate:         NewEntityTemplateClient(cfg),
+		EntityType:             NewEntityTypeClient(cfg),
+		Export:                 NewExportClient(cfg),
+		Group:                  NewGroupClient(cfg),
+		GroupInvitationToken:   NewGroupInvitationTokenClient(cfg),
+		LocationLayout:         NewLocationLayoutClient(cfg),
+		LocationLayoutElement:  NewLocationLayoutElementClient(cfg),
+		MaintenanceEntry:       NewMaintenanceEntryClient(cfg),
+		Notifier:               NewNotifierClient(cfg),
+		PasswordResetTokens:    NewPasswordResetTokensClient(cfg),
+		QRLoginTokens:          NewQRLoginTokensClient(cfg),
+		Tag:                    NewTagClient(cfg),
+		TemplateField:          NewTemplateFieldClient(cfg),
+		User:                   NewUserClient(cfg),
+		UserGroup:              NewUserGroupClient(cfg),
 	}, nil
 }
 
@@ -301,10 +313,10 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.APIKey, c.Attachment, c.AuthRoles, c.AuthTokens, c.Entity, c.EntityField,
-		c.EntityTemplate, c.EntityType, c.Export, c.Group, c.GroupInvitationToken,
-		c.LocationLayout, c.LocationLayoutElement, c.MaintenanceEntry, c.Notifier,
-		c.PasswordResetTokens, c.QRLoginTokens, c.Tag, c.TemplateField, c.User,
-		c.UserGroup,
+		c.EntityStockAllocation, c.EntityStockTransaction, c.EntityTemplate,
+		c.EntityType, c.Export, c.Group, c.GroupInvitationToken, c.LocationLayout,
+		c.LocationLayoutElement, c.MaintenanceEntry, c.Notifier, c.PasswordResetTokens,
+		c.QRLoginTokens, c.Tag, c.TemplateField, c.User, c.UserGroup,
 	} {
 		n.Use(hooks...)
 	}
@@ -315,10 +327,10 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.APIKey, c.Attachment, c.AuthRoles, c.AuthTokens, c.Entity, c.EntityField,
-		c.EntityTemplate, c.EntityType, c.Export, c.Group, c.GroupInvitationToken,
-		c.LocationLayout, c.LocationLayoutElement, c.MaintenanceEntry, c.Notifier,
-		c.PasswordResetTokens, c.QRLoginTokens, c.Tag, c.TemplateField, c.User,
-		c.UserGroup,
+		c.EntityStockAllocation, c.EntityStockTransaction, c.EntityTemplate,
+		c.EntityType, c.Export, c.Group, c.GroupInvitationToken, c.LocationLayout,
+		c.LocationLayoutElement, c.MaintenanceEntry, c.Notifier, c.PasswordResetTokens,
+		c.QRLoginTokens, c.Tag, c.TemplateField, c.User, c.UserGroup,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -339,6 +351,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Entity.mutate(ctx, m)
 	case *EntityFieldMutation:
 		return c.EntityField.mutate(ctx, m)
+	case *EntityStockAllocationMutation:
+		return c.EntityStockAllocation.mutate(ctx, m)
+	case *EntityStockTransactionMutation:
+		return c.EntityStockTransaction.mutate(ctx, m)
 	case *EntityTemplateMutation:
 		return c.EntityTemplate.mutate(ctx, m)
 	case *EntityTypeMutation:
@@ -1238,6 +1254,54 @@ func (c *EntityClient) QueryAttachments(_m *Entity) *AttachmentQuery {
 	return query
 }
 
+// QueryStockAllocations queries the stock_allocations edge of a Entity.
+func (c *EntityClient) QueryStockAllocations(_m *Entity) *EntityStockAllocationQuery {
+	query := (&EntityStockAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entity.Table, entity.FieldID, id),
+			sqlgraph.To(entitystockallocation.Table, entitystockallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, entity.StockAllocationsTable, entity.StockAllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStockTransactions queries the stock_transactions edge of a Entity.
+func (c *EntityClient) QueryStockTransactions(_m *Entity) *EntityStockTransactionQuery {
+	query := (&EntityStockTransactionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entity.Table, entity.FieldID, id),
+			sqlgraph.To(entitystocktransaction.Table, entitystocktransaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, entity.StockTransactionsTable, entity.StockTransactionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStockLocationAllocations queries the stock_location_allocations edge of a Entity.
+func (c *EntityClient) QueryStockLocationAllocations(_m *Entity) *EntityStockAllocationQuery {
+	query := (&EntityStockAllocationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entity.Table, entity.FieldID, id),
+			sqlgraph.To(entitystockallocation.Table, entitystockallocation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, entity.StockLocationAllocationsTable, entity.StockLocationAllocationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryLocationLayout queries the location_layout edge of a Entity.
 func (c *EntityClient) QueryLocationLayout(_m *Entity) *LocationLayoutQuery {
 	query := (&LocationLayoutClient{config: c.config}).Query()
@@ -1441,6 +1505,336 @@ func (c *EntityFieldClient) mutate(ctx context.Context, m *EntityFieldMutation) 
 		return (&EntityFieldDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown EntityField mutation op: %q", m.Op())
+	}
+}
+
+// EntityStockAllocationClient is a client for the EntityStockAllocation schema.
+type EntityStockAllocationClient struct {
+	config
+}
+
+// NewEntityStockAllocationClient returns a client for the EntityStockAllocation from the given config.
+func NewEntityStockAllocationClient(c config) *EntityStockAllocationClient {
+	return &EntityStockAllocationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `entitystockallocation.Hooks(f(g(h())))`.
+func (c *EntityStockAllocationClient) Use(hooks ...Hook) {
+	c.hooks.EntityStockAllocation = append(c.hooks.EntityStockAllocation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `entitystockallocation.Intercept(f(g(h())))`.
+func (c *EntityStockAllocationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EntityStockAllocation = append(c.inters.EntityStockAllocation, interceptors...)
+}
+
+// Create returns a builder for creating a EntityStockAllocation entity.
+func (c *EntityStockAllocationClient) Create() *EntityStockAllocationCreate {
+	mutation := newEntityStockAllocationMutation(c.config, OpCreate)
+	return &EntityStockAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EntityStockAllocation entities.
+func (c *EntityStockAllocationClient) CreateBulk(builders ...*EntityStockAllocationCreate) *EntityStockAllocationCreateBulk {
+	return &EntityStockAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EntityStockAllocationClient) MapCreateBulk(slice any, setFunc func(*EntityStockAllocationCreate, int)) *EntityStockAllocationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EntityStockAllocationCreateBulk{err: fmt.Errorf("calling to EntityStockAllocationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EntityStockAllocationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EntityStockAllocationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EntityStockAllocation.
+func (c *EntityStockAllocationClient) Update() *EntityStockAllocationUpdate {
+	mutation := newEntityStockAllocationMutation(c.config, OpUpdate)
+	return &EntityStockAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EntityStockAllocationClient) UpdateOne(_m *EntityStockAllocation) *EntityStockAllocationUpdateOne {
+	mutation := newEntityStockAllocationMutation(c.config, OpUpdateOne, withEntityStockAllocation(_m))
+	return &EntityStockAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EntityStockAllocationClient) UpdateOneID(id uuid.UUID) *EntityStockAllocationUpdateOne {
+	mutation := newEntityStockAllocationMutation(c.config, OpUpdateOne, withEntityStockAllocationID(id))
+	return &EntityStockAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EntityStockAllocation.
+func (c *EntityStockAllocationClient) Delete() *EntityStockAllocationDelete {
+	mutation := newEntityStockAllocationMutation(c.config, OpDelete)
+	return &EntityStockAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EntityStockAllocationClient) DeleteOne(_m *EntityStockAllocation) *EntityStockAllocationDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EntityStockAllocationClient) DeleteOneID(id uuid.UUID) *EntityStockAllocationDeleteOne {
+	builder := c.Delete().Where(entitystockallocation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EntityStockAllocationDeleteOne{builder}
+}
+
+// Query returns a query builder for EntityStockAllocation.
+func (c *EntityStockAllocationClient) Query() *EntityStockAllocationQuery {
+	return &EntityStockAllocationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEntityStockAllocation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EntityStockAllocation entity by its id.
+func (c *EntityStockAllocationClient) Get(ctx context.Context, id uuid.UUID) (*EntityStockAllocation, error) {
+	return c.Query().Where(entitystockallocation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EntityStockAllocationClient) GetX(ctx context.Context, id uuid.UUID) *EntityStockAllocation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryEntity queries the entity edge of a EntityStockAllocation.
+func (c *EntityStockAllocationClient) QueryEntity(_m *EntityStockAllocation) *EntityQuery {
+	query := (&EntityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entitystockallocation.Table, entitystockallocation.FieldID, id),
+			sqlgraph.To(entity.Table, entity.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, entitystockallocation.EntityTable, entitystockallocation.EntityColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLocation queries the location edge of a EntityStockAllocation.
+func (c *EntityStockAllocationClient) QueryLocation(_m *EntityStockAllocation) *EntityQuery {
+	query := (&EntityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entitystockallocation.Table, entitystockallocation.FieldID, id),
+			sqlgraph.To(entity.Table, entity.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, entitystockallocation.LocationTable, entitystockallocation.LocationColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EntityStockAllocationClient) Hooks() []Hook {
+	return c.hooks.EntityStockAllocation
+}
+
+// Interceptors returns the client interceptors.
+func (c *EntityStockAllocationClient) Interceptors() []Interceptor {
+	return c.inters.EntityStockAllocation
+}
+
+func (c *EntityStockAllocationClient) mutate(ctx context.Context, m *EntityStockAllocationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EntityStockAllocationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EntityStockAllocationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EntityStockAllocationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EntityStockAllocationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EntityStockAllocation mutation op: %q", m.Op())
+	}
+}
+
+// EntityStockTransactionClient is a client for the EntityStockTransaction schema.
+type EntityStockTransactionClient struct {
+	config
+}
+
+// NewEntityStockTransactionClient returns a client for the EntityStockTransaction from the given config.
+func NewEntityStockTransactionClient(c config) *EntityStockTransactionClient {
+	return &EntityStockTransactionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `entitystocktransaction.Hooks(f(g(h())))`.
+func (c *EntityStockTransactionClient) Use(hooks ...Hook) {
+	c.hooks.EntityStockTransaction = append(c.hooks.EntityStockTransaction, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `entitystocktransaction.Intercept(f(g(h())))`.
+func (c *EntityStockTransactionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EntityStockTransaction = append(c.inters.EntityStockTransaction, interceptors...)
+}
+
+// Create returns a builder for creating a EntityStockTransaction entity.
+func (c *EntityStockTransactionClient) Create() *EntityStockTransactionCreate {
+	mutation := newEntityStockTransactionMutation(c.config, OpCreate)
+	return &EntityStockTransactionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EntityStockTransaction entities.
+func (c *EntityStockTransactionClient) CreateBulk(builders ...*EntityStockTransactionCreate) *EntityStockTransactionCreateBulk {
+	return &EntityStockTransactionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EntityStockTransactionClient) MapCreateBulk(slice any, setFunc func(*EntityStockTransactionCreate, int)) *EntityStockTransactionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EntityStockTransactionCreateBulk{err: fmt.Errorf("calling to EntityStockTransactionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EntityStockTransactionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EntityStockTransactionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EntityStockTransaction.
+func (c *EntityStockTransactionClient) Update() *EntityStockTransactionUpdate {
+	mutation := newEntityStockTransactionMutation(c.config, OpUpdate)
+	return &EntityStockTransactionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EntityStockTransactionClient) UpdateOne(_m *EntityStockTransaction) *EntityStockTransactionUpdateOne {
+	mutation := newEntityStockTransactionMutation(c.config, OpUpdateOne, withEntityStockTransaction(_m))
+	return &EntityStockTransactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EntityStockTransactionClient) UpdateOneID(id uuid.UUID) *EntityStockTransactionUpdateOne {
+	mutation := newEntityStockTransactionMutation(c.config, OpUpdateOne, withEntityStockTransactionID(id))
+	return &EntityStockTransactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EntityStockTransaction.
+func (c *EntityStockTransactionClient) Delete() *EntityStockTransactionDelete {
+	mutation := newEntityStockTransactionMutation(c.config, OpDelete)
+	return &EntityStockTransactionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EntityStockTransactionClient) DeleteOne(_m *EntityStockTransaction) *EntityStockTransactionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EntityStockTransactionClient) DeleteOneID(id uuid.UUID) *EntityStockTransactionDeleteOne {
+	builder := c.Delete().Where(entitystocktransaction.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EntityStockTransactionDeleteOne{builder}
+}
+
+// Query returns a query builder for EntityStockTransaction.
+func (c *EntityStockTransactionClient) Query() *EntityStockTransactionQuery {
+	return &EntityStockTransactionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEntityStockTransaction},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EntityStockTransaction entity by its id.
+func (c *EntityStockTransactionClient) Get(ctx context.Context, id uuid.UUID) (*EntityStockTransaction, error) {
+	return c.Query().Where(entitystocktransaction.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EntityStockTransactionClient) GetX(ctx context.Context, id uuid.UUID) *EntityStockTransaction {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryGroup queries the group edge of a EntityStockTransaction.
+func (c *EntityStockTransactionClient) QueryGroup(_m *EntityStockTransaction) *GroupQuery {
+	query := (&GroupClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entitystocktransaction.Table, entitystocktransaction.FieldID, id),
+			sqlgraph.To(group.Table, group.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, entitystocktransaction.GroupTable, entitystocktransaction.GroupColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEntity queries the entity edge of a EntityStockTransaction.
+func (c *EntityStockTransactionClient) QueryEntity(_m *EntityStockTransaction) *EntityQuery {
+	query := (&EntityClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(entitystocktransaction.Table, entitystocktransaction.FieldID, id),
+			sqlgraph.To(entity.Table, entity.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, entitystocktransaction.EntityTable, entitystocktransaction.EntityColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *EntityStockTransactionClient) Hooks() []Hook {
+	return c.hooks.EntityStockTransaction
+}
+
+// Interceptors returns the client interceptors.
+func (c *EntityStockTransactionClient) Interceptors() []Interceptor {
+	return c.inters.EntityStockTransaction
+}
+
+func (c *EntityStockTransactionClient) mutate(ctx context.Context, m *EntityStockTransactionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EntityStockTransactionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EntityStockTransactionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EntityStockTransactionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EntityStockTransactionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EntityStockTransaction mutation op: %q", m.Op())
 	}
 }
 
@@ -2184,6 +2578,22 @@ func (c *GroupClient) QueryExports(_m *Group) *ExportQuery {
 			sqlgraph.From(group.Table, group.FieldID, id),
 			sqlgraph.To(export.Table, export.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, group.ExportsTable, group.ExportsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryStockTransactions queries the stock_transactions edge of a Group.
+func (c *GroupClient) QueryStockTransactions(_m *Group) *EntityStockTransactionQuery {
+	query := (&EntityStockTransactionClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(group.Table, group.FieldID, id),
+			sqlgraph.To(entitystocktransaction.Table, entitystocktransaction.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, group.StockTransactionsTable, group.StockTransactionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -4033,15 +4443,17 @@ func (c *UserGroupClient) mutate(ctx context.Context, m *UserGroupMutation) (Val
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		APIKey, Attachment, AuthRoles, AuthTokens, Entity, EntityField, EntityTemplate,
-		EntityType, Export, Group, GroupInvitationToken, LocationLayout,
-		LocationLayoutElement, MaintenanceEntry, Notifier, PasswordResetTokens,
-		QRLoginTokens, Tag, TemplateField, User, UserGroup []ent.Hook
+		APIKey, Attachment, AuthRoles, AuthTokens, Entity, EntityField,
+		EntityStockAllocation, EntityStockTransaction, EntityTemplate, EntityType,
+		Export, Group, GroupInvitationToken, LocationLayout, LocationLayoutElement,
+		MaintenanceEntry, Notifier, PasswordResetTokens, QRLoginTokens, Tag,
+		TemplateField, User, UserGroup []ent.Hook
 	}
 	inters struct {
-		APIKey, Attachment, AuthRoles, AuthTokens, Entity, EntityField, EntityTemplate,
-		EntityType, Export, Group, GroupInvitationToken, LocationLayout,
-		LocationLayoutElement, MaintenanceEntry, Notifier, PasswordResetTokens,
-		QRLoginTokens, Tag, TemplateField, User, UserGroup []ent.Interceptor
+		APIKey, Attachment, AuthRoles, AuthTokens, Entity, EntityField,
+		EntityStockAllocation, EntityStockTransaction, EntityTemplate, EntityType,
+		Export, Group, GroupInvitationToken, LocationLayout, LocationLayoutElement,
+		MaintenanceEntry, Notifier, PasswordResetTokens, QRLoginTokens, Tag,
+		TemplateField, User, UserGroup []ent.Interceptor
 	}
 )

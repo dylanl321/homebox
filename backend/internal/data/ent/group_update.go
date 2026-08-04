@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entity"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystocktransaction"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytemplate"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/export"
@@ -191,6 +192,21 @@ func (_u *GroupUpdate) AddExports(v ...*Export) *GroupUpdate {
 	return _u.AddExportIDs(ids...)
 }
 
+// AddStockTransactionIDs adds the "stock_transactions" edge to the EntityStockTransaction entity by IDs.
+func (_u *GroupUpdate) AddStockTransactionIDs(ids ...uuid.UUID) *GroupUpdate {
+	_u.mutation.AddStockTransactionIDs(ids...)
+	return _u
+}
+
+// AddStockTransactions adds the "stock_transactions" edges to the EntityStockTransaction entity.
+func (_u *GroupUpdate) AddStockTransactions(v ...*EntityStockTransaction) *GroupUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStockTransactionIDs(ids...)
+}
+
 // Mutation returns the GroupMutation object of the builder.
 func (_u *GroupUpdate) Mutation() *GroupMutation {
 	return _u.mutation
@@ -362,6 +378,27 @@ func (_u *GroupUpdate) RemoveExports(v ...*Export) *GroupUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveExportIDs(ids...)
+}
+
+// ClearStockTransactions clears all "stock_transactions" edges to the EntityStockTransaction entity.
+func (_u *GroupUpdate) ClearStockTransactions() *GroupUpdate {
+	_u.mutation.ClearStockTransactions()
+	return _u
+}
+
+// RemoveStockTransactionIDs removes the "stock_transactions" edge to EntityStockTransaction entities by IDs.
+func (_u *GroupUpdate) RemoveStockTransactionIDs(ids ...uuid.UUID) *GroupUpdate {
+	_u.mutation.RemoveStockTransactionIDs(ids...)
+	return _u
+}
+
+// RemoveStockTransactions removes "stock_transactions" edges to EntityStockTransaction entities.
+func (_u *GroupUpdate) RemoveStockTransactions(v ...*EntityStockTransaction) *GroupUpdate {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStockTransactionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -803,6 +840,51 @@ func (_u *GroupUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.StockTransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.StockTransactionsTable,
+			Columns: []string{group.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStockTransactionsIDs(); len(nodes) > 0 && !_u.mutation.StockTransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.StockTransactionsTable,
+			Columns: []string{group.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StockTransactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.StockTransactionsTable,
+			Columns: []string{group.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{group.Label}
@@ -977,6 +1059,21 @@ func (_u *GroupUpdateOne) AddExports(v ...*Export) *GroupUpdateOne {
 	return _u.AddExportIDs(ids...)
 }
 
+// AddStockTransactionIDs adds the "stock_transactions" edge to the EntityStockTransaction entity by IDs.
+func (_u *GroupUpdateOne) AddStockTransactionIDs(ids ...uuid.UUID) *GroupUpdateOne {
+	_u.mutation.AddStockTransactionIDs(ids...)
+	return _u
+}
+
+// AddStockTransactions adds the "stock_transactions" edges to the EntityStockTransaction entity.
+func (_u *GroupUpdateOne) AddStockTransactions(v ...*EntityStockTransaction) *GroupUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddStockTransactionIDs(ids...)
+}
+
 // Mutation returns the GroupMutation object of the builder.
 func (_u *GroupUpdateOne) Mutation() *GroupMutation {
 	return _u.mutation
@@ -1148,6 +1245,27 @@ func (_u *GroupUpdateOne) RemoveExports(v ...*Export) *GroupUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveExportIDs(ids...)
+}
+
+// ClearStockTransactions clears all "stock_transactions" edges to the EntityStockTransaction entity.
+func (_u *GroupUpdateOne) ClearStockTransactions() *GroupUpdateOne {
+	_u.mutation.ClearStockTransactions()
+	return _u
+}
+
+// RemoveStockTransactionIDs removes the "stock_transactions" edge to EntityStockTransaction entities by IDs.
+func (_u *GroupUpdateOne) RemoveStockTransactionIDs(ids ...uuid.UUID) *GroupUpdateOne {
+	_u.mutation.RemoveStockTransactionIDs(ids...)
+	return _u
+}
+
+// RemoveStockTransactions removes "stock_transactions" edges to EntityStockTransaction entities.
+func (_u *GroupUpdateOne) RemoveStockTransactions(v ...*EntityStockTransaction) *GroupUpdateOne {
+	ids := make([]uuid.UUID, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveStockTransactionIDs(ids...)
 }
 
 // Where appends a list predicates to the GroupUpdate builder.
@@ -1612,6 +1730,51 @@ func (_u *GroupUpdateOne) sqlSave(ctx context.Context) (_node *Group, err error)
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(export.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.StockTransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.StockTransactionsTable,
+			Columns: []string{group.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedStockTransactionsIDs(); len(nodes) > 0 && !_u.mutation.StockTransactionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.StockTransactionsTable,
+			Columns: []string{group.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.StockTransactionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   group.StockTransactionsTable,
+			Columns: []string{group.StockTransactionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(entitystocktransaction.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -96,13 +96,19 @@ type EntityEdges struct {
 	MaintenanceEntries []*MaintenanceEntry `json:"maintenance_entries,omitempty"`
 	// Attachments holds the value of the attachments edge.
 	Attachments []*Attachment `json:"attachments,omitempty"`
+	// StockAllocations holds the value of the stock_allocations edge.
+	StockAllocations []*EntityStockAllocation `json:"stock_allocations,omitempty"`
+	// StockTransactions holds the value of the stock_transactions edge.
+	StockTransactions []*EntityStockTransaction `json:"stock_transactions,omitempty"`
+	// StockLocationAllocations holds the value of the stock_location_allocations edge.
+	StockLocationAllocations []*EntityStockAllocation `json:"stock_location_allocations,omitempty"`
 	// LocationLayout holds the value of the location_layout edge.
 	LocationLayout *LocationLayout `json:"location_layout,omitempty"`
 	// LayoutPlacements holds the value of the layout_placements edge.
 	LayoutPlacements []*LocationLayoutElement `json:"layout_placements,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [10]bool
+	loadedTypes [13]bool
 }
 
 // GroupOrErr returns the Group value or an error if the edge
@@ -183,12 +189,39 @@ func (e EntityEdges) AttachmentsOrErr() ([]*Attachment, error) {
 	return nil, &NotLoadedError{edge: "attachments"}
 }
 
+// StockAllocationsOrErr returns the StockAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e EntityEdges) StockAllocationsOrErr() ([]*EntityStockAllocation, error) {
+	if e.loadedTypes[8] {
+		return e.StockAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "stock_allocations"}
+}
+
+// StockTransactionsOrErr returns the StockTransactions value or an error if the edge
+// was not loaded in eager-loading.
+func (e EntityEdges) StockTransactionsOrErr() ([]*EntityStockTransaction, error) {
+	if e.loadedTypes[9] {
+		return e.StockTransactions, nil
+	}
+	return nil, &NotLoadedError{edge: "stock_transactions"}
+}
+
+// StockLocationAllocationsOrErr returns the StockLocationAllocations value or an error if the edge
+// was not loaded in eager-loading.
+func (e EntityEdges) StockLocationAllocationsOrErr() ([]*EntityStockAllocation, error) {
+	if e.loadedTypes[10] {
+		return e.StockLocationAllocations, nil
+	}
+	return nil, &NotLoadedError{edge: "stock_location_allocations"}
+}
+
 // LocationLayoutOrErr returns the LocationLayout value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e EntityEdges) LocationLayoutOrErr() (*LocationLayout, error) {
 	if e.LocationLayout != nil {
 		return e.LocationLayout, nil
-	} else if e.loadedTypes[8] {
+	} else if e.loadedTypes[11] {
 		return nil, &NotFoundError{label: locationlayout.Label}
 	}
 	return nil, &NotLoadedError{edge: "location_layout"}
@@ -197,7 +230,7 @@ func (e EntityEdges) LocationLayoutOrErr() (*LocationLayout, error) {
 // LayoutPlacementsOrErr returns the LayoutPlacements value or an error if the edge
 // was not loaded in eager-loading.
 func (e EntityEdges) LayoutPlacementsOrErr() ([]*LocationLayoutElement, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[12] {
 		return e.LayoutPlacements, nil
 	}
 	return nil, &NotLoadedError{edge: "layout_placements"}
@@ -463,6 +496,21 @@ func (_m *Entity) QueryMaintenanceEntries() *MaintenanceEntryQuery {
 // QueryAttachments queries the "attachments" edge of the Entity entity.
 func (_m *Entity) QueryAttachments() *AttachmentQuery {
 	return NewEntityClient(_m.config).QueryAttachments(_m)
+}
+
+// QueryStockAllocations queries the "stock_allocations" edge of the Entity entity.
+func (_m *Entity) QueryStockAllocations() *EntityStockAllocationQuery {
+	return NewEntityClient(_m.config).QueryStockAllocations(_m)
+}
+
+// QueryStockTransactions queries the "stock_transactions" edge of the Entity entity.
+func (_m *Entity) QueryStockTransactions() *EntityStockTransactionQuery {
+	return NewEntityClient(_m.config).QueryStockTransactions(_m)
+}
+
+// QueryStockLocationAllocations queries the "stock_location_allocations" edge of the Entity entity.
+func (_m *Entity) QueryStockLocationAllocations() *EntityStockAllocationQuery {
+	return NewEntityClient(_m.config).QueryStockLocationAllocations(_m)
 }
 
 // QueryLocationLayout queries the "location_layout" edge of the Entity entity.

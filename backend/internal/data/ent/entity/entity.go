@@ -79,6 +79,12 @@ const (
 	EdgeMaintenanceEntries = "maintenance_entries"
 	// EdgeAttachments holds the string denoting the attachments edge name in mutations.
 	EdgeAttachments = "attachments"
+	// EdgeStockAllocations holds the string denoting the stock_allocations edge name in mutations.
+	EdgeStockAllocations = "stock_allocations"
+	// EdgeStockTransactions holds the string denoting the stock_transactions edge name in mutations.
+	EdgeStockTransactions = "stock_transactions"
+	// EdgeStockLocationAllocations holds the string denoting the stock_location_allocations edge name in mutations.
+	EdgeStockLocationAllocations = "stock_location_allocations"
 	// EdgeLocationLayout holds the string denoting the location_layout edge name in mutations.
 	EdgeLocationLayout = "location_layout"
 	// EdgeLayoutPlacements holds the string denoting the layout_placements edge name in mutations.
@@ -133,6 +139,27 @@ const (
 	AttachmentsInverseTable = "attachments"
 	// AttachmentsColumn is the table column denoting the attachments relation/edge.
 	AttachmentsColumn = "entity_attachments"
+	// StockAllocationsTable is the table that holds the stock_allocations relation/edge.
+	StockAllocationsTable = "entity_stock_allocations"
+	// StockAllocationsInverseTable is the table name for the EntityStockAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "entitystockallocation" package.
+	StockAllocationsInverseTable = "entity_stock_allocations"
+	// StockAllocationsColumn is the table column denoting the stock_allocations relation/edge.
+	StockAllocationsColumn = "entity_id"
+	// StockTransactionsTable is the table that holds the stock_transactions relation/edge.
+	StockTransactionsTable = "entity_stock_transactions"
+	// StockTransactionsInverseTable is the table name for the EntityStockTransaction entity.
+	// It exists in this package in order to avoid circular dependency with the "entitystocktransaction" package.
+	StockTransactionsInverseTable = "entity_stock_transactions"
+	// StockTransactionsColumn is the table column denoting the stock_transactions relation/edge.
+	StockTransactionsColumn = "entity_id"
+	// StockLocationAllocationsTable is the table that holds the stock_location_allocations relation/edge.
+	StockLocationAllocationsTable = "entity_stock_allocations"
+	// StockLocationAllocationsInverseTable is the table name for the EntityStockAllocation entity.
+	// It exists in this package in order to avoid circular dependency with the "entitystockallocation" package.
+	StockLocationAllocationsInverseTable = "entity_stock_allocations"
+	// StockLocationAllocationsColumn is the table column denoting the stock_location_allocations relation/edge.
+	StockLocationAllocationsColumn = "location_id"
 	// LocationLayoutTable is the table that holds the location_layout relation/edge.
 	LocationLayoutTable = "location_layouts"
 	// LocationLayoutInverseTable is the table name for the LocationLayout entity.
@@ -471,6 +498,48 @@ func ByAttachments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByStockAllocationsCount orders the results by stock_allocations count.
+func ByStockAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newStockAllocationsStep(), opts...)
+	}
+}
+
+// ByStockAllocations orders the results by stock_allocations terms.
+func ByStockAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStockAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByStockTransactionsCount orders the results by stock_transactions count.
+func ByStockTransactionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newStockTransactionsStep(), opts...)
+	}
+}
+
+// ByStockTransactions orders the results by stock_transactions terms.
+func ByStockTransactions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStockTransactionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByStockLocationAllocationsCount orders the results by stock_location_allocations count.
+func ByStockLocationAllocationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newStockLocationAllocationsStep(), opts...)
+	}
+}
+
+// ByStockLocationAllocations orders the results by stock_location_allocations terms.
+func ByStockLocationAllocations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newStockLocationAllocationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByLocationLayoutField orders the results by location_layout field.
 func ByLocationLayoutField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -545,6 +614,27 @@ func newAttachmentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AttachmentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AttachmentsTable, AttachmentsColumn),
+	)
+}
+func newStockAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StockAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, StockAllocationsTable, StockAllocationsColumn),
+	)
+}
+func newStockTransactionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StockTransactionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, StockTransactionsTable, StockTransactionsColumn),
+	)
+}
+func newStockLocationAllocationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(StockLocationAllocationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, StockLocationAllocationsTable, StockLocationAllocationsColumn),
 	)
 }
 func newLocationLayoutStep() *sqlgraph.Step {

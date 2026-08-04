@@ -16,6 +16,7 @@ import (
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/attachment"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entity"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entityfield"
+	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitystockallocation"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/entitytype"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/group"
 	"github.com/sysadminsmedia/homebox/backend/internal/data/ent/maintenanceentry"
@@ -44,6 +45,7 @@ type EntityRepository struct {
 	db          *ent.Client
 	bus         *eventbus.EventBus
 	attachments *AttachmentRepo
+	stock       *StockRepository
 }
 
 type (
@@ -111,15 +113,15 @@ type (
 		PurchaseDate types.Date `json:"purchaseDate"`
 		// Sold
 		SoldDate    types.Date `json:"soldDate"`
-		Name        string     `json:"name"                     validate:"required,min=1,max=255"`
-		Description string     `json:"description"              validate:"max=1000"`
+		Name        string     `json:"name"        validate:"required,min=1,max=255"`
+		Description string     `json:"description" validate:"max=1000"`
 		// Identifications
 		SerialNumber    string `json:"serialNumber"`
 		ModelNumber     string `json:"modelNumber"`
 		Manufacturer    string `json:"manufacturer"`
 		WarrantyDetails string `json:"warrantyDetails"`
-		PurchaseFrom    string `json:"purchaseFrom"  validate:"max=255"`
-		SoldTo          string `json:"soldTo"    validate:"max=255"`
+		PurchaseFrom    string `json:"purchaseFrom"    validate:"max=255"`
+		SoldTo          string `json:"soldTo"          validate:"max=255"`
 		SoldNotes       string `json:"soldNotes"`
 		// Extras
 		Notes string `json:"notes"`
@@ -128,8 +130,8 @@ type (
 		Fields                   []EntityFieldData `json:"fields"`
 		AssetID                  AssetID           `json:"assetId"                  swaggertype:"string"`
 		Quantity                 float64           `json:"quantity"`
-		PurchasePrice            float64           `json:"purchasePrice" extensions:"x-nullable,x-omitempty"`
-		SoldPrice                float64           `json:"soldPrice" extensions:"x-nullable,x-omitempty"`
+		PurchasePrice            float64           `json:"purchasePrice"            extensions:"x-nullable,x-omitempty"`
+		SoldPrice                float64           `json:"soldPrice"                extensions:"x-nullable,x-omitempty"`
 		ParentID                 uuid.UUID         `json:"parentId"                 extensions:"x-nullable,x-omitempty"`
 		ID                       uuid.UUID         `json:"id"`
 		EntityTypeID             uuid.UUID         `json:"entityTypeId"`
@@ -175,7 +177,9 @@ type (
 		SoldDate types.Date `json:"soldDate"`
 
 		// Container-specific (populated when querying locations)
-		ItemCount float64 `json:"itemCount,omitempty"`
+		ItemCount         float64 `json:"itemCount,omitempty"`
+		LocationCount     int     `json:"locationCount"`
+		AllocatedQuantity float64 `json:"allocatedQuantity,omitempty"`
 	}
 
 	EntityOut struct {
@@ -218,6 +222,7 @@ type (
 		// Container-specific fields (for entities whose entity_type.is_location = true)
 		Children   []EntitySummary `json:"children,omitempty"`
 		TotalPrice float64         `json:"totalPrice,omitempty"`
+		Stock      StockState      `json:"stock"`
 	}
 
 	// EntityOutCount is used for container listing with child count.
@@ -257,6 +262,13 @@ func mapEntitySummary(e *ent.Entity) EntitySummary {
 		}
 	}
 
+	locationCount := 0
+	for _, allocation := range e.Edges.StockAllocations {
+		if allocation.Quantity > stockEpsilon {
+			locationCount++
+		}
+	}
+
 	return EntitySummary{
 		ID:            e.ID,
 		AssetID:       AssetID(e.AssetID),
@@ -275,9 +287,10 @@ func mapEntitySummary(e *ent.Entity) EntitySummary {
 		Tags:       tags,
 
 		// Warranty
-		Insured:     e.Insured,
-		ImageID:     imageID,
-		ThumbnailId: thumbnailID,
+		Insured:       e.Insured,
+		ImageID:       imageID,
+		ThumbnailId:   thumbnailID,
+		LocationCount: locationCount,
 
 		// Sale
 		SoldDate: types.DateFromTime(e.SoldDate),
@@ -359,6 +372,7 @@ func mapEntityOut(e *ent.Entity) EntityOut {
 		Attachments: attachments,
 		Fields:      fields,
 		Children:    children,
+		Stock:       stockStateFromRows(e.Edges.StockAllocations),
 	}
 }
 
@@ -443,6 +457,10 @@ func (r *EntityRepository) getOneTx(ctx context.Context, tx *ent.Tx, where ...pr
 			eq.WithEntityType()
 		}).
 		WithAttachments().
+		WithStockAllocations(func(q *ent.EntityStockAllocationQuery) {
+			q.WithLocation(func(eq *ent.EntityQuery) { eq.WithEntityType() })
+			q.Order(entitystockallocation.ByCreatedAt(), entitystockallocation.ByID())
+		}).
 		Only(ctx)
 	if err != nil {
 		recordSpanError(span, err)
@@ -594,6 +612,8 @@ func entityQuerySpanAttrs(gid uuid.UUID, q EntityQuery) []attribute.KeyValue {
 }
 
 // QueryByGroup returns a list of entities that belong to a specific group based on the provided query.
+//
+//nolint:gocyclo // Entity search supports the established filter matrix plus allocation-aware location filtering.
 func (r *EntityRepository) QueryByGroup(ctx context.Context, gid uuid.UUID, q EntityQuery) (PaginationResult[EntitySummary], error) {
 	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.QueryByGroup",
 		trace.WithAttributes(entityQuerySpanAttrs(gid, q)...))
@@ -704,7 +724,10 @@ func (r *EntityRepository) QueryByGroup(ctx context.Context, gid uuid.UUID, q En
 
 		if len(q.ParentIDs) > 0 {
 			parentPredicates := lo.Map(q.ParentIDs, func(l uuid.UUID, _ int) predicate.Entity {
-				return entity.HasParentWith(entity.ID(l))
+				return entity.Or(
+					entity.HasParentWith(entity.ID(l)),
+					entity.HasStockAllocationsWith(entitystockallocation.LocationID(l)),
+				)
 			})
 			andPredicates = append(andPredicates, entity.Or(parentPredicates...))
 		}
@@ -759,6 +782,7 @@ func (r *EntityRepository) QueryByGroup(ctx context.Context, gid uuid.UUID, q En
 		WithTag().
 		WithParent().
 		WithEntityType().
+		WithStockAllocations().
 		WithAttachments(func(aq *ent.AttachmentQuery) {
 			aq.Where(
 				attachment.Primary(true),
@@ -782,6 +806,30 @@ func (r *EntityRepository) QueryByGroup(ctx context.Context, gid uuid.UUID, q En
 	}
 	fetchSpan.SetAttributes(attribute.Int("query.results.count", len(entities)))
 	fetchSpan.End()
+
+	if len(q.ParentIDs) > 0 {
+		filteredLocations := make(map[uuid.UUID]struct{}, len(q.ParentIDs))
+		for _, id := range q.ParentIDs {
+			filteredLocations[id] = struct{}{}
+		}
+		for i := range entities {
+			rows, allocationErr := r.db.EntityStockAllocation.Query().
+				Where(
+					entitystockallocation.EntityID(entities[i].ID),
+					entitystockallocation.LocationIDIn(q.ParentIDs...),
+				).
+				All(ctx)
+			if allocationErr != nil {
+				recordSpanError(span, allocationErr)
+				return PaginationResult[EntitySummary]{}, allocationErr
+			}
+			for _, row := range rows {
+				if _, ok := filteredLocations[*row.LocationID]; ok {
+					entities[i].AllocatedQuantity += row.Quantity
+				}
+			}
+		}
+	}
 
 	// Populate ItemCount for location-type entities
 	if q.IsLocation != nil && *q.IsLocation && len(entities) > 0 {
@@ -837,14 +885,13 @@ func (r *EntityRepository) getChildItemCounts(ctx context.Context, gid uuid.UUID
 	}
 
 	query := fmt.Sprintf(`
-		SELECT e.entity_children, COALESCE(SUM(e.quantity), 0)
-		FROM entities e
-		JOIN entity_types et ON et.id = e.entity_type_entities
+		SELECT esa.location_id, COALESCE(SUM(esa.quantity), 0)
+		FROM entity_stock_allocations esa
+		JOIN entities e ON e.id = esa.entity_id
 		WHERE e.group_entities = $1
-			AND et.is_location = false
 			AND e.archived = false
-			AND e.entity_children IN (%s)
-		GROUP BY e.entity_children
+			AND esa.location_id IN (%s)
+		GROUP BY esa.location_id
 	`, strings.Join(placeholders, ","))
 
 	rows, err := r.db.Sql().QueryContext(ctx, query, args...)
@@ -929,6 +976,10 @@ func (r *EntityRepository) GetAll(ctx context.Context, gid uuid.UUID) ([]EntityO
 		WithParent().
 		WithEntityType().
 		WithFields().
+		WithStockAllocations(func(q *ent.EntityStockAllocationQuery) {
+			q.WithLocation(func(eq *ent.EntityQuery) { eq.WithEntityType() })
+			q.Order(entitystockallocation.ByCreatedAt(), entitystockallocation.ByID())
+		}).
 		All(ctx))
 	if err != nil {
 		recordSpanError(span, err)
@@ -1064,7 +1115,27 @@ func (r *EntityRepository) Create(ctx context.Context, gid uuid.UUID, data Entit
 		return EntityOut{}, err
 	}
 
-	q := r.db.Entity.Create().
+	entityTypeID := data.EntityTypeID
+	if entityTypeID == uuid.Nil {
+		var err error
+		entityTypeID, err = r.resolveDefaultEntityType(ctx, gid, false)
+		if err != nil {
+			recordSpanError(span, err)
+			return EntityOut{}, err
+		}
+	}
+	tx, err := r.db.Tx(ctx)
+	if err != nil {
+		return EntityOut{}, err
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+	client := tx.Client()
+	q := client.Entity.Create().
 		SetImportRef(data.ImportRef).
 		SetName(data.Name).
 		SetQuantity(data.Quantity).
@@ -1078,17 +1149,7 @@ func (r *EntityRepository) Create(ctx context.Context, gid uuid.UUID, data Entit
 		q.SetParentID(data.ParentID)
 	}
 
-	if data.EntityTypeID != uuid.Nil {
-		q.SetEntityTypeID(data.EntityTypeID)
-	} else {
-		// Auto-resolve default "Item" entity type for the group
-		etID, err := r.resolveDefaultEntityType(ctx, gid, false)
-		if err != nil {
-			recordSpanError(span, err)
-			return EntityOut{}, err
-		}
-		q.SetEntityTypeID(etID)
-	}
+	q.SetEntityTypeID(entityTypeID)
 
 	if len(data.TagIDs) > 0 {
 		q.AddTagIDs(data.TagIDs...)
@@ -1099,6 +1160,16 @@ func (r *EntityRepository) Create(ctx context.Context, gid uuid.UUID, data Entit
 		recordSpanError(span, err)
 		return EntityOut{}, err
 	}
+	if r.stock != nil {
+		if err := r.stock.ensureInitialClient(ctx, client, gid, result.ID, data.Quantity); err != nil {
+			recordSpanError(span, err)
+			return EntityOut{}, err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return EntityOut{}, err
+	}
+	committed = true
 
 	span.SetAttributes(attribute.String("entity.id", result.ID.String()))
 	r.publishMutationEvent(gid)
@@ -1250,6 +1321,12 @@ func (r *EntityRepository) CreateFromTemplate(ctx context.Context, gid uuid.UUID
 		fieldsSpan.End()
 	}
 
+	if r.stock != nil {
+		if err := r.stock.ensureInitialClient(ctx, tx.Client(), gid, newEntityID, data.Quantity); err != nil {
+			recordSpanError(span, err)
+			return EntityOut{}, err
+		}
+	}
 	_, commitSpan := entityTracer().Start(ctx, "repo.EntityRepository.CreateFromTemplate.commit")
 	if err = tx.Commit(); err != nil {
 		recordSpanError(commitSpan, err)
@@ -1337,6 +1414,7 @@ func (r *EntityRepository) DeleteByGroup(ctx context.Context, gid, id uuid.UUID)
 			entity.HasGroupWith(group.ID(gid)),
 		).
 		WithAttachments().
+		WithEntityType().
 		Only(loadCtx)
 	if err != nil {
 		recordSpanError(loadSpan, err)
@@ -1345,6 +1423,16 @@ func (r *EntityRepository) DeleteByGroup(ctx context.Context, gid, id uuid.UUID)
 		return err
 	}
 	loadSpan.End()
+
+	if e.Edges.EntityType != nil && e.Edges.EntityType.IsLocation && r.stock != nil {
+		hasStock, err := r.stock.LocationHasStock(ctx, gid, id)
+		if err != nil {
+			return err
+		}
+		if hasStock {
+			return stockError("location_has_stock", "location contains allocated stock")
+		}
+	}
 
 	span.SetAttributes(attribute.Int("entity.attachments.count", len(e.Edges.Attachments)))
 
@@ -1499,6 +1587,7 @@ func (r *EntityRepository) WipeInventory(ctx context.Context, gid uuid.UUID, wip
 	return deleted, nil
 }
 
+//nolint:gocyclo // Full updates preserve the established optional metadata handling and stock compatibility rules.
 func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, data EntityUpdate) (EntityOut, error) {
 	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.UpdateByGroup",
 		trace.WithAttributes(
@@ -1536,7 +1625,40 @@ func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, dat
 		return EntityOut{}, err
 	}
 
-	q := r.db.Entity.Update().Where(entity.ID(data.ID), entity.HasGroupWith(group.ID(gid))).
+	tx, err := r.db.Tx(ctx)
+	if err != nil {
+		return EntityOut{}, err
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+	client := tx.Client()
+
+	current, err := client.Entity.Query().
+		Where(entity.ID(data.ID), entity.HasGroupWith(group.ID(gid))).
+		WithParent().
+		Only(ctx)
+	if err != nil {
+		return EntityOut{}, err
+	}
+	allocationCount, err := client.EntityStockAllocation.Query().
+		Where(entitystockallocation.EntityID(data.ID)).
+		Count(ctx)
+	if err != nil {
+		return EntityOut{}, err
+	}
+	currentParentID := uuid.Nil
+	if current.Edges.Parent != nil {
+		currentParentID = current.Edges.Parent.ID
+	}
+	if allocationCount > 1 && (math.Abs(current.Quantity-data.Quantity) > stockEpsilon || currentParentID != data.ParentID) {
+		return EntityOut{}, stockError("multi_location_stock", "quantity and location changes on multi-location items must use the stock endpoint")
+	}
+
+	q := client.Entity.Update().Where(entity.ID(data.ID), entity.HasGroupWith(group.ID(gid))).
 		SetName(data.Name).
 		SetDescription(data.Description).
 		SetSerialNumber(data.SerialNumber).
@@ -1580,7 +1702,7 @@ func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, dat
 	}
 
 	tagsCtx, tagsSpan := entityTracer().Start(ctx, "repo.EntityRepository.UpdateByGroup.tags")
-	currentTags, err := r.db.Entity.Query().Where(entity.ID(data.ID)).QueryTag().All(tagsCtx)
+	currentTags, err := client.Entity.Query().Where(entity.ID(data.ID)).QueryTag().All(tagsCtx)
 	if err != nil {
 		recordSpanError(tagsSpan, err)
 		tagsSpan.End()
@@ -1634,7 +1756,7 @@ func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, dat
 
 	fieldsCtx, fieldsSpan := entityTracer().Start(ctx, "repo.EntityRepository.UpdateByGroup.fields",
 		trace.WithAttributes(attribute.Int("fields.input.count", len(data.Fields))))
-	fields, err := r.db.EntityField.Query().Where(entityfield.HasEntityWith(entity.ID(data.ID))).All(fieldsCtx)
+	fields, err := client.EntityField.Query().Where(entityfield.HasEntityWith(entity.ID(data.ID))).All(fieldsCtx)
 	if err != nil {
 		recordSpanError(fieldsSpan, err)
 		fieldsSpan.End()
@@ -1650,7 +1772,7 @@ func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, dat
 	// Update Existing Fields
 	for _, f := range data.Fields {
 		if f.ID == uuid.Nil {
-			_, err = r.db.EntityField.Create().
+			_, err = client.EntityField.Create().
 				SetEntityID(data.ID).
 				SetType(entityfield.Type(f.Type)).
 				SetName(f.Name).
@@ -1667,7 +1789,7 @@ func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, dat
 			createdFields++
 		}
 
-		opt := r.db.EntityField.Update().
+		opt := client.EntityField.Update().
 			Where(
 				entityfield.ID(f.ID),
 				entityfield.HasEntityWith(entity.ID(data.ID)),
@@ -1693,7 +1815,7 @@ func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, dat
 
 	deletedFields := 0
 	if fieldIds.Len() > 0 {
-		deletedFields, err = r.db.EntityField.Delete().
+		deletedFields, err = client.EntityField.Delete().
 			Where(
 				entityfield.IDIn(fieldIds.Slice()...),
 				entityfield.HasEntityWith(entity.ID(data.ID)),
@@ -1711,6 +1833,18 @@ func (r *EntityRepository) UpdateByGroup(ctx context.Context, gid uuid.UUID, dat
 		attribute.Int("fields.deleted.count", deletedFields),
 	)
 	fieldsSpan.End()
+
+	if allocationCount <= 1 && r.stock != nil {
+		if err := r.stock.syncLegacyClient(ctx, client, gid, data.ID, data.Quantity, data.ParentID); err != nil {
+			recordSpanError(span, err)
+			return EntityOut{}, err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		recordSpanError(span, err)
+		return EntityOut{}, err
+	}
+	committed = true
 
 	r.publishMutationEvent(gid)
 	// Fetch the returned record scoped to the caller's group. The update above is
@@ -1798,6 +1932,7 @@ func patchSyncTags(ctx context.Context, tx *ent.Tx, gid, id uuid.UUID, want []uu
 	return nil
 }
 
+//nolint:gocyclo // Partial updates preserve the established field matrix and stock compatibility rules.
 func (r *EntityRepository) Patch(ctx context.Context, gid, id uuid.UUID, data EntityPatch) error {
 	ctx, span := entityTracer().Start(ctx, "repo.EntityRepository.Patch",
 		trace.WithAttributes(
@@ -1850,6 +1985,27 @@ func (r *EntityRepository) Patch(ctx context.Context, gid, id uuid.UUID, data En
 			entity.HasGroupWith(group.ID(gid)),
 		)
 
+	current, err := tx.Entity.Query().
+		Where(entity.ID(id), entity.HasGroupWith(group.ID(gid))).
+		WithParent().
+		Only(ctx)
+	if err != nil {
+		return err
+	}
+	allocationCount, err := tx.EntityStockAllocation.Query().
+		Where(entitystockallocation.EntityID(id)).
+		Count(ctx)
+	if err != nil {
+		return err
+	}
+	currentParentID := uuid.Nil
+	if current.Edges.Parent != nil {
+		currentParentID = current.Edges.Parent.ID
+	}
+	if allocationCount > 1 && data.ParentID != uuid.Nil && data.ParentID != currentParentID {
+		return stockError("multi_location_stock", "location changes on multi-location items must use the stock endpoint")
+	}
+
 	if data.ImportRef != nil {
 		q.SetImportRef(*data.ImportRef)
 	}
@@ -1860,6 +2016,9 @@ func (r *EntityRepository) Patch(ctx context.Context, gid, id uuid.UUID, data En
 			return err
 		}
 
+		if allocationCount > 1 && math.Abs(current.Quantity-*data.Quantity) > stockEpsilon {
+			return stockError("multi_location_stock", "quantity changes on multi-location items must use the stock endpoint")
+		}
 		q.SetQuantity(*data.Quantity)
 	}
 
@@ -1890,6 +2049,21 @@ func (r *EntityRepository) Patch(ctx context.Context, gid, id uuid.UUID, data En
 
 	// A parent change deliberately leaves children alone: they stay attached
 	// to this entity and follow it through the ancestor chain (#1591).
+
+	if allocationCount <= 1 && r.stock != nil && (data.Quantity != nil || data.ParentID != uuid.Nil) {
+		quantity := current.Quantity
+		if data.Quantity != nil {
+			quantity = *data.Quantity
+		}
+		parentID := currentParentID
+		if data.ParentID != uuid.Nil {
+			parentID = data.ParentID
+		}
+		if err := r.stock.syncLegacyClient(ctx, tx.Client(), gid, id, quantity, parentID); err != nil {
+			recordSpanError(span, err)
+			return err
+		}
+	}
 
 	_, commitSpan := entityTracer().Start(ctx, "repo.EntityRepository.Patch.commit")
 	if err := tx.Commit(); err != nil {
@@ -2338,6 +2512,12 @@ func (r *EntityRepository) Duplicate(ctx context.Context, gid, id uuid.UUID, opt
 		maintSpan.End()
 	}
 
+	if r.stock != nil {
+		if err := r.stock.ensureInitialClient(ctx, tx.Client(), gid, newEntityID, originalEntity.Quantity); err != nil {
+			recordSpanError(span, err)
+			return EntityOut{}, err
+		}
+	}
 	_, commitSpan := entityTracer().Start(ctx, "repo.EntityRepository.Duplicate.commit")
 	if err := tx.Commit(); err != nil {
 		recordSpanError(commitSpan, err)
@@ -2379,16 +2559,11 @@ func (r *EntityRepository) GetAllContainers(ctx context.Context, gid uuid.UUID, 
 			e.created_at,
 			e.updated_at,
 			(
-				SELECT
-					SUM(child.quantity)
-				FROM
-					entities child
-				JOIN
-					entity_types ct ON ct.id = child.entity_type_entities
-				WHERE
-					child.entity_children = e.id
+				SELECT SUM(esa.quantity)
+				FROM entity_stock_allocations esa
+				JOIN entities child ON child.id = esa.entity_id
+				WHERE esa.location_id = e.id
 					AND child.archived = false
-					AND ct.is_location = false
 			) as item_count
 		FROM
 			entities e

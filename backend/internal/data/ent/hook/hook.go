@@ -81,6 +81,30 @@ func (f EntityFieldFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EntityFieldMutation", m)
 }
 
+// The EntityStockAllocationFunc type is an adapter to allow the use of ordinary
+// function as EntityStockAllocation mutator.
+type EntityStockAllocationFunc func(context.Context, *ent.EntityStockAllocationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EntityStockAllocationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EntityStockAllocationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EntityStockAllocationMutation", m)
+}
+
+// The EntityStockTransactionFunc type is an adapter to allow the use of ordinary
+// function as EntityStockTransaction mutator.
+type EntityStockTransactionFunc func(context.Context, *ent.EntityStockTransactionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EntityStockTransactionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EntityStockTransactionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EntityStockTransactionMutation", m)
+}
+
 // The EntityTemplateFunc type is an adapter to allow the use of ordinary
 // function as EntityTemplate mutator.
 type EntityTemplateFunc func(context.Context, *ent.EntityTemplateMutation) (ent.Value, error)

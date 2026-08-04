@@ -51,6 +51,26 @@ func TestLocationLayoutReplaceAndGet(t *testing.T) {
 	assert.Equal(t, out, loaded)
 }
 
+func TestLocationLayoutItemCountSumsAllocatedQuantity(t *testing.T) {
+	ctx := context.Background()
+	owner := createTestLocation(t, tGroup.ID, "Quantity room", uuid.Nil)
+	child := createTestLocation(t, tGroup.ID, "Quantity shelf", owner.ID)
+	itemType := useItemEntityType(t)
+	item, err := tRepos.Entities.Create(ctx, tGroup.ID, EntityCreate{
+		Name:         "Decimal stock " + uuid.NewString(),
+		ParentID:     child.ID,
+		EntityTypeID: itemType.ID,
+		Quantity:     2.5,
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = tRepos.Entities.DeleteByGroup(ctx, tGroup.ID, item.ID) })
+
+	out, err := tRepos.LocationLayouts.Replace(ctx, tGroup.ID, owner.ID, validLayoutInput(child.ID, 0))
+	require.NoError(t, err)
+	require.Len(t, out.Locations, 1)
+	assert.InDelta(t, 2.5, out.Locations[0].ItemCount, 0.000001)
+}
+
 func TestLocationLayoutTenantIsolation(t *testing.T) {
 	owner := createTestLocation(t, tGroup.ID, "Private room", uuid.Nil)
 	otherGroup, err := tRepos.Groups.GroupCreate(context.Background(), "layout-other", uuid.Nil)

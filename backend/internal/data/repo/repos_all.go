@@ -24,10 +24,13 @@ type AllRepos struct {
 	Notifiers           *NotifierRepository
 	Exports             *ExportRepository
 	LocationLayouts     *LocationLayoutRepository // homebox-fork: overhead-location-layout
+	Stock               *StockRepository
 }
 
 func New(db *ent.Client, bus *eventbus.EventBus, storage config.Storage, pubSubConn string, thumbnail config.Thumbnail) *AllRepos {
 	attachments := &AttachmentRepo{db, storage, pubSubConn, thumbnail}
+	stock := NewStockRepository(db, bus)
+	entities := &EntityRepository{db: db, bus: bus, attachments: attachments, stock: stock}
 	return &AllRepos{
 		Users:               &UserRepository{db},
 		AuthTokens:          &TokenRepository{db},
@@ -35,7 +38,7 @@ func New(db *ent.Client, bus *eventbus.EventBus, storage config.Storage, pubSubC
 		QRLoginTokens:       &QRLoginTokenRepository{db}, // homebox-fork: qr-login
 		APIKeys:             NewAPIKeyRepository(db),
 		Groups:              NewGroupRepository(db),
-		Entities:            &EntityRepository{db, bus, attachments},
+		Entities:            entities,
 		EntityTypes:         &EntityTypeRepository{db, bus},
 		EntityTemplates:     &EntityTemplatesRepository{db, bus},
 		Tags:                &TagRepository{db, bus},
@@ -44,5 +47,6 @@ func New(db *ent.Client, bus *eventbus.EventBus, storage config.Storage, pubSubC
 		Notifiers:           NewNotifierRepository(db),
 		Exports:             &ExportRepository{db},
 		LocationLayouts:     NewLocationLayoutRepository(db), // homebox-fork: overhead-location-layout
+		Stock:               stock,
 	}
 }

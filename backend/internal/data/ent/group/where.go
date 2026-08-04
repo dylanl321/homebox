@@ -470,6 +470,29 @@ func HasExportsWith(preds ...predicate.Export) predicate.Group {
 	})
 }
 
+// HasStockTransactions applies the HasEdge predicate on the "stock_transactions" edge.
+func HasStockTransactions() predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, StockTransactionsTable, StockTransactionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasStockTransactionsWith applies the HasEdge predicate on the "stock_transactions" edge with a given conditions (other predicates).
+func HasStockTransactionsWith(preds ...predicate.EntityStockTransaction) predicate.Group {
+	return predicate.Group(func(s *sql.Selector) {
+		step := newStockTransactionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasUserGroups applies the HasEdge predicate on the "user_groups" edge.
 func HasUserGroups() predicate.Group {
 	return predicate.Group(func(s *sql.Selector) {

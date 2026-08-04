@@ -120,6 +120,9 @@ func (Entity) Edges() []ent.Edge {
 		owned("fields", EntityField.Type),
 		owned("maintenance_entries", MaintenanceEntry.Type),
 		owned("attachments", Attachment.Type),
+		owned("stock_allocations", EntityStockAllocation.Type),
+		owned("stock_transactions", EntityStockTransaction.Type),
+		edge.To("stock_location_allocations", EntityStockAllocation.Type),
 		// homebox-fork: overhead-location-layout
 		edge.To("location_layout", LocationLayout.Type).
 			Unique().

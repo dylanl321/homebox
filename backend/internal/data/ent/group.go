@@ -50,11 +50,13 @@ type GroupEdges struct {
 	EntityTemplates []*EntityTemplate `json:"entity_templates,omitempty"`
 	// Exports holds the value of the exports edge.
 	Exports []*Export `json:"exports,omitempty"`
+	// StockTransactions holds the value of the stock_transactions edge.
+	StockTransactions []*EntityStockTransaction `json:"stock_transactions,omitempty"`
 	// UserGroups holds the value of the user_groups edge.
 	UserGroups []*UserGroup `json:"user_groups,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [9]bool
+	loadedTypes [10]bool
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -129,10 +131,19 @@ func (e GroupEdges) ExportsOrErr() ([]*Export, error) {
 	return nil, &NotLoadedError{edge: "exports"}
 }
 
+// StockTransactionsOrErr returns the StockTransactions value or an error if the edge
+// was not loaded in eager-loading.
+func (e GroupEdges) StockTransactionsOrErr() ([]*EntityStockTransaction, error) {
+	if e.loadedTypes[8] {
+		return e.StockTransactions, nil
+	}
+	return nil, &NotLoadedError{edge: "stock_transactions"}
+}
+
 // UserGroupsOrErr returns the UserGroups value or an error if the edge
 // was not loaded in eager-loading.
 func (e GroupEdges) UserGroupsOrErr() ([]*UserGroup, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.UserGroups, nil
 	}
 	return nil, &NotLoadedError{edge: "user_groups"}
@@ -245,6 +256,11 @@ func (_m *Group) QueryEntityTemplates() *EntityTemplateQuery {
 // QueryExports queries the "exports" edge of the Group entity.
 func (_m *Group) QueryExports() *ExportQuery {
 	return NewGroupClient(_m.config).QueryExports(_m)
+}
+
+// QueryStockTransactions queries the "stock_transactions" edge of the Group entity.
+func (_m *Group) QueryStockTransactions() *EntityStockTransactionQuery {
+	return NewGroupClient(_m.config).QueryStockTransactions(_m)
 }
 
 // QueryUserGroups queries the "user_groups" edge of the Group entity.

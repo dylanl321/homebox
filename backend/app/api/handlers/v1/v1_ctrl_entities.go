@@ -151,7 +151,7 @@ func (ctrl *V1Controller) HandleEntitiesGetAll() errchain.HandlerFunc {
 			if !item.SoldDate.Time().IsZero() {
 				continue
 			}
-			totalPrice.Add(totalPrice, big.NewInt(int64(math.Round(item.PurchasePrice*100))))
+			totalPrice.Add(totalPrice, big.NewInt(int64(math.Round(item.PurchasePrice*item.Quantity*100))))
 		}
 
 		totalPriceFloat, _ := new(big.Float).Quo(new(big.Float).SetInt(totalPrice), big.NewFloat(100)).Float64()
@@ -281,6 +281,7 @@ func (ctrl *V1Controller) HandleEntityDelete() errchain.HandlerFunc {
 		err := ctrl.repo.Entities.DeleteByGroup(auth, auth.GID, ID)
 		if err != nil {
 			recordCtrlSpanError(span, err)
+			return nil, stockRequestError(err)
 		}
 		return nil, err
 	}
@@ -319,6 +320,7 @@ func (ctrl *V1Controller) HandleEntityUpdate() errchain.HandlerFunc {
 		out, err := ctrl.repo.Entities.UpdateByGroup(auth, auth.GID, body)
 		if err != nil {
 			recordCtrlSpanError(span, err)
+			return out, stockRequestError(err)
 		}
 		return out, err
 	}
@@ -355,7 +357,7 @@ func (ctrl *V1Controller) HandleEntityPatch() errchain.HandlerFunc {
 		err := ctrl.repo.Entities.Patch(auth, auth.GID, ID, body)
 		if err != nil {
 			recordCtrlSpanError(span, err)
-			return repo.EntityOut{}, err
+			return repo.EntityOut{}, stockRequestError(err)
 		}
 
 		out, err := ctrl.repo.Entities.GetOneByGroup(auth, auth.GID, ID)

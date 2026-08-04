@@ -33,6 +33,7 @@
   import DropZone from "~/components/global/DropZone.vue";
   import EntitySelector from "~/components/Entity/Selector.vue";
   import { useEntityTypeStore } from "~/stores/entityTypes";
+  import type { StockEntityOut } from "~~/lib/api/types/stock";
 
   const { t } = useI18n();
 
@@ -75,10 +76,10 @@
     // location stays e.g. "Attic" (#1589).
     location.value = data.location ?? (data.parent?.entityType?.isLocation ? data.parent : null);
 
-    return data;
+    return data as StockEntityOut;
   });
 
-  const item = ref<EntityOut & { tagIds: string[] }>(null as never);
+  const item = ref<StockEntityOut & { tagIds: string[] }>(null as never);
 
   watchEffect(() => {
     if (nullableItem.value) {
@@ -88,6 +89,10 @@
       };
     }
   });
+
+  const isMultiLocation = computed(
+    () => (item.value?.stock?.allocations.filter(allocation => allocation.quantity > 0).length ?? 0) > 1
+  );
 
   onMounted(() => {
     refresh();
@@ -190,7 +195,7 @@
 
   type FormField = TextFormField | BoolFormField | DateFormField | NumberFormField;
 
-  const mainFields: FormField[] = [
+  const baseMainFields: FormField[] = [
     {
       type: "text",
       label: "items.name",
@@ -250,6 +255,7 @@
       ref: "assetId",
     },
   ];
+  const mainFields = computed(() => baseMainFields.filter(field => !isMultiLocation.value || field.ref !== "quantity"));
 
   const purchaseFields: FormField[] = [
     {
@@ -514,7 +520,9 @@
     } as unknown as EntityFieldData);
   }
 
-  const { query, results, isLoading, triggerSearch } = useItemSearch(api, { immediate: false });
+  const { query, results, isLoading, triggerSearch } = useItemSearch(api, {
+    immediate: false,
+  });
   const parent = ref();
   // Derived location shown in the "Location" selector. Kept separate from
   // `parent` (the "Parent Item" selector): when a parent item is chosen it
@@ -611,7 +619,9 @@
 
         <FormTextField v-model="editState.title" :label="$t('items.edit.edit_attachment_dialog.attachment_title')" />
         <div>
-          <Label for="attachment-type"> {{ $t("items.edit.edit_attachment_dialog.attachment_type") }} </Label>
+          <Label for="attachment-type">
+            {{ $t("items.edit.edit_attachment_dialog.attachment_type") }}
+          </Label>
           <Select id="attachment-type" v-model:model-value="editState.type">
             <SelectTrigger>
               <SelectValue :placeholder="$t('items.edit.edit_attachment_dialog.select_type')" />
@@ -673,9 +683,16 @@
       <div v-if="!requestPending" class="space-y-6">
         <BaseCard class="overflow-visible">
           <template #title> {{ $t("items.edit_details") }} </template>
+          <div v-if="isMultiLocation" class="border-t bg-muted/40 px-5 py-3 text-sm">
+            {{ $t("stock.multi_location_edit_notice") }}
+            <NuxtLink :to="`/item/${itemId}`" class="font-medium text-primary hover:underline">
+              {{ $t("stock.open_manager") }}
+            </NuxtLink>
+          </div>
           <div class="mb-6 grid gap-4 border-t px-5 pt-2 md:grid-cols-2">
-            <LocationSelector v-model="location" @update:model-value="onLocationChanged()" />
+            <LocationSelector v-if="!isMultiLocation" v-model="location" @update:model-value="onLocationChanged()" />
             <ItemSelector
+              v-if="!isMultiLocation"
               v-model="parent"
               v-model:search="query"
               :items="results"
@@ -687,7 +704,7 @@
               :trigger-search="triggerSearch"
               @update:model-value="maybeSyncWithParentLocation()"
             />
-            <div class="flex flex-col gap-2">
+            <div v-if="!isMultiLocation" class="flex flex-col gap-2">
               <Label class="px-1">{{ $t("items.sync_child_locations") }}</Label>
               <Switch v-model="item.syncChildEntityLocations" @update:model-value="syncChildEntityLocations()" />
             </div>
@@ -780,7 +797,9 @@
             </div>
           </div>
           <div class="mt-4 flex justify-end px-5 pb-4">
-            <Button size="sm" @click="addField"> {{ $t("global.add") }} </Button>
+            <Button size="sm" @click="addField">
+              {{ $t("global.add") }}
+            </Button>
           </div>
         </BaseCard>
 
@@ -791,16 +810,30 @@
           @drop.prevent="handleAttachmentCardDrop"
         >
           <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg font-medium leading-6">{{ $t("items.attachments") }}</h3>
-            <p class="text-xs">{{ $t("items.changes_persisted_immediately") }}</p>
+            <h3 class="text-lg font-medium leading-6">
+              {{ $t("items.attachments") }}
+            </h3>
+            <p class="text-xs">
+              {{ $t("items.changes_persisted_immediately") }}
+            </p>
           </div>
           <div class="border-t p-4">
             <div v-if="attDropZoneActive" class="grid grid-cols-4 gap-4">
-              <DropZone data-link-type="photo" @drop="dropPhoto"> {{ $t("items.photos") }} </DropZone>
-              <DropZone data-link-type="warranty" @drop="dropWarranty"> {{ $t("items.warranty") }} </DropZone>
-              <DropZone data-link-type="manual" @drop="dropManual"> {{ $t("items.manuals") }} </DropZone>
-              <DropZone data-link-type="attachment" @drop="dropAttachment"> {{ $t("items.attachments") }} </DropZone>
-              <DropZone data-link-type="receipt" @drop="dropReceipt"> {{ $t("items.receipts") }} </DropZone>
+              <DropZone data-link-type="photo" @drop="dropPhoto">
+                {{ $t("items.photos") }}
+              </DropZone>
+              <DropZone data-link-type="warranty" @drop="dropWarranty">
+                {{ $t("items.warranty") }}
+              </DropZone>
+              <DropZone data-link-type="manual" @drop="dropManual">
+                {{ $t("items.manuals") }}
+              </DropZone>
+              <DropZone data-link-type="attachment" @drop="dropAttachment">
+                {{ $t("items.attachments") }}
+              </DropZone>
+              <DropZone data-link-type="receipt" @drop="dropReceipt">
+                {{ $t("items.receipts") }}
+              </DropZone>
             </div>
             <button
               v-else
@@ -896,7 +929,9 @@
 
         <Card v-if="preferences.editorAdvancedView" class="overflow-visible shadow-xl">
           <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg font-medium leading-6">{{ $t("items.purchase_details") }}</h3>
+            <h3 class="text-lg font-medium leading-6">
+              {{ $t("items.purchase_details") }}
+            </h3>
           </div>
           <div class="border-t sm:p-0">
             <div v-for="field in purchaseFields" :key="field.ref" class="grid grid-cols-1 sm:divide-y">
@@ -946,7 +981,9 @@
 
         <Card v-if="preferences.editorAdvancedView" class="overflow-visible shadow-xl">
           <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg font-medium leading-6">{{ $t("items.warranty_details") }}</h3>
+            <h3 class="text-lg font-medium leading-6">
+              {{ $t("items.warranty_details") }}
+            </h3>
           </div>
           <div class="border-t sm:p-0">
             <div v-for="field in warrantyFields" :key="field.ref" class="grid grid-cols-1 sm:divide-y">
@@ -996,7 +1033,9 @@
 
         <Card v-if="preferences.editorAdvancedView" class="overflow-visible shadow-xl">
           <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg font-medium leading-6">{{ $t("items.sold_details") }}</h3>
+            <h3 class="text-lg font-medium leading-6">
+              {{ $t("items.sold_details") }}
+            </h3>
           </div>
           <div class="border-t sm:p-0">
             <div v-for="field in soldFields" :key="field.ref" class="grid grid-cols-1 sm:divide-y">
